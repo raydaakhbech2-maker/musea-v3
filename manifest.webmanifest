@@ -1,0 +1,14 @@
+{
+  "id": "./",
+  "name": "MUSEA — Réseau créatif",
+  "short_name": "MUSEA",
+  "description": "Prototype du réseau social créatif MUSEA",
+  "lang": "fr-FR",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f5fb",
+  "theme_color": "#191626",
+  "icons": []
+}
