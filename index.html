@@ -129,6 +129,9 @@ window.museaSupabase = window.supabase.createClient(
   <label class="label">Biographie</label><textarea class="field" id="bio" rows="2">Créateur en devenir ✨</textarea>
   <button class="btn primary full" style="margin-top:10px" onclick="saveProfile()">Enregistrer le profil</button></div>
   <div class="card"><div class="row between"><h3 class="h3">Mon activité</h3><span class="chip" id="privacyTag">Visible</span></div><p class="muted small">Les publications aimées et les collections apparaissent ici si tes préférences les rendent publiques.</p><div id="profileActivity"></div></div>
+  <div class="line"></div>
+<h3 class="h3">Mes publications</h3>
+<div id="myPosts"></div>
   <div class="card"><h3 class="h3">Points et avantages</h3><div class="premium-wall"><div class="eyebrow" style="color:#e1d9ff">Boutique de récompenses</div><h2 class="h2">Échange tes points.</h2><p class="small">Les points donnent accès à des éléments cosmétiques et à des options de personnalisation, jamais à une certification automatique.</p><button class="btn primary" onclick="navigate('rewards')">Voir les récompenses</button></div></div>
   <div class="card"><h3 class="h3">Abonnement</h3><p id="profilePlan">Offre gratuite</p><button class="btn primary full" onclick="showPlans()">Comparer les offres</button></div>
 </section>
