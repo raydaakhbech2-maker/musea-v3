@@ -370,7 +370,34 @@ function redeemWallpaper(){if(state.plan!=='premium')return toast('Le fond exclu
 function redeemBadge(){if(state.badge)return toast('Tu possèdes déjà ce badge de démonstration.');if(state.points<250)return toast('Il te faut 250 points.');state.points-=250;state.badge=true;save();renderRewards();renderProfile();document.getElementById('rewardStatus').classList.remove('hidden');document.getElementById('rewardStatus').textContent='Badge créateur débloqué. Il ne s’agit pas d’une certification.';toast('Badge cosmétique débloqué.')}
 function requestVerification(){if(state.plan!=='premium')return toast('La demande de certification est réservée aux comptes Premium éligibles.');if(state.points<5000)return toast('Éligibilité non atteinte : 5 000 points minimum, puis vérification indépendante.');toast('Tu peux soumettre une demande. L’approbation reste soumise à une vérification humaine et à des critères d’authenticité.')}
 function generateArt(){let p=document.getElementById('prompt').value.trim();if(!p)return toast('Décris ton idée avant de générer.');if(state.plan==='premium'&&state.points<0)return;document.getElementById('generated').classList.remove('hidden');document.getElementById('generated').innerHTML=`${artMarkup({title:p.slice(0,60),art:'a3'})}<p><strong>${escapeHtml(document.getElementById('artStyle').value)}</strong> · ${escapeHtml(document.getElementById('artFormat').value)}</p><div class="notice">Aperçu décoratif simulé : aucune image n'a été générée par une IA.</div><button class="btn primary full" style="margin-top:10px" onclick="publishDemo()">Publier dans le fil (démo)</button>`}
+function previewPostImage(event) {
+  const file = event.target.files[0];
+  const preview = document.getElementById('imagePreview');
 
+  if (!file) {
+    preview.innerHTML = '';
+    return;
+  }
+
+  if (!file.type.startsWith('image/')) {
+    toast('Choisis un fichier image.');
+    event.target.value = '';
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    toast('Image trop volumineuse : 5 Mo maximum.');
+    event.target.value = '';
+    return;
+  }
+
+  const url = URL.createObjectURL(file);
+
+  preview.innerHTML = `
+    <img src="${url}" alt="Aperçu de ta publication"
+      style="width:100%;max-height:300px;object-fit:contain;border-radius:14px">
+  `;
+}
 async function publishDemo() {
   const prompt = document.getElementById('prompt').value.trim();
 toast('Texte récupéré : ' + prompt);
