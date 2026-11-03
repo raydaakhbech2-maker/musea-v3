@@ -221,7 +221,7 @@ function generateArt(){let p=document.getElementById('prompt').value.trim();if(!
 
 async function publishDemo() {
   const prompt = document.getElementById('prompt').value.trim();
-  console.log('TEXTE ENVOYÉ :', prompt);
+toast('Texte récupéré : ' + prompt);
   const style = document.getElementById('artStyle').value;
 
   if (!prompt) {
