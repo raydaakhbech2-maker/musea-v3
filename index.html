@@ -218,7 +218,61 @@ function redeemWallpaper(){if(state.plan!=='premium')return toast('Le fond exclu
 function redeemBadge(){if(state.badge)return toast('Tu possèdes déjà ce badge de démonstration.');if(state.points<250)return toast('Il te faut 250 points.');state.points-=250;state.badge=true;save();renderRewards();renderProfile();document.getElementById('rewardStatus').classList.remove('hidden');document.getElementById('rewardStatus').textContent='Badge créateur débloqué. Il ne s’agit pas d’une certification.';toast('Badge cosmétique débloqué.')}
 function requestVerification(){if(state.plan!=='premium')return toast('La demande de certification est réservée aux comptes Premium éligibles.');if(state.points<5000)return toast('Éligibilité non atteinte : 5 000 points minimum, puis vérification indépendante.');toast('Tu peux soumettre une demande. L’approbation reste soumise à une vérification humaine et à des critères d’authenticité.')}
 function generateArt(){let p=document.getElementById('prompt').value.trim();if(!p)return toast('Décris ton idée avant de générer.');if(state.plan==='premium'&&state.points<0)return;document.getElementById('generated').classList.remove('hidden');document.getElementById('generated').innerHTML=`${artMarkup({title:p.slice(0,60),art:'a3'})}<p><strong>${escapeHtml(document.getElementById('artStyle').value)}</strong> · ${escapeHtml(document.getElementById('artFormat').value)}</p><div class="notice">Aperçu décoratif simulé : aucune image n'a été générée par une IA.</div><button class="btn primary full" style="margin-top:10px" onclick="publishDemo()">Publier dans le fil (démo)</button>`}
-function publishDemo(){let p={id:100+Date.now(),user:state.username,avatar:state.username[0]?.toUpperCase()||'M',title:document.getElementById('prompt').value.slice(0,60),desc:'Création de démonstration · style '+document.getElementById('artStyle').value,style:document.getElementById('artStyle').value,kind:'art',art:'a4',likes:0,tag:'#MaCreation'};defaultPosts.unshift(p);state.points+=10;save();toast('Création ajoutée au fil local. +10 points de démonstration pour ta contribution.');navigate('home')}
+
+async function publishDemo() {
+  const prompt = document.getElementById('prompt').value.trim();
+  const style = document.getElementById('artStyle').value;
+
+  if (!prompt) {
+    toast('Ajoute une description avant de publier.');
+    return;
+  }
+
+  const { data: userData, error: userError } =
+    await museaSupabase.auth.getUser();
+
+  if (userError || !userData.user) {
+    toast('Connecte-toi pour publier.');
+    return;
+  }
+
+  const { data: post, error } = await museaSupabase
+    .from('posts')
+    .insert({
+      user_id: userData.user.id,
+      caption: prompt.slice(0, 500),
+      style: style,
+      visibility: 'public'
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error(error);
+    toast('Erreur lors de la publication : ' + error.message);
+    return;
+  }
+
+  const p = {
+    id: post.id,
+    user: state.username,
+    avatar: state.username[0]?.toUpperCase() || 'M',
+    title: prompt.slice(0, 60),
+    desc: 'Création · style ' + style,
+    style: style,
+    kind: 'art',
+    art: 'a4',
+    likes: 0,
+    tag: '#MaCreation'
+  };
+
+  defaultPosts.unshift(p);
+  state.points += 10;
+  save();
+
+  toast('Publication enregistrée sur Supabase !');
+  navigate('home');
+}
 function quickWeb(url){document.getElementById('urlInput').value=url;openWeb()}
 function openWeb(){let raw=document.getElementById('urlInput').value.trim();if(!raw)return toast('Saisis une adresse ou une recherche.');let url;if(/^https?:\/\//i.test(raw))url=raw;else if(raw.includes('.')&&!raw.includes(' '))url='https://'+raw;else url='https://www.google.com/search?q='+encodeURIComponent(raw);try{let u=new URL(url);if(!['http:','https:'].includes(u.protocol))throw 0;window.open(u.href,'_blank','noopener,noreferrer');state.lastUrl=u.href;save();toast('Page ouverte dans un nouvel onglet du navigateur de ton appareil.')}catch(e){toast('Adresse invalide. Utilise une adresse HTTPS ou une recherche.')} }
 function bookmarkCurrent(){let u=state.lastUrl||document.getElementById('urlInput').value.trim();if(!u)return toast('Ouvre d’abord une page.');state.bookmarks=state.bookmarks||[];if(!state.bookmarks.includes(u))state.bookmarks.push(u);save();renderBookmarks();toast('Favori enregistré localement.')}
