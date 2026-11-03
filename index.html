@@ -199,8 +199,12 @@ function choosePlan(p){state.plan=p;save();document.getElementById('planModal').
 function showPlans(){document.getElementById('planModal').classList.remove('hidden')}
 function closePlans(){document.getElementById('planModal').classList.add('hidden')}
 function updatePlan(){let p=state.plan||'free';document.getElementById('planPill').textContent=p==='premium'?'✦ PREMIUM':'GRATUIT';document.getElementById('profilePlan').textContent=p==='premium'?'Premium — simulation, aucun paiement réel.':'Offre gratuite';}
-function artMarkup(p){return `<div class="art ${p.art}"><span>${escapeHtml(p.title)}</span></div>`}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function artMarkup(p){
+  if (p.image_url) {
+    return `<img src="${escapeHtml(p.image_url)}" alt="Image de la publication" style="width:100%;max-height:420px;object-fit:contain;border-radius:15px;background:var(--bg)">`;
+  }
+  return `<div class="art ${p.art}"><span>${escapeHtml(p.title)}</span></div>`;
+}function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function postMarkup(p){let liked=state.liked.includes(p.id),saved=state.saved.includes(p.id);return `<article class="card"><div class="post-head"><div class="avatar">${p.avatar||'✦'}</div><div style="flex:1"><strong>${escapeHtml(p.user)}</strong><div class="small muted">${escapeHtml(p.style)} · ${p.tag}</div></div><button class="iconbtn" onclick="toast('Options de publication : signaler, bloquer, masquer (démo).')">•••</button></div>${artMarkup(p)}<div class="post-title">${escapeHtml(p.title)}</div><div>${escapeHtml(p.desc)}</div><div class="row wrap" style="margin-top:9px"><span class="chip">${p.tag}</span><button class="chip" onclick="translatePost(${p.id})">文 Traduire</button></div><div class="post-actions"><button class="iconbtn ${liked?'on':''}" onclick="toggleLike(${p.id})">♡ ${p.likes+(liked?1:0)}</button><button class="iconbtn" onclick="commentPost(${p.id})">▢ ${state.comments[p.id]?.length||0}</button><button class="iconbtn ${saved?'on':''}" onclick="toggleSave(${p.id})">☆ ${saved?'Enregistré':'Enregistrer'}</button><button class="iconbtn" onclick="toast('Repost simulé. Un vrai repost doit afficher la source originale.')">⟳ Reposter</button></div><div id="comments-${p.id}"></div></article>`}
 async function renderFeed(){
   const feed = document.getElementById('feed');
