@@ -272,8 +272,90 @@ function sendMessage(){let el=document.getElementById('messageInput'),v=el.value
 function createGroup(){let n=document.getElementById('groupName').value.trim();if(!n)return toast('Donne un nom au groupe.');state.groups.push(n);save();document.getElementById('groupName').value='';document.getElementById('groups').innerHTML=state.groups.map(g=>`<div class="notice" style="margin-top:8px">👥 ${escapeHtml(g)} · groupe de démonstration</div>`).join('');toast('Groupe créé localement.')}
 function renderNotifications(){document.getElementById('notifCount').textContent=state.notifications.filter(n=>!n.read).length;document.getElementById('notificationList').innerHTML=state.notifications.map((n,i)=>`<div class="switchrow" style="align-items:flex-start"><div style="flex:1"><div class="row wrap"><strong>${escapeHtml(n.type)}</strong>${n.read?'':'<span class="tag">Nouveau</span>'}</div><div>${escapeHtml(n.text)}</div><div class="small muted">${escapeHtml(n.time)}</div></div><button class="iconbtn" onclick="state.notifications[${i}].read=true;save();renderNotifications()">✓</button></div>`).join('')||'<p class="muted">Aucune notification.</p>';let types=['Likes et commentaires','Mentions','Messages','Nouveaux abonnés','Recommandations Pour toi','Tendances hebdomadaires'];document.getElementById('notificationSettings').innerHTML=types.map(t=>`<div class="switchrow"><span>${t}</span><input type="checkbox" checked onchange="toast('Préférence enregistrée pour cette démo.')"></div>`).join('')}
 function markRead(){state.notifications.forEach(n=>n.read=true);save();renderNotifications();toast('Notifications marquées comme lues.')}
-function renderProfile(){document.getElementById('profileName').textContent='@'+state.username;document.getElementById('profileBio').textContent=state.bio;document.getElementById('username').value=state.username;document.getElementById('bio').value=state.bio;document.getElementById('pointsStat').textContent=state.points;document.getElementById('likesStat').textContent=state.liked.length;document.getElementById('privacyTag').textContent=state.prefs.private?'Privé':'Visible';let items=[];if(state.prefs.likes)items.push(...defaultPosts.filter(p=>state.liked.includes(p.id)).map(p=>`<div class="row" style="margin:7px 0"><span>♡</span><div><strong>${escapeHtml(p.title)}</strong><div class="small muted">Aimé · ${escapeHtml(p.user)}</div></div></div>`));if(state.prefs.collections)items.push(...defaultPosts.filter(p=>state.saved.includes(p.id)).map(p=>`<div class="row" style="margin:7px 0"><span>☆</span><div><strong>${escapeHtml(p.title)}</strong><div class="small muted">Dans tes collections</div></div></div>`));document.getElementById('profileActivity').innerHTML=state.prefs.private?'<div class="notice">Ton profil est privé. Ton activité n’est pas affichée publiquement.</div>':items.join('')||'<p class="muted small">Tes réactions et collections apparaîtront ici selon tes préférences.</p>';document.getElementById('followersStat').textContent=24+state.following.length;document.getElementById('prefLikes').checked=state.prefs.likes;document.getElementById('prefCollections').checked=state.prefs.collections;document.getElementById('prefOnline').checked=state.prefs.online;document.getElementById('prefDM').checked=state.prefs.dm;document.getElementById('prefPrivate').checked=state.prefs.private;updatePlan()}
-function saveProfile(){state.username=document.getElementById('username').value.trim().replace(/^@/,'')||'monprofil';state.bio=document.getElementById('bio').value.trim();save();renderProfile();toast('Profil enregistré localement.')}
+async function renderProfile(){
+  document.getElementById('profileName').textContent='@'+state.username;
+  document.getElementById('profileBio').textContent=state.bio;
+  document.getElementById('username').value=state.username;
+  document.getElementById('bio').value=state.bio;
+  document.getElementById('pointsStat').textContent=state.points;
+  document.getElementById('likesStat').textContent=state.liked.length;
+  document.getElementById('privacyTag').textContent=state.prefs.private?'Privé':'Visible';
+
+  let items=[];
+
+  if(state.prefs.likes){
+    items.push(...defaultPosts.filter(p=>state.liked.includes(p.id)).map(p=>
+      `<div class="row" style="margin:7px 0"><span>♡</span><div><strong>${escapeHtml(p.title)}</strong><div class="small muted">Aimé · ${escapeHtml(p.user)}</div></div></div>`
+    ));
+  }
+
+  if(state.prefs.collections){
+    items.push(...defaultPosts.filter(p=>state.saved.includes(p.id)).map(p=>
+      `<div class="row" style="margin:7px 0"><span>☆</span><div><strong>${escapeHtml(p.title)}</strong><div class="small muted">Dans tes collections</div></div></div>`
+    ));
+  }
+
+  document.getElementById('profileActivity').innerHTML=
+    state.prefs.private
+      ? '<div class="notice">Ton profil est privé. Ton activité n’est pas affichée publiquement.</div>'
+      : items.join('')||'<p class="muted small">Tes réactions et collections apparaîtront ici selon tes préférences.</p>';
+
+  document.getElementById('followersStat').textContent=24+state.following.length;
+  document.getElementById('prefLikes').checked=state.prefs.likes;
+  document.getElementById('prefCollections').checked=state.prefs.collections;
+  document.getElementById('prefOnline').checked=state.prefs.online;
+  document.getElementById('prefDM').checked=state.prefs.dm;
+  document.getElementById('prefPrivate').checked=state.prefs.private;
+
+  updatePlan();
+
+  const container=document.getElementById('myPosts');
+  if(!container) return;
+
+  container.innerHTML='<p class="muted small">Chargement de tes publications...</p>';
+
+  try {
+    const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+    if(userError) throw userError;
+
+    if(!userData.user){
+      container.innerHTML='<p class="muted small">Connecte-toi pour voir tes publications.</p>';
+      return;
+    }
+
+    const {data:posts,error}=await museaSupabase
+      .from('posts')
+      .select('id,user_id,caption,style,created_at')
+      .eq('user_id',userData.user.id)
+      .order('created_at',{ascending:false});
+
+    if(error) throw error;
+
+    if(!posts || posts.length===0){
+      container.innerHTML='<p class="muted small">Tu n’as pas encore publié de création.</p>';
+      return;
+    }
+
+    const myPublications=posts.map(p=>({
+      id:p.id,
+      user:state.username,
+      avatar:state.username[0]?.toUpperCase()||'M',
+      title:(p.caption||'Publication').slice(0,60),
+      desc:p.caption||'',
+      style:p.style||'Création',
+      kind:'art',
+      art:'a4',
+      likes:0,
+      tag:'#MaCreation'
+    }));
+
+    container.innerHTML=myPublications.map(postMarkup).join('');
+
+  } catch(error) {
+    console.error(error);
+    container.innerHTML='<p class="muted small">Impossible de charger tes publications.</p>';
+  }
+}function saveProfile(){state.username=document.getElementById('username').value.trim().replace(/^@/,'')||'monprofil';state.bio=document.getElementById('bio').value.trim();save();renderProfile();toast('Profil enregistré localement.')}
 function savePrefs(){state.prefs={likes:document.getElementById('prefLikes').checked,collections:document.getElementById('prefCollections').checked,online:document.getElementById('prefOnline').checked,dm:document.getElementById('prefDM').checked,private:document.getElementById('prefPrivate').checked};save();renderProfile();renderMessages();toast('Préférences mises à jour.')}
 function renderRewards(){document.getElementById('rewardPoints').textContent=state.points;document.getElementById('wallpaperBtn').textContent=state.wallpaper?'Fond Aurora débloqué ✓':`Débloquer (Premium · 500 pts)`;document.getElementById('wallpaperBtn').disabled=state.wallpaper}
 function redeemWallpaper(){if(state.plan!=='premium')return toast('Le fond exclusif est réservé à Premium. Compare les offres dans ton profil.');if(state.points<500)return toast('Il te faut 500 points. Continue à participer à la communauté.');state.points-=500;state.wallpaper=true;save();renderRewards();renderProfile();toast('Fond Aurora débloqué dans la démo.')}
