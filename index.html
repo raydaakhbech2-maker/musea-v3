@@ -14,6 +14,13 @@
 @media(min-width:720px){.main{padding:22px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bottom{top:66px;bottom:0;left:auto;right:auto;width:78px;display:flex;flex-direction:column;justify-content:flex-start;padding:12px 6px;border-top:0;border-right:1px solid var(--line)}.bottom button{width:100%;flex:none;padding:12px 3px}.app{padding-left:78px;padding-bottom:0}.main{max-width:900px}.browserframe{height:440px}}
 @media(max-width:430px){.top{padding:10px}.main{padding:11px}.card{padding:13px}.art{height:195px}.pill{padding:6px 8px}.grid{gap:8px}}
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+window.museaSupabase = window.supabase.createClient(
+  "https://dujargvriuxwczkgsyua.supabase.co",
+  "sb_publishable_ZcM_kwCnPPfPLMs7nZEi4g_uoLCJIhM"
+);
+</script>
 </head>
 <body>
 <div class="app" id="app">
@@ -25,6 +32,35 @@
   <button class="iconbtn" onclick="navigate('profile')" aria-label="Profil">◉</button>
 </header>
 <main class="main" id="main">
+  <section class="card" id="accountCard">
+  <div class="eyebrow">Ton compte MUSEA</div>
+  <h2 class="h2">Bienvenue dans ton univers</h2>
+
+  <label class="label">Adresse e-mail</label>
+  <input class="field" id="authEmail" type="email"
+         placeholder="Adresse e-mail">
+
+  <label class="label">Mot de passe</label>
+  <input class="field" id="authPassword" type="password"
+         placeholder="6 caractères minimum">
+
+  <label class="label">Nom d'utilisateur</label>
+  <input class="field" id="authUsername"
+         placeholder="Ton pseudo">
+
+  <div class="row wrap" style="margin-top:12px">
+    <button class="btn primary" onclick="museaRegister()">
+      Créer mon compte
+    </button>
+    <button class="btn" onclick="museaLogin()">
+      Connexion
+    </button>
+  </div>
+
+  <p id="authMessage" class="small muted"></p>
+  <button id="authLogout" class="btn danger hidden"
+          onclick="museaLogout()">Déconnexion</button>
+  </section>
 <section class="screen active" id="screen-home">
   <div class="card hero">
     <div class="eyebrow">Ton univers créatif</div><h1 class="h1">Imagine. Crée.<br>Partage.</h1>
@@ -189,7 +225,103 @@ function bookmarkCurrent(){let u=state.lastUrl||document.getElementById('urlInpu
 function renderBookmarks(){let b=document.getElementById('bookmarks');if(!b)return;b.innerHTML=(state.bookmarks||[]).map(u=>`<button class="chip" onclick="quickWeb('${escapeHtml(u)}')">${escapeHtml(new URL(u).hostname)}</button>`).join('')||'<span class="small muted">Aucun favori pour le moment.</span>'}
 function translateDemo(){let lang=document.getElementById('language').value;let el=document.getElementById('translationResult');el.classList.remove('hidden');el.textContent='Simulation : le texte serait traduit en '+lang+' par un service IA. Aucune traduction externe n’a été effectuée.'}
 function init(){load();applyTheme();updatePlan();renderFeed();renderDiscover();renderLeaderboard();renderMessages();renderNotifications();renderProfile();renderBookmarks();if(!state.plan)showPlans();if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(state.theme==='system')applyTheme()})}
+async function museaMessage(text) {
+  document.getElementById('authMessage').textContent = text;
+}
+
+async function museaRegister() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const username = document.getElementById('authUsername').value
+    .trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
+
+  if (!email || password.length < 6 || username.length < 3) {
+    return museaMessage("Vérifie ton e-mail, ton mot de passe et ton pseudo.");
+  }
+
+  const {data, error} = await museaSupabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        username,
+        display_name: username
+      }
+    }
+  });
+
+  if (error) return museaMessage(error.message);
+
+  if (data.session) {
+    museaMessage("Compte créé et connexion réussie !");
+    await museaRefreshAccount();
+  } else {
+    museaMessage("Compte créé. Vérifie tes e-mails pour confirmer ton inscription.");
+  }
+}
+
+async function museaLogin() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+
+  const {data, error} = await museaSupabase.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) return museaMessage(error.message);
+
+  museaMessage("Connexion réussie !");
+  await museaRefreshAccount();
+}
+
+async function museaLogout() {
+  const {error} = await museaSupabase.auth.signOut();
+
+  if (error) return museaMessage(error.message);
+
+  museaMessage("Tu es déconnecté.");
+  await museaRefreshAccount();
+}
+
+async function museaRefreshAccount() {
+  const {data} = await museaSupabase.auth.getUser();
+  const user = data.user;
+
+  document.getElementById('authLogout')
+    .classList.toggle('hidden', !user);
+
+  if (!user) {
+    document.getElementById('profileName').textContent = '@monprofil';
+    return;
+  }
+
+  const {data: profile, error} = await museaSupabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (error) return museaMessage(error.message);
+
+  if (profile) {
+    state.username = profile.username;
+    state.bio = profile.bio || '';
+    save();
+    renderProfile();
+    document.getElementById('profileName').textContent =
+      '@' + profile.username;
+  }
+
+  museaMessage("Connecté : " + user.email);
+}
+
+museaSupabase.auth.onAuthStateChange(() => {
+  setTimeout(museaRefreshAccount, 0);
+});
+
 init();
+museaRefreshAccount();
 </script>
 </div>
 </body>
