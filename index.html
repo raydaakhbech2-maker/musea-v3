@@ -352,6 +352,7 @@ async function renderProfile(){
       avatar:state.username[0]?.toUpperCase()||'M',
       title:(p.caption||'Publication').slice(0,60),
       desc:p.caption||'',
+      image_url: p.image_url,
       style:p.style||'Création',
       kind:'art',
       art:'a4',
