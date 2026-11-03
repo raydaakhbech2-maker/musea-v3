@@ -83,6 +83,18 @@ window.museaSupabase = window.supabase.createClient(
 <section class="screen" id="screen-create">
   <div class="card"><div class="eyebrow">Studio IA</div><h2 class="h1">Donne forme à ton idée.</h2><p class="muted">Ce prototype simule la création. Une vraie génération nécessitera une API IA et un budget contrôlé.</p>
   <label class="label" for="prompt">Décris ton idée</label><textarea class="field" id="prompt" placeholder="Ex. : une cité flottante au-dessus des nuages, au coucher du soleil…">Une cité flottante au-dessus des nuages, au coucher du soleil</textarea>
+    <div class="line"></div>
+
+<label class="label" for="postImage">Ajouter une image</label>
+<input
+  class="field"
+  type="file"
+  id="postImage"
+  accept="image/*"
+  onchange="previewPostImage(event)"
+>
+
+<div id="imagePreview" style="margin-top:12px"></div>
   <label class="label">Style</label><select class="field" id="artStyle"><option>Digital art</option><option>Anime</option><option>Fantasy</option><option>Photorealistic</option><option>3D</option><option>Peinture</option><option>Minimaliste</option></select>
   <label class="label">Format</label><select class="field" id="artFormat"><option>Carré</option><option>Portrait</option><option>Paysage</option><option>Story 9:16</option></select>
   <div class="row between" style="margin:14px 0"><span class="muted small">Crédits disponibles</span><strong id="credits">5 / jour</strong></div>
