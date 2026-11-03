@@ -240,6 +240,7 @@ async function renderFeed(){
         avatar: username[0]?.toUpperCase() || 'M',
         title: (row.caption || 'Publication').slice(0, 60),
         desc: row.caption || '',
+        image_url: row.image_url,
         style: row.style || 'Création',
         kind: 'art',
         art: 'a4',
