@@ -489,51 +489,6 @@ async function publishDemo() {
 
   navigate('home');
 }
-  const { data: userData, error: userError } =
-    await museaSupabase.auth.getUser();
-
-  if (userError || !userData.user) {
-    toast('Connecte-toi pour publier.');
-    return;
-  }
-
-  const { data: post, error } = await museaSupabase
-    .from('posts')
-    .insert({
-      user_id: userData.user.id,
-      caption: prompt.slice(0, 500),
-      style: style,
-      visibility: 'public'
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error(error);
-    toast('Erreur lors de la publication : ' + error.message);
-    return;
-  }
-
-  const p = {
-    id: post.id,
-    user: state.username,
-    avatar: state.username[0]?.toUpperCase() || 'M',
-    title: prompt.slice(0, 60),
-    desc: 'Création · style ' + style,
-    style: style,
-    kind: 'art',
-    art: 'a4',
-    likes: 0,
-    tag: '#MaCreation'
-  };
-
-  // La publication est déjà enregistrée dans Supabase.
-  state.points += 10;
-  save();
-
-  toast('Publication enregistrée sur Supabase !');
-  navigate('home');
-}
 function quickWeb(url){document.getElementById('urlInput').value=url;openWeb()}
 function openWeb(){let raw=document.getElementById('urlInput').value.trim();if(!raw)return toast('Saisis une adresse ou une recherche.');let url;if(/^https?:\/\//i.test(raw))url=raw;else if(raw.includes('.')&&!raw.includes(' '))url='https://'+raw;else url='https://www.google.com/search?q='+encodeURIComponent(raw);try{let u=new URL(url);if(!['http:','https:'].includes(u.protocol))throw 0;window.open(u.href,'_blank','noopener,noreferrer');state.lastUrl=u.href;save();toast('Page ouverte dans un nouvel onglet du navigateur de ton appareil.')}catch(e){toast('Adresse invalide. Utilise une adresse HTTPS ou une recherche.')} }
 function bookmarkCurrent(){let u=state.lastUrl||document.getElementById('urlInput').value.trim();if(!u)return toast('Ouvre d’abord une page.');state.bookmarks=state.bookmarks||[];if(!state.bookmarks.includes(u))state.bookmarks.push(u);save();renderBookmarks();toast('Favori enregistré localement.')}
