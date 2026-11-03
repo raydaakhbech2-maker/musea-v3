@@ -243,10 +243,11 @@ async function museaRegister() {
     email,
     password,
     options: {
-      data: {
-        username,
-        display_name: username
-      }
+  emailRedirectTo: 'https://raydaakhbech2-maker.github.io/musea-v3/',
+  data: {
+    username,
+    display_name: username
+  }
     }
   });
 
