@@ -195,7 +195,66 @@ function updatePlan(){let p=state.plan||'free';document.getElementById('planPill
 function artMarkup(p){return `<div class="art ${p.art}"><span>${escapeHtml(p.title)}</span></div>`}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function postMarkup(p){let liked=state.liked.includes(p.id),saved=state.saved.includes(p.id);return `<article class="card"><div class="post-head"><div class="avatar">${p.avatar||'✦'}</div><div style="flex:1"><strong>${escapeHtml(p.user)}</strong><div class="small muted">${escapeHtml(p.style)} · ${p.tag}</div></div><button class="iconbtn" onclick="toast('Options de publication : signaler, bloquer, masquer (démo).')">•••</button></div>${artMarkup(p)}<div class="post-title">${escapeHtml(p.title)}</div><div>${escapeHtml(p.desc)}</div><div class="row wrap" style="margin-top:9px"><span class="chip">${p.tag}</span><button class="chip" onclick="translatePost(${p.id})">文 Traduire</button></div><div class="post-actions"><button class="iconbtn ${liked?'on':''}" onclick="toggleLike(${p.id})">♡ ${p.likes+(liked?1:0)}</button><button class="iconbtn" onclick="commentPost(${p.id})">▢ ${state.comments[p.id]?.length||0}</button><button class="iconbtn ${saved?'on':''}" onclick="toggleSave(${p.id})">☆ ${saved?'Enregistré':'Enregistrer'}</button><button class="iconbtn" onclick="toast('Repost simulé. Un vrai repost doit afficher la source originale.')">⟳ Reposter</button></div><div id="comments-${p.id}"></div></article>`}
-function renderFeed(){let posts=defaultPosts.filter(p=>feedKind==='all'||p.kind===feedKind);document.getElementById('feed').innerHTML=posts.map(postMarkup).join('');renderStories()}
+async function renderFeed(){
+  const feed = document.getElementById('feed');
+  feed.innerHTML = '<p class="muted small">Chargement des publications...</p>';
+
+  try {
+    const { data: rows, error } = await museaSupabase
+      .from('posts')
+      .select('id,user_id,caption,style,visibility,created_at')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) throw error;
+
+    const userIds = [...new Set((rows || []).map(p => p.user_id))];
+    let profiles = [];
+
+    if (userIds.length) {
+      const result = await museaSupabase
+        .from('profiles')
+        .select('id,username')
+        .in('id', userIds);
+
+      if (!result.error) profiles = result.data || [];
+    }
+
+    const realPosts = (rows || []).map(row => {
+      const profile = profiles.find(p => p.id === row.user_id);
+      const username = profile?.username || 'Utilisateur';
+
+      return {
+        id: row.id,
+        user: username,
+        avatar: username[0]?.toUpperCase() || 'M',
+        title: (row.caption || 'Publication').slice(0, 60),
+        desc: row.caption || '',
+        style: row.style || 'Création',
+        kind: 'art',
+        art: 'a4',
+        likes: 0,
+        tag: '#MaCreation'
+      };
+    });
+
+    const allPosts = [...realPosts, ...defaultPosts];
+    const filtered = allPosts.filter(p =>
+      feedKind === 'all' || p.kind === feedKind
+    );
+
+    feed.innerHTML = filtered.map(postMarkup).join('');
+  } catch (error) {
+    console.error(error);
+    const filtered = defaultPosts.filter(p =>
+      feedKind === 'all' || p.kind === feedKind
+    );
+    feed.innerHTML = filtered.map(postMarkup).join('');
+    toast('Impossible de charger les publications enregistrées.');
+  }
+
+  renderStories();
+}
 function setFeed(k,b){feedKind=k;document.querySelectorAll('#screen-home .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderFeed()}
 function toggleLike(id){if(state.liked.includes(id)){state.liked=state.liked.filter(x=>x!==id)}else{state.liked.push(id);state.notifications.unshift({type:'Activité',text:'Ta réaction a été enregistrée dans le prototype.',time:'À l’instant',read:false})}save();renderFeed();renderProfile();renderNotifications()}
 function toggleSave(id){if(state.saved.includes(id)){state.saved=state.saved.filter(x=>x!==id)}else{state.saved.push(id)}save();renderFeed();renderProfile();toast(state.saved.includes(id)?'Ajouté à tes collections.':'Retiré de tes collections.')}
