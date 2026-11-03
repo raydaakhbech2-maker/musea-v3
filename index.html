@@ -351,9 +351,10 @@ async function renderProfile(){
 
     container.innerHTML=myPublications.map(postMarkup).join('');
 
-  } catch(error) {
-    console.error(error);
-    container.innerHTML='<p class="muted small">Impossible de charger tes publications.</p>';
+} catch(error) {
+  console.error('Erreur chargement profil :', error);
+  container.innerHTML =
+    '<p class="muted small">Erreur Supabase : '+escapeHtml(error.message||'Erreur inconnue')+'</p>';
   }
 }function saveProfile(){state.username=document.getElementById('username').value.trim().replace(/^@/,'')||'monprofil';state.bio=document.getElementById('bio').value.trim();save();renderProfile();toast('Profil enregistré localement.')}
 function savePrefs(){state.prefs={likes:document.getElementById('prefLikes').checked,collections:document.getElementById('prefCollections').checked,online:document.getElementById('prefOnline').checked,dm:document.getElementById('prefDM').checked,private:document.getElementById('prefPrivate').checked};save();renderProfile();renderMessages();toast('Préférences mises à jour.')}
