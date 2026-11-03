@@ -400,14 +400,91 @@ function previewPostImage(event) {
 }
 async function publishDemo() {
   const prompt = document.getElementById('prompt').value.trim();
-toast('Texte récupéré : ' + prompt);
   const style = document.getElementById('artStyle').value;
+  const imageInput = document.getElementById('postImage');
+  const file = imageInput?.files[0];
 
   if (!prompt) {
     toast('Ajoute une description avant de publier.');
     return;
   }
 
+  const { data: userData, error: userError } =
+    await museaSupabase.auth.getUser();
+
+  if (userError || !userData.user) {
+    toast('Connecte-toi pour publier.');
+    return;
+  }
+
+  let imageUrl = null;
+  let imagePath = null;
+
+  if (file) {
+    if (!file.type.startsWith('image/')) {
+      toast('Choisis un fichier image.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast('Image trop volumineuse : 5 Mo maximum.');
+      return;
+    }
+
+    const extension = file.name.split('.').pop().toLowerCase();
+    imagePath = userData.user.id + '/' + Date.now() + '.' + extension;
+
+    const { error: uploadError } = await museaSupabase
+      .storage
+      .from('musea-posts')
+      .upload(imagePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error(uploadError);
+      toast('Erreur lors de l’envoi de l’image : ' + uploadError.message);
+      return;
+    }
+
+    const { data: publicData } = museaSupabase
+      .storage
+      .from('musea-posts')
+      .getPublicUrl(imagePath);
+
+    imageUrl = publicData.publicUrl;
+  }
+
+  const { data: post, error } = await museaSupabase
+    .from('posts')
+    .insert({
+      user_id: userData.user.id,
+      caption: prompt.slice(0, 500),
+      style: style,
+      visibility: 'public',
+      image_url: imageUrl,
+      image_path: imagePath
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error(error);
+    toast('Erreur lors de la publication : ' + error.message);
+    return;
+  }
+
+  state.points += 10;
+  save();
+
+  toast('Publication enregistrée sur Supabase !');
+  document.getElementById('prompt').value = '';
+  if (imageInput) imageInput.value = '';
+  document.getElementById('imagePreview').innerHTML = '';
+
+  navigate('home');
+}
   const { data: userData, error: userError } =
     await museaSupabase.auth.getUser();
 
