@@ -407,7 +407,7 @@ toast('Texte récupéré : ' + prompt);
     tag: '#MaCreation'
   };
 
-  defaultPosts.unshift(p);
+  // La publication est déjà enregistrée dans Supabase.
   state.points += 10;
   save();
 
