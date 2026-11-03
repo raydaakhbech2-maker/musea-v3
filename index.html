@@ -336,8 +336,7 @@ async function renderProfile(){
 
     const {data:posts,error}=await museaSupabase
       .from('posts')
-      .select('id,user_id,caption,style,created_at')
-      .eq('user_id',userData.user.id)
+      .select('id,user_id,caption,style,image_url,created_at')      .eq('user_id',userData.user.id)
       .order('created_at',{ascending:false});
 
     if(error) throw error;
