@@ -213,8 +213,7 @@ async function renderFeed(){
   try {
     const { data: rows, error } = await museaSupabase
       .from('posts')
-      .select('id,user_id,caption,style,visibility,created_at')
-      .order('created_at', { ascending: false })
+      .select('id,user_id,caption,style,visibility,image_url,created_at')      .order('created_at', { ascending: false })
       .limit(50);
 
     if (error) throw error;
