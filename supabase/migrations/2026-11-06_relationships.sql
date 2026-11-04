@@ -68,6 +68,7 @@ security definer
 set search_path = ''
 as $$
 begin
+  perform pg_advisory_xact_lock(hashtextextended(new.user_id::text,0));
   if not exists (
     select 1 from public.profile_interests
     where user_id=new.user_id and interest=new.interest
