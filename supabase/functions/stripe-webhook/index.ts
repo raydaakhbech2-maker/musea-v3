@@ -39,7 +39,20 @@ Deno.serve(async (req) => {
     p_event_type: event.type,
   });
   if (claimError) return json({ error: "Réservation de l’événement impossible." }, 500);
-  if (claimed !== true) return json({ received: true, duplicate: true });
+  if (claimed !== true) {
+    const { data: previousEvent, error: previousEventError } = await admin
+      .from("billing_webhook_events")
+      .select("processing_status")
+      .eq("stripe_event_id", event.id)
+      .maybeSingle();
+    if (previousEventError) return json({ error: "État de l’événement indisponible." }, 500);
+    if (previousEvent?.processing_status === "processed") {
+      return json({ received: true, duplicate: true });
+    }
+    // Un événement encore en cours ne doit pas être acquitté prématurément :
+    // Stripe doit pouvoir le renvoyer si le premier traitement échoue.
+    return json({ error: "Événement déjà en cours de traitement." }, 409);
+  }
 
   async function saveSubscription(subscription: any) {
     const customerId = typeof subscription.customer === "string"
