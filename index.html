@@ -894,7 +894,10 @@ function renderHomeFeedFromCache(){
   }
   feed.innerHTML=ordered.map(post=>{
     const reason=homeFeedMode==='recent'?'Publication récente':(post._discoveryReason||'Une piste à explorer');
-    return '<div class="home-feed-result"><div class="home-feed-reason"><span>✳</span>'+escapeHtml(reason)+'</div>'+postMarkup(post)+'</div>';
+    const id=escapeHtml(post.id);
+    const details=(post._discoverySignals||[]).map(x=>'<li>'+escapeHtml(x)+'</li>').join('');
+    const why=homeFeedMode==='recent'?'':'<div class="discovery-transparency"><button class="chip" aria-expanded="false" aria-controls="home-discovery-why-'+id+'" onclick="toggleDiscoveryWhy(\''+id+'\',this,\'home\')">Pourquoi ce choix ?</button><div class="discovery-why" id="home-discovery-why-'+id+'" hidden><strong>Pourquoi cette création apparaît dans ton fil</strong><ul>'+details+'</ul><p class="small muted">Les critères décrivent le classement actuel et ne garantissent pas une portée.</p></div></div>';
+    return '<div class="home-feed-result"><div class="home-feed-reason"><span>✳</span>'+escapeHtml(reason)+'</div>'+postMarkup(post)+why+'</div>';
   }).join('');
 }
 async function renderFeed(){
@@ -1177,7 +1180,7 @@ function discoveryRank(posts){
     const relevance=(preferenceMatch?4.5:0)+historyAffinity*1.25;
     const mutedPenalty=mutedStyles.has(style)?3.5:0;
     const popularity=discoveryControls.personalization?Math.log1p(interactions):0;
-    const emergingWeight=(discoveryControls.emerging||discoverMode==='emerging')?balanceWeights.emerging:0.2;
+    const emergingWeight=(discoveryControls.emerging||discoverMode==='emerging')?balanceWeights.emerging:0;
     let score=0,reason='Une nouvelle piste à explorer';
     if(discoverMode==='affinity'){
       score=relevance*balanceWeights.relevance+freshness*balanceWeights.freshness+emerging*emergingWeight+popularity*0.15-mutedPenalty;
@@ -1230,8 +1233,9 @@ function discoveryPostMarkup(post){
     </div>
   </div>`;
 }
-function toggleDiscoveryWhy(id,button){
-  const panel=document.getElementById('discovery-why-'+id);
+function toggleDiscoveryWhy(id,button,area='discovery'){
+  const prefix=area==='home'?'home-discovery-why-':'discovery-why-';
+  const panel=document.getElementById(prefix+id);
   if(!panel||!button)return;
   panel.hidden=!panel.hidden;
   button.setAttribute('aria-expanded',String(!panel.hidden));
