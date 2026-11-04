@@ -119,6 +119,58 @@ button:active{transform:scale(.98)}
   .main{padding:12px 11px}.card{padding:14px;border-radius:19px}
   .bottom{gap:2px}.bottom button{font-size:9px;min-height:52px}
 }
+/* MUSEA Home — la galerie éditoriale */
+.home-intro{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(170px,.65fr);align-items:center;gap:16px;padding:clamp(22px,4vw,38px);border-radius:28px;background:radial-gradient(circle at 83% 18%,rgba(235,177,151,.28),transparent 28%),linear-gradient(128deg,#211b32 0%,#382d58 58%,#7158c4 100%);color:#fff;box-shadow:var(--shadow-raised);margin-bottom:15px}
+.home-intro-copy{position:relative;z-index:1}.home-intro .eyebrow{color:#d7caff}.home-title{font-size:clamp(29px,5.6vw,48px);line-height:1.02;letter-spacing:-.055em;max-width:13ch;margin:9px 0 12px;font-weight:850}.home-intro p{max-width:46ch;color:#e5def5;margin:0 0 18px}.home-quiet-btn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22);color:white}
+.home-orbit{position:relative;width:min(100%,220px);aspect-ratio:1;margin:auto;border:1px solid rgba(255,255,255,.24);border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 67%);display:grid;place-items:center}
+.home-orbit:before,.home-orbit:after{content:"";position:absolute;border:1px solid rgba(255,255,255,.22);border-radius:50%;inset:14% -5%;transform:rotate(-28deg)}
+.home-orbit:after{inset:-5% 14%;transform:rotate(34deg)}
+.orbit-core{width:78px;height:78px;display:grid;place-items:center;border-radius:25px;background:linear-gradient(145deg,#d7c9ff,#9a80ed 55%,#7557df);color:#211a38;font-size:38px;font-weight:900;box-shadow:0 10px 35px rgba(0,0,0,.22);z-index:1}
+.orbit-dot{position:absolute;width:13px;height:13px;border-radius:50%;background:#ffc2a2;box-shadow:0 0 20px rgba(255,194,162,.6);z-index:2}.orbit-dot-a{top:12%;left:27%}.orbit-dot-b{right:9%;top:49%;background:#c6b9ff}.orbit-dot-c{bottom:12%;left:35%;width:9px;height:9px;background:#fff}
+.orbit-caption{position:absolute;bottom:13%;right:-4%;font-size:8px;letter-spacing:.16em;line-height:1.5;color:#e8defe;text-align:center}
+.daily-prompt{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:13px;background:linear-gradient(110deg,var(--card),var(--accent2));border-color:color-mix(in srgb,var(--accent) 22%,var(--line));margin-bottom:25px}
+.daily-prompt-mark{width:42px;height:42px;border-radius:14px;background:var(--accent);color:white;display:grid;place-items:center;font-size:23px}
+.daily-prompt-copy .h3{margin:3px 0 4px}.daily-prompt-copy p{margin:0}
+.home-stories-section{margin:0 0 24px}.home-section-heading{margin-bottom:12px}.home-section-heading .h2,.home-stories-section .h2{margin:3px 0 0}
+.home-stories-section .storyrow{padding:12px 2px 7px;border-bottom:1px solid var(--line)}
+.story-own,.story-local,.story-empty{border:0;background:transparent;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:5px;min-width:76px;font-size:11px}
+.story-own .story-ring>span,.story-local .story-ring>span,.story-empty .story-ring>span{height:100%;width:100%;border-radius:50%;border:3px solid var(--card);background:var(--accent2);display:grid;place-items:center;font-size:23px;color:var(--accent-strong)}
+.story-empty{opacity:.65}
+.home-feed-section{padding-top:2px}.home-section-heading{margin-bottom:12px}.home-feed-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0 12px}
+.home-mode{border:1px solid var(--line);border-radius:15px;background:var(--card);color:var(--ink);padding:11px 12px;text-align:left;display:flex;flex-direction:column;gap:3px;min-width:0}
+.home-mode strong{font-size:13px}.home-mode span{font-size:11px;color:var(--muted)}
+.home-mode.active{background:var(--accent2);border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.home-search-wrap{position:relative;display:block;margin:12px 0 10px}
+.home-search-wrap .field{padding-left:42px}
+.home-search-symbol{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:21px;color:var(--muted)}
+.home-categories{margin-bottom:8px;overflow-x:auto;flex-wrap:nowrap;padding:2px 0 7px}
+.home-categories .chip{white-space:nowrap;flex:0 0 auto}
+.home-feed-note{margin:2px 2px 12px}
+.home-feed-result{margin-bottom:15px}
+.home-feed-reason{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.025em;margin:0 4px 7px}
+.home-feed-reason span{color:var(--accent)}
+.home-feed-result .card{margin-bottom:0}
+.home-empty{text-align:center;padding:28px 18px}
+.home-empty-icon{width:48px;height:48px;border-radius:16px;margin:0 auto 12px;display:grid;place-items:center;background:var(--accent2);color:var(--accent-strong);font-size:25px}
+.home-loading{text-align:center;padding:26px}
+.loading-orbit{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--accent2);color:var(--accent);animation:musea-orbit 1.5s ease-in-out infinite}
+@keyframes musea-orbit{50%{transform:rotate(45deg) scale(1.08)}}
+#feed img{display:block;width:100%;max-height:min(62vh,560px);object-fit:contain;border-radius:18px;background:var(--surface)}
+#feed .post-title{font-size:18px;margin-top:13px}
+#feed .post-head{padding-bottom:2px}
+@media(max-width:560px){
+ .home-intro{grid-template-columns:minmax(0,1fr);padding:23px 20px;border-radius:23px}
+ .home-orbit{position:absolute;width:118px;right:-27px;bottom:-20px;opacity:.32}
+ .home-orbit .orbit-caption{display:none}
+ .home-intro-copy{max-width:90%;}.home-title{font-size:34px}
+ .daily-prompt{grid-template-columns:38px minmax(0,1fr);gap:10px;padding:13px}
+ .daily-prompt-mark{width:36px;height:36px}
+ .daily-prompt .btn{grid-column:1/-1;width:100%}
+ .home-feed-modes{gap:6px}
+ .home-mode{padding:10px 8px}
+ .home-mode strong{font-size:11px}
+ .home-mode span{font-size:10px}
+}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -173,16 +225,44 @@ window.museaSupabase = window.supabase.createClient(
           onclick="museaLogout()">Déconnexion</button>
   </section>
 <section class="screen active" id="screen-home">
-  <div class="card hero">
-    <div class="eyebrow">Ton univers créatif</div><h1 class="h1">Imagine. Crée.<br>Partage.</h1>
-    <p>Un espace pour découvrir des créations, développer ton style et donner vie à tes idées avec l'IA.</p>
-    <div class="row wrap"><button class="btn primary" onclick="navigate('create')">✦ Créer avec l'IA</button><button class="btn" onclick="navigate('discover')">Explorer</button></div>
-  </div>
-  <div class="row between"><h2 class="h2">Stories</h2><button class="btn" onclick="navigate('stories')">Voir tout</button></div>
-  <div class="storyrow" id="storyRow"></div>
-  <div class="row between"><h2 class="h2">Pour toi</h2><button class="btn" onclick="navigate('discover')">Découvrir ↗</button></div>
-  <div class="row wrap" style="margin-bottom:12px"><button class="chip selected" onclick="setFeed('all',this)">Tout</button><button class="chip" onclick="setFeed('art',this)">Art digital</button><button class="chip" onclick="setFeed('fantasy',this)">Fantasy</button><button class="chip" onclick="setFeed('photo',this)">Photo</button></div>
-  <div id="feed"></div>
+  <section class="home-intro">
+    <div class="home-intro-copy">
+      <div class="eyebrow">MUSEA / TON ATELIER OUVERT</div>
+      <h1 class="home-title">Les idées prennent vie quand elles se rencontrent.</h1>
+      <p>Explore des univers, découvre des créateurs et façonne le tien à ton rythme.</p>
+      <div class="row wrap">
+        <button class="btn primary" onclick="navigate('create')">✦ Ouvrir l'atelier</button>
+        <button class="btn home-quiet-btn" onclick="navigate('discover')">Explorer les univers ↗</button>
+      </div>
+    </div>
+    <div class="home-orbit" aria-hidden="true"><span class="orbit-core">M</span><i class="orbit-dot orbit-dot-a"></i><i class="orbit-dot orbit-dot-b"></i><i class="orbit-dot orbit-dot-c"></i><span class="orbit-caption">IMAGINATION<br>EN MOUVEMENT</span></div>
+  </section>
+  <section class="daily-prompt card" aria-labelledby="dailyPromptTitle">
+    <div class="daily-prompt-mark" aria-hidden="true">✳</div>
+    <div class="daily-prompt-copy"><div class="eyebrow">L'ÉTINCELLE DU JOUR</div><h2 class="h3" id="dailyPromptTitle">Un point de départ, pas une consigne.</h2><p id="dailyPromptText" class="muted small"></p></div>
+    <button class="btn soft" onclick="useDailyPrompt()">Partir de cette idée</button>
+  </section>
+  <section class="home-stories-section">
+    <div class="row between"><div><div class="eyebrow">INSTANTS</div><h2 class="h2">Dans les coulisses</h2></div><button class="btn" onclick="navigate('stories')">Mes instants ↗</button></div>
+    <div class="storyrow" id="storyRow"></div>
+  </section>
+  <section class="home-feed-section">
+    <div class="row between wrap home-section-heading"><div><div class="eyebrow">LA GALERIE VIVANTE</div><h2 class="h2">Des idées à rencontrer.</h2></div><button class="btn" onclick="navigate('discover')">Boussole créative ↗</button></div>
+    <div class="home-feed-modes" role="group" aria-label="Choisir le type de fil">
+      <button class="home-mode active" data-home-mode="affinity" onclick="setHomeFeedMode('affinity')"><strong>Pour toi</strong><span>Affinités</span></button>
+      <button class="home-mode" data-home-mode="recent" onclick="setHomeFeedMode('recent')"><strong>Au fil du temps</strong><span>Les plus récents</span></button>
+      <button class="home-mode" data-home-mode="emerging" onclick="setHomeFeedMode('emerging')"><strong>À révéler</strong><span>Talents émergents</span></button>
+    </div>
+    <label class="home-search-wrap" for="homeFeedSearch"><span class="home-search-symbol" aria-hidden="true">⌕</span><input class="field" id="homeFeedSearch" type="search" placeholder="Un style, une idée, un créateur…" oninput="filterHomeFeed()"></label>
+    <div class="row wrap home-categories" id="homeCategories">
+      <button class="chip selected" onclick="setFeed('all',this)">Tout</button>
+      <button class="chip" onclick="setFeed('art',this)">Art digital</button>
+      <button class="chip" onclick="setFeed('fantasy',this)">Fantasy</button>
+      <button class="chip" onclick="setFeed('photo',this)">Photo</button>
+    </div>
+    <p class="home-feed-note small muted" id="homeFeedNote">Un fil composé à partir de tes affinités, de la fraîcheur et de la diversité des créateurs.</p>
+    <div id="feed" aria-live="polite" aria-busy="false"></div>
+  </section>
 </section>
 <section class="screen" id="screen-discover">
   <div class="card discovery-hero">
@@ -243,10 +323,11 @@ window.museaSupabase = window.supabase.createClient(
   <div class="card"><h3 class="h3">Comment gagner des points ?</h3><div class="switchrow"><span>Like reçu d'un compte authentique</span><strong>+1</strong></div><div class="switchrow"><span>Commentaire utile reçu</span><strong>+3</strong></div><div class="switchrow"><span>Enregistrement dans une collection</span><strong>+3</strong></div><div class="switchrow"><span>Repost authentique</span><strong>+4</strong></div><p class="small muted">Plafonds, détection de fraude, comptes uniques et modération seront nécessaires avant d'activer le classement.</p></div>
 </section>
 <section class="screen" id="screen-stories">
-  <div class="card"><div class="eyebrow">Stories</div><h2 class="h1">Les instants créatifs.</h2><p class="muted">Format éphémère inspiré des réseaux sociaux. Démonstration locale, sans envoi réel.</p>
+  <div class="card stories-page-hero"><div class="eyebrow">MUSEA / INSTANTS</div><h2 class="h1">Les instants créatifs.</h2><p class="muted">Un espace pour partager un aperçu, une étape de création ou une inspiration. La publication des stories est encore en démonstration locale.</p>
   <div class="storyrow" id="allStories"></div>
-  <label class="label">Ajouter une story (texte de démonstration)</label><input class="field" id="storyText" placeholder="Une idée, un making-of, une inspiration…">
-  <button class="btn primary full" style="margin-top:10px" onclick="addStory()">＋ Ajouter une story</button></div>
+  <label class="label" for="storyText">Préparer un instant</label><input class="field" id="storyText" maxlength="180" placeholder="Une idée, un making-of, une inspiration…">
+  <p class="small muted">Ton texte reste sur cet appareil dans cette version. Il n'est pas envoyé à la communauté.</p>
+  <button class="btn primary full" style="margin-top:10px" onclick="addStory()">＋ Enregistrer mon brouillon</button></div>
 </section>
 <section class="screen" id="screen-messages">
   <div class="card"><div class="eyebrow">Messages</div><h2 class="h1">Tes conversations.</h2><p class="muted">Les échanges ci-dessous restent sur cet appareil. Aucun vrai message n'est envoyé.</p><div id="conversationList"></div></div>
@@ -322,7 +403,7 @@ window.museaSupabase = window.supabase.createClient(
 const defaultPosts = [];
 let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:['luna.creative','noah.visuals','aya.studio','kai.3d'],ownStories:[],messages:[{who:'Luna Creative',text:'Salut ! J’aime beaucoup tes idées créatives ✨',mine:false}],groups:[],
 prefs:{likes:true,collections:true,online:true,dm:false,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
-let feedKind='all',discoverKind='Tout',currentChat='Luna Creative',customStories=[];
+let feedKind='all',homeFeedMode='affinity',discoverKind='Tout',currentChat='Luna Creative',customStories=[];
 let discoverMode='affinity';
 let creativeStyles=['Digital art','Fantasy'];
 let discoveryFeedback=[];
@@ -424,27 +505,85 @@ async function loadCommunityPosts(){
   return communityPosts;
 }
 
+const dailyCreativePrompts=[
+  "Imagine un lieu qui n'existe que pendant quelques minutes au coucher du soleil.",
+  "Mélange deux univers que tout semble opposer : que pourrait-il naître ?",
+  "Donne une forme visuelle à un souvenir inventé.",
+  "Crée un objet du quotidien venu d'une civilisation inconnue.",
+  "Raconte une histoire entière dans un seul décor.",
+  "Transforme une émotion en architecture, en lumière ou en matière.",
+  "Imagine la couverture d'un livre qui n'a jamais été écrit."
+];
+function getDailyCreativePrompt(){
+  const day=Math.floor(Date.now()/86400000);
+  return dailyCreativePrompts[((day%dailyCreativePrompts.length)+dailyCreativePrompts.length)%dailyCreativePrompts.length];
+}
+function useDailyPrompt(){
+  const prompt=document.getElementById('prompt');
+  if(prompt)prompt.value=getDailyCreativePrompt();
+  navigate('create');
+  toast("L'étincelle du jour a rejoint ton atelier.");
+}
+function setHomeFeedMode(mode){
+  homeFeedMode=mode;
+  document.querySelectorAll('[data-home-mode]').forEach(el=>el.classList.toggle('active',el.dataset.homeMode===mode));
+  renderHomeFeedFromCache();
+}
+function filterHomeFeed(){renderHomeFeedFromCache();}
+function renderHomeFeedFromCache(){
+  const feed=document.getElementById('feed');if(!feed)return;
+  const query=(document.getElementById('homeFeedSearch')?.value||'').trim().toLowerCase();
+  const filtered=communityPosts.filter(post=>{
+    const category=feedKind==='all'||post.kind===feedKind;
+    const matches=!query||[post.user,post.title,post.desc,post.style,post.tag].join(' ').toLowerCase().includes(query);
+    return category&&matches;
+  });
+  let ordered=filtered;
+  const previousMode=discoverMode;
+  if(homeFeedMode==='recent'){
+    ordered=[...filtered].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+  }else{
+    discoverMode=homeFeedMode==='emerging'?'emerging':'affinity';
+    ordered=discoveryRank(filtered);
+    discoverMode=previousMode;
+  }
+  const note=document.getElementById('homeFeedNote');
+  if(note)note.textContent=homeFeedMode==='affinity'
+    ?'Un fil composé à partir de tes affinités, de la fraîcheur et de la diversité des créateurs.'
+    :homeFeedMode==='recent'
+    ?'Les créations publiques les plus récentes apparaissent en premier, sans classement de popularité.'
+    :'Un espace supplémentaire pour les créations récentes et moins exposées.';
+  feed.setAttribute('aria-busy','false');
+  if(!ordered.length){
+    feed.innerHTML='<div class="home-empty card"><div class="home-empty-icon">✳</div><h3 class="h3">La prochaine idée à découvrir pourrait être la tienne.</h3><p class="muted small">Aucune création ne correspond à cette sélection pour le moment.</p><button class="btn primary" onclick="navigate(\\'create\\')">Proposer une création</button></div>';
+    return;
+  }
+  feed.innerHTML=ordered.map(post=>{
+    const reason=homeFeedMode==='recent'?'Publication récente':(post._discoveryReason||'Une piste à explorer');
+    return '<div class="home-feed-result"><div class="home-feed-reason"><span>✳</span>'+escapeHtml(reason)+'</div>'+postMarkup(post)+'</div>';
+  }).join('');
+}
 async function renderFeed(){
-  const feed = document.getElementById('feed');
-  if(!feed) return;
-  feed.innerHTML = '<p class="muted small">Chargement des créations de la communauté...</p>';
-
+  const feed=document.getElementById('feed');if(!feed)return;
+  feed.innerHTML='<div class="home-loading card"><span class="loading-orbit">✳</span><p class="muted small">La galerie prépare ta sélection…</p></div>';
+  feed.setAttribute('aria-busy','true');
   try{
     await loadCommunityPosts();
-    const filtered = communityPosts.filter(post=>
-      feedKind==='all' || post.kind===feedKind
-    );
-    feed.innerHTML = filtered.length
-      ? filtered.map(postMarkup).join('')
-      : '<div class="card"><h3 class="h3">Le prochain univers à découvrir sera peut-être le tien.</h3><p class="muted small">Aucune création publique dans cette catégorie pour le moment. Publie la première !</p><button class="btn primary" onclick="navigate(\'create\')">Créer une publication</button></div>';
+    await loadDiscoverySettings();
+    renderHomeFeedFromCache();
   }catch(error){
     console.error('Chargement du fil impossible :',error);
-    feed.innerHTML = '<div class="card"><strong>Le fil est momentanément indisponible.</strong><p class="muted small">Vérifie ta connexion puis réessaie.</p><button class="btn" onclick="renderFeed()">Réessayer</button></div>';
+    feed.setAttribute('aria-busy','false');
+    feed.innerHTML='<div class="card"><strong>La galerie est momentanément indisponible.</strong><p class="muted small">Vérifie ta connexion puis réessaie.</p><button class="btn" onclick="renderFeed()">Réessayer</button></div>';
   }
-
   renderStories();
 }
-function setFeed(k,b){feedKind=k;document.querySelectorAll('#screen-home .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderFeed()}
+function setFeed(k,b){
+  feedKind=k;
+  document.querySelectorAll('#homeCategories .chip').forEach(x=>x.classList.toggle('selected',x===b));
+  renderHomeFeedFromCache();
+}
+
 async function requireSocialUser(){
   const {data,error}=await museaSupabase.auth.getUser();
   if(error) throw error;
@@ -726,8 +865,14 @@ async function renderDiscover(){
   }
 }
 function setDiscover(k,b){discoverKind=k;document.querySelectorAll('#discoverCategoryFilters .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderDiscover()}
-function renderStories(){let names=[...state.stories,...state.ownStories];let html=names.map((s,i)=>`<button class="story" style="border:0;background:transparent;color:var(--ink)" onclick="viewStory('${escapeHtml(s)}')"><div class="story-ring"><div>${s==='Ta story'?'＋':escapeHtml(s[0].toUpperCase())}</div></div>${escapeHtml(s)}</button>`).join('');document.getElementById('storyRow').innerHTML=html;let all=document.getElementById('allStories');if(all)all.innerHTML=html}
-function viewStory(s){toast('Story de '+s+' — contenu fictif dans cette démo.')}
+function renderStories(){
+  const hasLocalStory=Array.isArray(state.ownStories)&&state.ownStories.length>0;
+  const html='<button class="story story-own" onclick="navigate(\\'stories\\')"><span class="story-ring"><span>＋</span></span><span>Ton instant</span></button>'+
+    (hasLocalStory?'<div class="story story-local"><span class="story-ring"><span>✳</span></span><span>Ton brouillon local</span></div>':'<div class="story story-empty"><span class="story-ring"><span>…</span></span><span>Communauté bientôt</span></div>');
+  const row=document.getElementById('storyRow');if(row)row.innerHTML=html;
+  const all=document.getElementById('allStories');if(all)all.innerHTML=html;
+}
+function viewStory(){toast('Les stories sont encore en mode démonstration locale.');}
 function addStory(){let s=document.getElementById('storyText').value.trim();if(!s)return toast('Ajoute un texte pour ta story.');state.ownStories.unshift('Ta story');state.points+=2;save();document.getElementById('storyText').value='';renderStories();toast('Story ajoutée localement. Pas de téléversement réel.')}
 function renderLeaderboard(){let entries=[{n:'luna.creative',p:1840,r:'Créateur vedette'},{n:'noah.visuals',p:1420,r:'Mise en avant'},{n:'aya.studio',p:980,r:'Crédits IA bonus'},{n:state.username,p:state.points,r:'Continue à créer'}].sort((a,b)=>b.p-a.p);document.getElementById('leaderboard').innerHTML=entries.map((e,i)=>`<div class="card"><div class="row"><div class="avatar">${i+1}</div><div style="flex:1"><strong>${escapeHtml(e.n)}</strong><div class="small muted">${e.p.toLocaleString('fr-FR')} points</div></div><span class="chip">#${i+1}</span></div><div class="small muted" style="margin-top:9px">Récompense possible : ${e.r}</div></div>`).join('')}
 function renderMessages(){document.getElementById('conversationList').innerHTML=`<button class="btn soft full" onclick="openChat('Luna Creative')">◉ Luna Creative <span class="muted">· en ligne (démo)</span></button><button class="btn full" style="margin-top:7px" onclick="openChat('Noah Visuals')">◉ Noah Visuals <span class="muted">· vu récemment (démo)</span></button>`;document.getElementById('chatName').textContent=currentChat;document.getElementById('chatStatus').textContent=state.prefs.online?'Statut fictif visible':'Statut masqué selon tes préférences';document.getElementById('chatLog').innerHTML=state.messages.map(m=>`<div style="display:flex;justify-content:${m.mine?'flex-end':'flex-start'};margin:8px 0"><div style="max-width:85%;background:${m.mine?'var(--accent2)':'var(--bg)'};padding:10px 12px;border-radius:13px">${escapeHtml(m.text)}<div class="small muted">${m.mine?'Toi':escapeHtml(m.who)}</div></div></div>`).join('')}
