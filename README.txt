@@ -223,7 +223,7 @@ Le Studio comprend désormais les points d'entrée pour développer une idée, p
 
 - Modèle texte par défaut : `gpt-6-luna` via l'API Responses.
 - Modèle image par défaut : `gpt-image-2.5-flare` pour générer et `gpt-image-2.5-sunburst` pour transformer un visuel importé.
-- La migration `2026-11-06_ai_usage_limits.sql` crée des quotas quotidiens côté serveur : 8 requêtes texte et 1 image pour Libre ; 80 requêtes texte et 5 images pour Signature.
+- La migration `2026-11-06_ai_usage_limits.sql` crée des quotas quotidiens côté serveur : 8 requêtes texte et 1 image pour Libre ; 80 requêtes texte et 5 images pour Signature ; plafonds globaux par défaut de 1 000 requêtes texte et 20 images par jour, configurables via `MUSEA_AI_DAILY_TEXT_LIMIT` et `MUSEA_AI_DAILY_IMAGE_LIMIT`.
 - Secrets requis côté Supabase : `OPENAI_API_KEY` et `MUSEA_AI_ENABLED=true`. Modèles configurables via `OPENAI_TEXT_MODEL`, `OPENAI_IMAGE_MODEL` et `OPENAI_EDIT_MODEL`.
 - Les quotas sont consommés avant l'appel fournisseur pour empêcher les appels concurrents de dépasser les limites. Une requête fournisseur échouée peut donc consommer une unité.
 - Les résultats ne sont jamais publiés automatiquement. Le créateur doit les relire, les modifier et décider de les enregistrer ou de les publier.
