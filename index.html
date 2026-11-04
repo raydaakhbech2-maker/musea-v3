@@ -421,20 +421,46 @@ function closePlans(){document.getElementById('planModal').classList.add('hidden
 function updatePlan(){let p=state.plan||'free';document.getElementById('planPill').textContent=p==='premium'?'✦ PREMIUM':'GRATUIT';document.getElementById('profilePlan').textContent=p==='premium'?'Premium — simulation, aucun paiement réel.':'Offre gratuite';}
 function artMarkup(p){
   if (p.image_url) {
-    return `<img src="${escapeHtml(p.image_url)}" alt="Image de la publication" style="width:100%;max-height:420px;object-fit:contain;border-radius:15px;background:var(--bg)">`;
+    return `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml('Création de '+(p.user||'un membre')+' : '+(p.title||p.desc||'œuvre visuelle'))}" loading="lazy" decoding="async" style="width:100%;max-height:min(62vh,560px);object-fit:contain;border-radius:18px;background:var(--surface)">`;
   }
-  return `<div class="art ${p.art}"><span>${escapeHtml(p.title)}</span></div>`;
-}function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  return `<div class="art ${escapeHtml(p.art||'a4')}" role="img" aria-label="${escapeHtml('Aperçu de la création : '+(p.title||'sans titre'))}"><span>${escapeHtml(p.title||'Création')}</span></div>`;
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function postDateLabel(value){
+  if(!value)return 'Date non renseignée';
+  const date=new Date(value);if(Number.isNaN(date.getTime()))return 'Date non renseignée';
+  const minutes=Math.max(0,Math.floor((Date.now()-date.getTime())/60000));
+  if(minutes<1)return "À l’instant";
+  if(minutes<60)return 'Il y a '+minutes+' min';
+  const hours=Math.floor(minutes/60);if(hours<24)return 'Il y a '+hours+' h';
+  const days=Math.floor(hours/24);if(days<7)return 'Il y a '+days+' j';
+  return date.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+}
 function postMarkup(p){
   const id=String(p.id), liked=!!p.isLiked, saved=!!p.isSaved, reposted=!!p.isReposted;
-  return `<article class="card" id="post-${id}" data-post-id="${id}"><div class="post-head"><div class="avatar">${escapeHtml(p.avatar||'✦')}</div><div style="flex:1"><strong>${escapeHtml(p.user)}</strong><div class="small muted">${escapeHtml(p.style)} · ${escapeHtml(p.tag||'#MaCreation')}</div></div><button class="iconbtn" onclick="toast('Les options de signalement et de modération seront intégrées dans une étape dédiée.')">•••</button></div>${artMarkup(p)}<div class="post-title">${escapeHtml(p.title)}</div><div>${escapeHtml(p.desc)}</div><div class="row wrap" style="margin-top:9px"><span class="chip">${escapeHtml(p.tag||'#MaCreation')}</span></div>
-  <div class="post-actions">
-    <button class="iconbtn ${liked?'on':''}" aria-label="Aimer" onclick="toggleLike('${id}')">♡ ${p.likesCount||0}</button>
-    <button class="iconbtn" aria-label="Commentaires" onclick="commentPost('${id}')">▢ ${p.commentsCount||0}</button>
-    <button class="iconbtn ${saved?'on':''}" aria-label="Enregistrer" onclick="toggleSave('${id}')">☆ ${saved?'Enregistré':'Enregistrer'}</button>
-    <button class="iconbtn ${reposted?'on':''}" aria-label="Reposter" onclick="toggleRepost('${id}')">⟳ ${p.repostsCount||0}</button>
-  </div>
-  <div id="comments-${id}" class="social-comments" ${window.openCommentPostId===id?'':'hidden'}></div></article>`;
+  const likes=Number(p.likesCount)||0,comments=Number(p.commentsCount)||0,reposts=Number(p.repostsCount)||0;
+  return `<article class="card" id="post-${escapeHtml(id)}" data-post-id="${escapeHtml(id)}" aria-label="Publication de ${escapeHtml(p.user||'un membre')}">
+    <div class="post-head">
+      <div class="avatar" aria-hidden="true">${escapeHtml(p.avatar||'✦')}</div>
+      <div class="post-author">
+        <strong>${escapeHtml(p.user||'Créateur MUSEA')}</strong>
+        <div class="small muted">${escapeHtml(p.style||'Création')} · ${escapeHtml(p.tag||'#MaCreation')}</div>
+        <time class="small muted" datetime="${escapeHtml(p.created_at||'')}">${escapeHtml(postDateLabel(p.created_at))}</time>
+      </div>
+      <button class="iconbtn" aria-label="Options de publication" title="Options de publication" onclick="toast('Les outils de signalement et de gestion seront ajoutés dans une étape dédiée.')">•••</button>
+    </div>
+    ${artMarkup(p)}
+    <div class="post-title">${escapeHtml(p.title||'Création')}</div>
+    <div class="post-description">${escapeHtml(p.desc||'')}</div>
+    <div class="row wrap" style="margin-top:9px"><span class="chip">${escapeHtml(p.tag||'#MaCreation')}</span></div>
+    <div class="post-actions">
+      <button class="iconbtn ${liked?'on':''}" aria-label="${liked?'Ne plus aimer':'Aimer'} cette création, ${likes} mentions J’aime" aria-pressed="${liked}" onclick="toggleLike('${escapeHtml(id)}')">♡ ${likes}</button>
+      <button class="iconbtn" aria-label="Afficher ${comments} commentaires" aria-expanded="${window.openCommentPostId===id}" onclick="commentPost('${escapeHtml(id)}')">▢ ${comments}</button>
+      <button class="iconbtn ${saved?'on':''}" aria-label="${saved?'Retirer des collections':'Enregistrer dans les collections'}" aria-pressed="${saved}" onclick="toggleSave('${escapeHtml(id)}')">☆ ${saved?'Enregistré':'Enregistrer'}</button>
+      <button class="iconbtn ${reposted?'on':''}" aria-label="${reposted?'Annuler le repost':'Reposter'} cette création, ${reposts} reposts" aria-pressed="${reposted}" onclick="toggleRepost('${escapeHtml(id)}')">⟳ ${reposts}</button>
+    </div>
+    <div id="comments-${escapeHtml(id)}" class="social-comments" ${window.openCommentPostId===id?'':'hidden'}></div>
+  </article>`;
 }
 let communityPosts = [];
 
