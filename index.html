@@ -367,7 +367,84 @@ body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibi
 @media(max-width:820px){.studio-layout{grid-template-columns:1fr}.studio-side{position:static}.studio-publish-row .btn{min-width:100%}}
 @media(max-width:560px){.studio-hero{padding:17px}.studio-mark{font-size:32px}.studio-canvas-wrap{min-height:180px}.studio-actions .btn{flex:1}.studio-draft .row{align-items:flex-start}}
 </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+/* MUSEA Empreinte — export personnel sous les règles RLS */
+async function exportMyMuseaData(){
+  const button=document.getElementById('museaExportButton');
+  const status=document.getElementById('museaExportStatus');
+  if(button)button.disabled=true;
+  if(status)status.textContent='Préparation de ton dossier…';
+  try{
+    const {data:authData,error:authError}=await museaSupabase.auth.getUser();
+    if(authError)throw authError;
+    const user=authData?.user;
+    if(!user){toast('Connecte-toi pour exporter tes données.');if(status)status.textContent='Connexion nécessaire.';return;}
+    const jobs=[
+      ['profil',()=>museaSupabase.from('profiles').select('*').eq('id',user.id)],
+      ['publications',()=>museaSupabase.from('posts').select('*').eq('user_id',user.id)],
+      ['likes_donnes',()=>museaSupabase.from('post_likes').select('*').eq('user_id',user.id)],
+      ['collections',()=>museaSupabase.from('saved_posts').select('*').eq('user_id',user.id)],
+      ['commentaires_envoyes',()=>museaSupabase.from('post_comments').select('*').eq('user_id',user.id)],
+      ['republications',()=>museaSupabase.from('post_reposts').select('*').eq('user_id',user.id)],
+      ['portfolio',()=>museaSupabase.from('creator_portfolio_items').select('*').eq('user_id',user.id)],
+      ['projets_prives_studio',()=>museaSupabase.from('creator_drafts').select('*').eq('user_id',user.id)],
+      ['notifications_recues',()=>museaSupabase.from('notifications').select('*').eq('recipient_id',user.id)],
+      ['preferences_notifications',()=>museaSupabase.from('notification_preferences').select('*').eq('user_id',user.id)],
+      ['messages_envoyes',()=>museaSupabase.from('messages').select('*').eq('sender_id',user.id)],
+      ['membres_conversations',()=>museaSupabase.from('conversation_members').select('*').eq('user_id',user.id)],
+      ['conversations_accessibles',()=>museaSupabase.from('conversations').select('*')],
+      ['taches_creees_ou_assignees',()=>museaSupabase.from('conversation_tasks').select('*').or('created_by.eq.'+user.id+',assigned_to.eq.'+user.id)],
+      ['comptes_bloques_par_moi',()=>museaSupabase.from('user_blocks').select('*').eq('blocker_id',user.id)],
+      ['signalements_envoyes',()=>museaSupabase.from('user_reports').select('*').eq('reporter_id',user.id)]
+    ];
+    const results=await Promise.all(jobs.map(async ([key,build])=>{
+      try{
+        let rows=[],offset=0,more=true;
+        while(more && offset<20000){
+          const {data,error}=await build().range(offset,offset+499);
+          if(error)throw error;
+          const page=data||[];
+          rows=rows.concat(page);
+          more=page.length===500;
+          offset+=page.length;
+          if(page.length===0)break;
+        }
+        return [key,{status:more?'partiel_limite':'ok',count:rows.length,items:rows}];
+      }catch(error){
+        return [key,{status:'indisponible',count:0,items:[],reason:String(error?.message||'Lecture impossible')}];
+      }
+    }));
+    const sections=Object.fromEntries(results);
+    const unavailable=results.filter(([,value])=>value.status!=='ok').map(([key])=>key);
+    const payload={
+      format:'MUSEA_PERSONAL_DATA_EXPORT',
+      version:1,
+      generated_at:new Date().toISOString(),
+      account:{id:user.id,email:user.email||null,created_at:user.created_at||null},
+      scope:'Données accessibles à ce compte via la session courante et les politiques Row Level Security. Les fichiers binaires ne sont pas inclus.',
+      privacy:{messages:'Seuls les messages envoyés par ce compte sont inclus.',conversations:'Les conversations sont limitées par les règles d’accès du compte.',third_party:'Les données privées d’autres membres ne sont pas exportées.'},
+      sections,
+      export_notes:unavailable.length?['Certaines catégories sont indisponibles ou ont atteint la limite de pagination : '+unavailable.join(', ')+'. Vérifie les migrations et relance un export.']:['Toutes les catégories interrogées ont répondu.']
+    };
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;
+    link.download='musea-mes-donnees-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
+    if(status)status.textContent=unavailable.length?('Export téléchargé · '+unavailable.length+' catégorie(s) à vérifier.'):'Export téléchargé · '+results.reduce((n,[,v])=>n+v.count,0)+' élément(s).';
+    toast('Ton dossier MUSEA a été préparé.');
+  }catch(error){
+    console.error('Export MUSEA impossible :',error);
+    if(status)status.textContent='Export impossible : '+(error?.message||'erreur inconnue');
+    toast('Impossible de préparer ton export.');
+  }finally{
+    if(button)button.disabled=false;
+  }
+}
+
+</script>
 <script>
 window.museaSupabase = window.supabase.createClient(
   "https://dujargvriuxwczkgsyua.supabase.co",
@@ -722,7 +799,7 @@ window.museaSupabase = window.supabase.createClient(
   <div class="card" id="moderationAccessCard" hidden><div class="eyebrow">ESPACE CONFIDENTIEL</div><h3 class="h3">Modération MUSEA</h3><p class="small muted">Accès réservé aux comptes auxquels un rôle de modération a été attribué côté serveur.</p><button class="btn primary" onclick="navigate('moderation')">Ouvrir la file de confiance</button></div>
   <div class="card"><div class="eyebrow">TRANSPARENCE</div><h3 class="h3">Mes mesures et mes recours</h3><p class="small muted">Si une mesure est prise à ton encontre, tu peux en consulter la raison et demander un nouvel examen. Un recours est lu par l’équipe de modération.</p><div id="myModerationCases"><div class="small muted">Chargement…</div></div></div>
   <div class="card"><h3 class="h3">Langue</h3><select class="field" id="language"><option>Français</option><option>English</option><option>Español</option><option>العربية</option><option>中文</option><option>日本語</option><option>Deutsch</option><option>Português</option></select><p class="muted small">L'interface complète et la traduction IA seront intégrées dans une future version.</p><button class="btn" onclick="translateDemo()">Traduire un texte de démonstration</button><div id="translationResult" class="notice hidden" style="margin-top:10px"></div></div>
-  <div class="card"><h3 class="h3">Sécurité</h3><div class="switchrow"><span>Filtrage de contenu sensible (concept)</span><input type="checkbox" checked></div><div class="switchrow"><span>Masquer les contenus signalés</span><input type="checkbox" checked></div><p class="small muted">La vraie version nécessitera signalement, blocage, modération humaine et automatisée, export/suppression des données et protections anti-abus.</p><button class="btn danger full" onclick="if(confirm('Réinitialiser les données locales du prototype ?')){localStorage.removeItem('museaState');location.reload()}">Réinitialiser la démo</button></div>
+  <div class="card" id="museaDataExportCard"><div class="eyebrow">MUSEA / MAÎTRISE DE MES DONNÉES</div><h3 class="h3">Mon dossier MUSEA</h3><p class="small muted">Récupère une copie lisible des informations associées à ton compte : profil, créations, interactions, collections, notifications, projets privés et éléments de collaboration auxquels tu as accès. L'export interroge uniquement les données autorisées par ta session et les règles RLS.</p><div class="row wrap"><button class="btn primary" id="museaExportButton" onclick="exportMyMuseaData()">Télécharger mes données (.json)</button><span id="museaExportStatus" class="small muted" aria-live="polite">Aucun export lancé.</span></div><p class="small muted">Les images ne sont pas copiées dans le fichier : leurs références et chemins disponibles sont conservés. Les messages exportés sont uniquement ceux que tu as envoyés, pas les messages privés des autres membres. Si une migration manque, le fichier signale les catégories indisponibles au lieu de les inventer.</p><div class="line"></div><strong class="small">Suppression du compte</strong><p class="small muted">La suppression définitive n'est pas activée depuis cette interface : elle doit aussi traiter les fichiers stockés, les abonnements éventuels, les données liées et les sessions côté serveur. Aucun bouton ne prétend supprimer ton compte tant que ce parcours sécurisé n'est pas déployé.</p></div><div class="card"><h3 class="h3">Sécurité</h3><div class="switchrow"><span>Filtrage de contenu sensible (concept)</span><input type="checkbox" checked></div><div class="switchrow"><span>Masquer les contenus signalés</span><input type="checkbox" checked></div><p class="small muted">La vraie version nécessitera signalement, blocage, modération humaine et automatisée, export/suppression des données et protections anti-abus.</p><button class="btn danger full" onclick="if(confirm('Réinitialiser les données locales du prototype ?')){localStorage.removeItem('museaState');location.reload()}">Réinitialiser la démo</button></div>
 </section>
 <section class="screen" id="screen-rewards">
   <div class="row between wrap"><div><div class="eyebrow">MUSEA / CHEMIN CRÉATIF</div><h1 class="h1">Mes repères.</h1></div><button class="btn" onclick="navigate('profile')">Retour au profil</button></div>
