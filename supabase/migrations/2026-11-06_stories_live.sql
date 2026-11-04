@@ -137,6 +137,34 @@ using (
   and (storage.foldername(name))[1]='stories'
   and (storage.foldername(name))[2]=(select auth.uid())::text
 );
+drop policy if exists "Restrict story media uploads to owner" on storage.objects;
+create policy "Restrict story media uploads to owner"
+on storage.objects as restrictive for insert to authenticated
+with check (
+  bucket_id<>'musea-stories'
+  or ((storage.foldername(name))[1]='stories' and (storage.foldername(name))[2]=(select auth.uid())::text)
+);
+
+drop policy if exists "Restrict story media reads to visible active stories" on storage.objects;
+create policy "Restrict story media reads to visible active stories"
+on storage.objects as restrictive for select to authenticated
+using (
+  bucket_id<>'musea-stories'
+  or exists (
+    select 1 from public.stories s
+    where s.media_path=storage.objects.name
+      and s.expires_at>now()
+      and public.musea_story_is_visible(s.user_id)
+  )
+);
+
+drop policy if exists "Restrict story media deletion to owner" on storage.objects;
+create policy "Restrict story media deletion to owner"
+on storage.objects as restrictive for delete to authenticated
+using (
+  bucket_id<>'musea-stories'
+  or ((storage.foldername(name))[1]='stories' and (storage.foldername(name))[2]=(select auth.uid())::text)
+);
 
 do $$
 begin
