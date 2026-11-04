@@ -34,6 +34,13 @@ Deno.serve(async (req) => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
+  const { data: claimed, error: claimError } = await admin.rpc("musea_claim_billing_event", {
+    p_stripe_event_id: event.id,
+    p_event_type: event.type,
+  });
+  if (claimError) return json({ error: "Réservation de l’événement impossible." }, 500);
+  if (claimed !== true) return json({ received: true, duplicate: true });
+
   async function saveSubscription(subscription: any) {
     const customerId = typeof subscription.customer === "string"
       ? subscription.customer : subscription.customer.id;
@@ -117,14 +124,18 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { error: eventLogError } = await admin.from("billing_webhook_events").upsert({
-      stripe_event_id: event.id,
-      event_type: event.type,
-    }, { onConflict: "stripe_event_id", ignoreDuplicates: true });
-    if (eventLogError) throw eventLogError;
+    const { error: completionError } = await admin.rpc("musea_complete_billing_event", {
+      p_stripe_event_id: event.id,
+      p_error: null,
+    });
+    if (completionError) throw completionError;
     return json({ received: true });
-  } catch (_error) {
-    // Stripe doit réessayer si la mise à jour en base a échoué.
+  } catch (processingError) {
+    // L'événement passe à failed : Stripe peut réessayer et le verrou sera repris.
+    await admin.rpc("musea_complete_billing_event", {
+      p_stripe_event_id: event.id,
+      p_error: processingError instanceof Error ? processingError.message : "Erreur de traitement inconnue.",
+    });
     return json({ error: "Événement reçu mais non enregistré. Une nouvelle tentative sera demandée." }, 500);
   }
 });
