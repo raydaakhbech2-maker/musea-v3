@@ -431,22 +431,34 @@ async function searchMessageContacts(){
     target.innerHTML=users.map(u=>'<div class="switchrow"><div class="avatar">'+escapeHtml(u.username?.[0]?.toUpperCase()||'M')+'</div><div style="flex:1"><strong>@'+escapeHtml(u.username||'Utilisateur')+'</strong></div><button class="btn primary" onclick="startDirectConversation(\''+escapeHtml(u.id)+'\',\''+escapeHtml(u.username||'Utilisateur')+'\')">Message</button></div>').join('');
   }catch(e){console.error(e);target.innerHTML='<p class="small muted">La recherche est indisponible. Vérifie la configuration du profil Supabase.</p>'}
 }
-async function startDirectConversation(peerId,peerName){
+async function startDirectConversation(peerId){
   try{
     const {data,error}=await museaSupabase.auth.getUser();
     if(error)throw error;
     if(!data.user){toast('Connecte-toi pour démarrer une conversation.');return}
     if(peerId===data.user.id)return;
     const pair=[data.user.id,peerId].sort();
-    const {data:conversation,error:upsertError}=await museaSupabase.from('direct_conversations').upsert({user_one:pair[0],user_two:pair[1]},{onConflict:'user_one,user_two'}).select('id,user_one,user_two').single();
-    if(upsertError)throw upsertError;
+    let {data:conversation,error:findError}=await museaSupabase.from('direct_conversations').select('id').eq('user_one',pair[0]).eq('user_two',pair[1]).maybeSingle();
+    if(findError)throw findError;
+    if(!conversation){
+      const created=await museaSupabase.from('direct_conversations').insert({user_one:pair[0],user_two:pair[1]}).select('id').single();
+      if(created.error){
+        // Une création concurrente peut avoir gagné la contrainte d'unicité.
+        const retry=await museaSupabase.from('direct_conversations').select('id').eq('user_one',pair[0]).eq('user_two',pair[1]).maybeSingle();
+        if(retry.error||!retry.data)throw created.error;
+        conversation=retry.data;
+      }else conversation=created.data;
+    }
     document.getElementById('contactResults').innerHTML='';
     document.getElementById('contactSearch').value='';
-    await openDirectConversation(conversation.id,peerId,peerName);
+    await openDirectConversation(conversation.id,peerId);
     await renderMessages();
   }catch(e){console.error(e);toast('Impossible de créer cette conversation. Vérifie la migration Supabase.')}
 }
-async function openDirectConversation(conversationId,peerId,peerName){
+async function openDirectConversation(conversationId,peerId){
+  const {data:peer,error:peerError}=await museaSupabase.from('profiles').select('id,username').eq('id',peerId).maybeSingle();
+  if(peerError)throw peerError;
+  const peerName=peer?.username||'Utilisateur';
   activeConversationId=conversationId;
   activeConversationPeer={id:peerId,username:peerName};
   document.getElementById('chatName').textContent='@'+peerName;
@@ -455,7 +467,7 @@ async function openDirectConversation(conversationId,peerId,peerName){
   if(activeMessageChannel){try{await museaSupabase.removeChannel(activeMessageChannel)}catch(e){}activeMessageChannel=null}
   await refreshActiveConversation();
   activeMessageChannel=museaSupabase.channel('musea-dm-'+conversationId)
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'direct_messages',filter:'conversation_id=eq.'+conversationId},payload=>{
+    .on('postgres_changes',{event:'*',schema:'public',table:'direct_messages',filter:'conversation_id=eq.'+conversationId},payload=>{
       if(payload.new?.conversation_id===activeConversationId)refreshActiveConversation();
     }).subscribe();
 }
