@@ -853,17 +853,104 @@ function navigate(name){
   if(name==='notifications')renderNotifications();
   if(name==='moderation')renderModeration();
   if(name==='profile')renderProfile();
-  if(name==='settings')loadMyModerationCases();
+  if(name==='settings'){loadMyModerationCases();loadBillingOverview();}
+  if(name==='profile')loadBillingOverview();
   if(name==='stories')renderStories();
   if(name==='rewards')renderRewards();
   if(name==='create')studioLoadDrafts();
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   window.scrollTo({top:0,behavior:reduceMotion?'auto':'smooth'});
 }
-function choosePlan(p){if(p!=='free'){toast('Signature sera disponible après la mise en place des paiements.');return;}state.plan='free';save();closePlans();updatePlan();toast('Tu utilises MUSEA Libre.');}
+function choosePlan(p){if(p!=='free'){toast('Aucun achat n’est disponible pour le moment.');return;}state.plan='free';save();closePlans();updatePlan();toast('Tu utilises MUSEA Libre.');}
 function showPlans(){document.getElementById('planModal').classList.remove('hidden')}
 function closePlans(){document.getElementById('planModal').classList.add('hidden')}
-function updatePlan(){if(state.plan==='premium'){state.plan='free';save();}document.getElementById('planPill').textContent='GRATUIT';document.getElementById('profilePlan').textContent='MUSEA Libre — Signature en préparation.';}
+function updatePlan(){
+  if(state.plan==='premium'){state.plan='free';save();}
+  const label=museaSignatureAccess?'SIGNATURE':'GRATUIT';
+  const pill=document.getElementById('planPill');if(pill)pill.textContent=label;
+  const plan=document.getElementById('profilePlan');if(plan)plan.textContent=museaSignatureAccess?'MUSEA Signature — accès confirmé par le serveur.':'MUSEA Libre — Signature n’est pas encore disponible à l’achat.';
+}
+function billingDate(value){if(!value)return 'date non communiquée';const date=new Date(value);return Number.isNaN(date.getTime())?'date non communiquée':date.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});}
+function billingMoney(amount,currency){const value=Number(amount||0)/100;try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency:(currency||'eur').toUpperCase()}).format(value);}catch(_){return value.toFixed(2)+' '+String(currency||'EUR').toUpperCase();}}
+async function loadBillingOverview(){
+  const status=document.getElementById('museaBillingStatus');
+  const details=document.getElementById('museaBillingDetails');
+  const invoicesHost=document.getElementById('museaBillingInvoices');
+  const portalButton=document.getElementById('museaBillingPortalButton');
+  if(!status)return;
+  if(portalButton)portalButton.hidden=true;
+  status.textContent='Vérification de ton compte…';
+  if(details)details.textContent='';
+  if(invoicesHost)invoicesHost.innerHTML='';
+  try{
+    const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+    if(userError)throw userError;
+    if(!userData?.user){museaSignatureAccess=false;status.textContent='Connecte-toi pour consulter ton abonnement et tes factures.';updatePlan();return;}
+    const [subscriptionResult,invoiceResult,accessResult]=await Promise.all([
+      museaSupabase.from('billing_subscriptions').select('stripe_subscription_id,status,current_period_start,current_period_end,cancel_at_period_end,price_id,updated_at').eq('user_id',userData.user.id).order('updated_at',{ascending:false}).limit(1),
+      museaSupabase.from('billing_invoices').select('stripe_invoice_id,status,currency,amount_due,amount_paid,hosted_invoice_url,invoice_pdf,invoice_created_at').eq('user_id',userData.user.id).order('invoice_created_at',{ascending:false}).limit(6),
+      museaSupabase.rpc('musea_has_signature_access')
+    ]);
+    if(subscriptionResult.error)throw subscriptionResult.error;
+    if(invoiceResult.error)throw invoiceResult.error;
+    if(accessResult.error)throw accessResult.error;
+    museaSignatureAccess=accessResult.data===true;
+    const sub=(subscriptionResult.data||[])[0]||null;
+    if(!sub){
+      status.textContent='MUSEA Libre · Aucun abonnement Signature enregistré.';
+      if(details)details.textContent='Tu peux utiliser les fonctions essentielles de MUSEA sans abonnement. Aucun prélèvement n’est en cours via ce compte MUSEA.';
+    }else{
+      const labels={active:'Actif',trialing:'Période d’essai',past_due:'Paiement à régulariser',incomplete:'Paiement à finaliser',incomplete_expired:'Session de paiement expirée',canceled:'Résilié',unpaid:'Impayé',paused:'En pause'};
+      status.textContent=museaSignatureAccess?'MUSEA Signature · Accès confirmé':'Abonnement · '+(labels[sub.status]||sub.status);
+      if(details){
+        const parts=[];
+        if(sub.current_period_end)parts.push((sub.cancel_at_period_end?'Fin d’accès prévue le ':'Prochaine échéance le ')+billingDate(sub.current_period_end));
+        if(sub.cancel_at_period_end)parts.push('Le renouvellement automatique est désactivé.');
+        if(sub.status==='past_due'||sub.status==='unpaid')parts.push('Vérifie le moyen de paiement auprès du prestataire.');
+        details.textContent=parts.join(' ');
+      }
+      if(portalButton)portalButton.hidden=false;
+    }
+    updatePlan();
+    const invoices=invoiceResult.data||[];
+    if(invoicesHost){
+      if(!invoices.length){invoicesHost.innerHTML='<p class="small muted">Aucune facture enregistrée.</p>';}
+      else{
+        const rows=invoices.map(invoice=>{
+          const date=billingDate(invoice.invoice_created_at);
+          const label=invoice.status==='paid'?'Payée':invoice.status==='open'?'À régler':invoice.status==='void'?'Annulée':invoice.status||'État inconnu';
+          const safeLink=value=>{
+            try{
+              const url=new URL(value);
+              const trusted=url.protocol==='https:'&&(url.hostname==='stripe.com'||url.hostname.endsWith('.stripe.com')||url.hostname==='stripeusercontent.com'||url.hostname.endsWith('.stripeusercontent.com'));
+              return trusted?url.href:'';
+            }catch(_){return '';}
+          };
+          const link=safeLink(invoice.hosted_invoice_url)||safeLink(invoice.invoice_pdf);
+          return '<div class="billing-invoice-row"><div><strong>'+escapeHtml(date)+'</strong><span class="small muted">'+escapeHtml(label)+' · '+escapeHtml(billingMoney(invoice.amount_paid||invoice.amount_due,invoice.currency))+'</span></div>'+(link?'<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener noreferrer">Voir la facture</a>':'<span class="small muted">Aucun lien disponible</span>')+'</div>';
+        });
+        invoicesHost.innerHTML='<h4 class="h3">Historique des factures</h4>'+rows.join('');
+      }
+    }
+  }catch(error){
+    museaSignatureAccess=false;updatePlan();
+    status.textContent='Informations de facturation indisponibles.';
+    if(details)details.textContent='La migration de facturation doit être appliquée et les droits de lecture vérifiés. Aucun accès Premium n’est accordé sur la base d’une information locale.';
+    console.warn('MUSEA billing overview:',error);
+  }
+}
+async function openBillingPortal(){
+  const button=document.getElementById('museaBillingPortalButton');
+  if(button)button.disabled=true;
+  try{
+    const {data,error}=await museaSupabase.functions.invoke('create-billing-portal',{body:{}});
+    if(error)throw error;
+    const url=new URL(data?.portal_url||'');
+    if(url.protocol!=='https:'||(url.hostname!=='stripe.com'&&!url.hostname.endsWith('.stripe.com')))throw new Error('Adresse du portail non reconnue.');
+    window.location.assign(url.href);
+  }catch(error){console.error('Billing portal:',error);toast('Le portail de facturation est momentanément indisponible.');}
+  finally{if(button)button.disabled=false;}
+}
 function artMarkup(p){
   if (p.image_url) {
     return `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml('Création de '+(p.user||'un membre')+' : '+(p.title||p.desc||'œuvre visuelle'))}" loading="lazy" decoding="async" style="width:100%;max-height:min(62vh,560px);object-fit:contain;border-radius:18px;background:var(--surface)">`;
@@ -3274,13 +3361,18 @@ async function museaLogout() {
 async function museaRefreshAccount() {
   const {data} = await museaSupabase.auth.getUser();
   const user = data.user;
-
-  document.getElementById('authLogout')
-    .classList.toggle('hidden', !user);
+  museaCurrentUserId=user?.id||null;
+  const accountCard=document.getElementById('accountCard');
+  if(accountCard)accountCard.classList.toggle('hidden',!!user);
+  const accountSummary=document.getElementById('authAccountSummary');
+  if(accountSummary)accountSummary.textContent=user?'Connecté avec '+(user.email||'ton compte MUSEA')+'.':'Connecte-toi pour gérer ton compte.';
+  document.getElementById('authLogout').classList.toggle('hidden',!user);
   const moderationAccess=document.getElementById('moderationAccessCard');
   if(moderationAccess)moderationAccess.hidden=!isMuseaModerator(user);
 
   if (!user) {
+    museaSignatureAccess=false;
+    updatePlan();
     await stopMessageRealtime();
     activeConversationId=null;
     currentConversation=null;
