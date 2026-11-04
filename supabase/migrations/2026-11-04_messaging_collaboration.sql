@@ -101,19 +101,6 @@ using(blocker_id=auth.uid());
 drop policy if exists "Users read reports they submitted" on public.user_reports;
 create policy "Users read reports they submitted" on public.user_reports for select to authenticated
 using(reporter_id=auth.uid());
-drop policy if exists "Users submit a report about a conversation participant" on public.user_reports;
-create policy "Users submit a report about a conversation participant" on public.user_reports for insert to authenticated
-with check(
-  reporter_id=auth.uid()
-  and reporter_id<>target_user_id
-  and public.musea_is_conversation_member(conversation_id,array['accepted'])
-  and exists(
-    select 1 from public.conversation_members target
-    where target.conversation_id=user_reports.conversation_id
-      and target.user_id=user_reports.target_user_id
-      and target.status='accepted'
-  )
-);
 
 create or replace function public.musea_is_conversation_member(
   p_conversation_id uuid,
@@ -134,6 +121,20 @@ as $function$
 $function$;
 revoke all on function public.musea_is_conversation_member(uuid,text[]) from public,anon;
 grant execute on function public.musea_is_conversation_member(uuid,text[]) to authenticated;
+
+drop policy if exists "Users submit a report about a conversation participant" on public.user_reports;
+create policy "Users submit a report about a conversation participant" on public.user_reports for insert to authenticated
+with check(
+  reporter_id=auth.uid()
+  and reporter_id<>target_user_id
+  and public.musea_is_conversation_member(conversation_id,array['accepted'])
+  and exists(
+    select 1 from public.conversation_members target
+    where target.conversation_id=user_reports.conversation_id
+      and target.user_id=user_reports.target_user_id
+      and target.status='accepted'
+  )
+);
 
 create or replace function public.musea_conversation_has_block(p_conversation_id uuid)
 returns boolean
@@ -223,8 +224,8 @@ drop policy if exists "Accepted members read conversation messages" on public.me
 create policy "Accepted members read conversation messages"
 on public.messages for select to authenticated
 using (
-  sender_id=auth.uid()
-  or (public.musea_is_conversation_member(messages.conversation_id,array['accepted']) and not public.musea_conversation_has_block(messages.conversation_id))
+  public.musea_is_conversation_member(messages.conversation_id,array['accepted'])
+  and not public.musea_conversation_has_block(messages.conversation_id)
 );
 
 drop policy if exists "Accepted members send messages" on public.messages;
@@ -232,7 +233,8 @@ create policy "Accepted members send messages"
 on public.messages for insert to authenticated
 with check (
   sender_id=auth.uid()
-  and public.musea_is_conversation_member(messages.conversation_id,auth.uid(),array['accepted'])
+  and public.musea_is_conversation_member(messages.conversation_id,array['accepted'])
+  and not public.musea_conversation_has_block(messages.conversation_id)
   and (
     shared_post_id is null
     or exists (
