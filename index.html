@@ -1397,10 +1397,9 @@ function setTrendPeriod(period){
 function openTrendStyleByIndex(index){
   const style=trendStyleChoices[index];
   if(!style)return;
-  navigate('discover');
   const input=document.getElementById('searchInput');
   if(input)input.value=style;
-  renderDiscover();
+  navigate('discover');
 }
 function trendInteractionCount(post){
   return (Number(post.likesCount)||0)+(Number(post.commentsCount)||0)+(Number(post.repostsCount)||0);
