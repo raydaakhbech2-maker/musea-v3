@@ -2,7 +2,7 @@
 "id": "./",
 "name": "MUSEA — Réseau créatif",
 "short_name": "MUSEA",
-"description": "Prototype du réseau social créatif MUSEA",
+"description": "Un espace social pour partager, explorer et développer des créations.",
 "lang": "fr-FR",
 "start_url": "./index.html",
 "scope": "./",
