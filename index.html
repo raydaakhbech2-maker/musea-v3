@@ -1069,7 +1069,7 @@ async function searchMessagePeople(){
   target.innerHTML=messagePeople.map(p=>{
     const selected=selectedMessagePeople.includes(p.id);
     const inviteStatus=p.allow_project_invites===false?'Invitations aux ateliers fermées':'Invitations aux ateliers ouvertes';
-    return '<label class="message-person-option"><input type="checkbox" '+(selected?'checked':'')+' onchange="toggleMessagePerson(\\''+escapeHtml(p.id)+'\\',this.checked)"><span class="person-copy"><strong>@'+escapeHtml(p.username)+'</strong><span class="small muted">'+escapeHtml(p.display_name||p.headline||'Créateur MUSEA')+'</span><span class="small muted">'+(p.allow_messages_from_non_followers?'DM ouvert':'DM sur demande désactivé')+' · '+inviteStatus+'</span></span></label>';
+    return '<label class="message-person-option"><input type="checkbox" '+(selected?'checked':'')+' onchange="toggleMessagePerson(&quot;'+escapeHtml(p.id)+'&quot;,this.checked)"><span class="person-copy"><strong>@'+escapeHtml(p.username)+'</strong><span class="small muted">'+escapeHtml(p.display_name||p.headline||'Créateur MUSEA')+'</span><span class="small muted">'+(p.allow_messages_from_non_followers?'DM ouvert':'DM sur demande désactivé')+' · '+inviteStatus+'</span></span></label>';
   }).join('');
 }
 function toggleMessagePerson(id,checked){
