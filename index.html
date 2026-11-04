@@ -29,7 +29,7 @@ window.museaSupabase = window.supabase.createClient(
   <span class="pill" id="planPill">GRATUIT</span>
   <div class="spacer"></div>
   <button class="iconbtn" onclick="navigate('more')" aria-label="Plus de fonctionnalités">＋</button>
-  <button class="iconbtn" onclick="navigate('notifications')" aria-label="Notifications">♧ <span id="notifCount">3</span></button>
+  <button class="iconbtn" onclick="navigate('notifications')" aria-label="Notifications">♧ <span id="notifCount">0</span></button>
   <button class="iconbtn" onclick="navigate('profile')" aria-label="Profil">◉</button>
 </header>
 <main class="main" id="main">
@@ -165,9 +165,9 @@ window.museaSupabase = window.supabase.createClient(
   </div>
 </section>
 <section class="screen" id="screen-notifications">
-  <div class="row between"><h2 class="h1">Notifications</h2><button class="btn" onclick="markRead()">Tout lire</button></div>
-  <div class="card"><p class="muted small">Configure les activités qui te concernent. Les alertes sont simulées dans cette version.</p><div id="notificationList"></div></div>
-  <div class="card"><h3 class="h3">Préférences de notification</h3><div id="notificationSettings"></div></div>
+  <div class="row between"><div><div class="eyebrow">Ton activité</div><h2 class="h1">Notifications</h2></div><button class="btn" onclick="markRead()">Tout lire</button></div>
+  <div class="card"><p class="muted small">Tes notifications sont synchronisées avec ton compte et restent disponibles sur tes appareils.</p><div id="notificationList"><p class="muted small">Chargement…</p></div></div>
+  <div class="card"><h3 class="h3">Préférences de notification</h3><p class="muted small">Choisis les activités pour lesquelles tu souhaites être averti.</p><div id="notificationSettings"></div></div>
 </section>
 <section class="screen" id="screen-browser">
   <div class="card"><div class="eyebrow">Explorer le web</div><h2 class="h1">Navigateur</h2>
@@ -238,12 +238,10 @@ window.museaSupabase = window.supabase.createClient(
 <div id="planModal" class="modal hidden"><div class="modalbox"><div class="row between"><div><div class="eyebrow">Bienvenue sur MUSEA</div><h2 class="h1">Choisis ton expérience.</h2></div><button class="iconbtn" onclick="closePlans()">✕</button></div><p class="muted">Tu pourras modifier ton choix ensuite. Aucun paiement ne sera prélevé dans ce prototype.</p><div class="grid"><div class="card" style="margin:0"><span class="chip">GRATUIT</span><h3 class="h3" style="margin-top:12px">Découvrir</h3><div class="price">0 €</div><p class="small muted">Pour commencer et tester la communauté.</p><ul class="small"><li>Fil et profil</li><li>Crédits IA limités</li><li>Likes, commentaires, collections</li><li>Stories et messages de base</li></ul><button class="btn full" onclick="choosePlan('free')">Choisir Gratuit</button></div><div class="card" style="margin:0;border:2px solid var(--accent)"><span class="chip selected">PREMIUM</span><h3 class="h3" style="margin-top:12px">Créer plus</h3><div class="price">5,99 €<span style="font-size:13px;font-weight:600">/mois</span></div><p class="small muted">Prix cible à tester, pas un paiement réel.</p><ul class="small"><li>Plus de crédits IA, avec plafond</li><li>Thèmes exclusifs et options de profil</li><li>Collections avancées</li><li>Outils créatifs supplémentaires</li><li>Éligibilité possible à la vérification</li></ul><button class="btn primary full" onclick="choosePlan('premium')">Choisir Premium</button></div></div><p class="small muted" style="margin-top:14px">Le prix devra être validé avec les coûts d'IA, les commissions des stores, la TVA, l'hébergement et les tests utilisateurs. Aucun abonnement n'est encore vendu.</p></div></div>
 <script>
 const defaultPosts = [];
-let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:['luna.creative','noah.visuals','aya.studio','kai.3d'],ownStories:[],groups:[],notifications:[
-{type:'Like',text:'luna.creative a aimé ta création.',time:'Il y a 4 min',read:false},
-{type:'Mention',text:'noah.visuals t’a mentionné dans un commentaire.',time:'Il y a 18 min',read:false},
-{type:'Pour toi',text:'Une création pourrait te plaire.',time:'Il y a 1 h',read:false}],
+let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:['luna.creative','noah.visuals','aya.studio','kai.3d'],ownStories:[],groups:[],notifications:[],
 prefs:{likes:true,collections:true,online:true,dm:true,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
 let feedKind='all',discoverKind='Tout',activeConversationId=null,activeConversationPeer=null,activeMessageChannel=null,messageRefreshBusy=false,messageRefreshQueued=false,activeConversationCanSend=false,activeConversationStatus={blockedByMe:false,blockedByPeer:false,peerAllowsMessages:true},customStories=[];
+let activeNotificationsChannel=null,activeNotificationUserId=null,notificationPrefs={likes:true,comments:true,reposts:true,messages:true};
 function load(){try{let s=JSON.parse(localStorage.getItem('museaState')||'null');if(s)state={...state,...s,prefs:{...state.prefs,...s.prefs}}}catch(e){}}
 function save(){try{localStorage.setItem('museaState',JSON.stringify(state))}catch(e){}}
 function toast(msg){let el=document.getElementById('toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.add('hidden'),2800)}
@@ -284,12 +282,12 @@ async function attachPostInteractions(posts){
 }
 async function requireSocialUser(){const {data,error}=await museaSupabase.auth.getUser();if(error)throw error;if(!data.user){toast('Connecte-toi pour interagir avec les publications.');return null}return data.user}
 async function toggleLike(id){
-  try{const user=await requireSocialUser();if(!user)return;const {data:existing,error:findError}=await museaSupabase.from('post_likes').select('id').eq('post_id',id).eq('user_id',user.id).maybeSingle();if(findError)throw findError;const result=existing?await museaSupabase.from('post_likes').delete().eq('id',existing.id):await museaSupabase.from('post_likes').insert({post_id:id,user_id:user.id});if(result.error)throw result.error;if(!existing){state.notifications.unshift({type:'Like',text:'Tu as aimé une publication.',time:'À l’instant',read:false});save();renderNotifications()}await renderFeed()}catch(e){console.error(e);toast('Impossible d’enregistrer le like. Vérifie la configuration Supabase.')}
+  try{const user=await requireSocialUser();if(!user)return;const {data:existing,error:findError}=await museaSupabase.from('post_likes').select('id').eq('post_id',id).eq('user_id',user.id).maybeSingle();if(findError)throw findError;const result=existing?await museaSupabase.from('post_likes').delete().eq('id',existing.id):await museaSupabase.from('post_likes').insert({post_id:id,user_id:user.id});if(result.error)throw result.error;if(!existing){await refreshNotificationBadge()}await renderFeed()}catch(e){console.error(e);toast('Impossible d’enregistrer le like. Vérifie la configuration Supabase.')}
 }
 function toggleComments(id){document.getElementById('comments-'+id)?.classList.toggle('hidden')}
 async function submitComment(id){
   const input=document.getElementById('comment-input-'+id),content=input?.value.trim();if(!content)return toast('Écris un commentaire avant de publier.');if(content.length>1000)return toast('Ton commentaire est trop long (1 000 caractères maximum).');
-  try{const user=await requireSocialUser();if(!user)return;const {error}=await museaSupabase.from('post_comments').insert({post_id:id,user_id:user.id,content});if(error)throw error;state.notifications.unshift({type:'Commentaire',text:'Ton commentaire a été publié.',time:'À l’instant',read:false});save();renderNotifications();await renderFeed();document.getElementById('comments-'+id)?.classList.remove('hidden');toast('Commentaire publié.')}catch(e){console.error(e);toast('Impossible de publier le commentaire. Vérifie la configuration Supabase.')}
+  try{const user=await requireSocialUser();if(!user)return;const {error}=await museaSupabase.from('post_comments').insert({post_id:id,user_id:user.id,content});if(error)throw error;await refreshNotificationBadge();await renderFeed();document.getElementById('comments-'+id)?.classList.remove('hidden');toast('Commentaire publié.')}catch(e){console.error(e);toast('Impossible de publier le commentaire. Vérifie la configuration Supabase.')}
 }
 async function deleteComment(commentId,postId){
   if(!confirm('Supprimer ce commentaire ?')) return;
@@ -612,8 +610,135 @@ async function toggleDirectMessageBlock(){
   }catch(e){console.error(e);toast('Impossible de modifier ce blocage.')}
 }
 function createGroup(){toast('Les groupes seront ajoutés dans une prochaine étape avec leurs invitations et leurs règles de confidentialité.')}
-function renderNotifications(){document.getElementById('notifCount').textContent=state.notifications.filter(n=>!n.read).length;document.getElementById('notificationList').innerHTML=state.notifications.map((n,i)=>`<div class="switchrow" style="align-items:flex-start"><div style="flex:1"><div class="row wrap"><strong>${escapeHtml(n.type)}</strong>${n.read?'':'<span class="tag">Nouveau</span>'}</div><div>${escapeHtml(n.text)}</div><div class="small muted">${escapeHtml(n.time)}</div></div><button class="iconbtn" onclick="state.notifications[${i}].read=true;save();renderNotifications()">✓</button></div>`).join('')||'<p class="muted">Aucune notification.</p>';let types=['Likes et commentaires','Mentions','Messages','Nouveaux abonnés','Recommandations Pour toi','Tendances hebdomadaires'];document.getElementById('notificationSettings').innerHTML=types.map(t=>`<div class="switchrow"><span>${t}</span><input type="checkbox" checked onchange="toast('Préférence enregistrée pour cette démo.')"></div>`).join('')}
-function markRead(){state.notifications.forEach(n=>n.read=true);save();renderNotifications();toast('Notifications marquées comme lues.')}
+function notificationTime(value){
+  const date=new Date(value),now=Date.now(),diff=Math.max(0,now-date.getTime());
+  if(diff<60000)return "À l’instant";
+  if(diff<3600000)return "Il y a "+Math.floor(diff/60000)+" min";
+  if(diff<86400000)return "Il y a "+Math.floor(diff/3600000)+" h";
+  return date.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+}
+function notificationLabel(type,actor){
+  const who=actor?'@'+actor:'Un utilisateur';
+  const labels={like:who+' a aimé ta publication.',comment:who+' a commenté ta publication.',repost:who+' a reposté ta publication.',message:who+' t’a envoyé un message.'};
+  return labels[type]||'Nouvelle activité sur MUSEA.';
+}
+async function refreshNotificationBadge(){
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user){document.getElementById('notifCount').textContent='0';return}
+    const {count,error:countError}=await museaSupabase.from('notifications').select('id',{count:'exact',head:true}).eq('recipient_id',data.user.id).is('read_at',null);
+    if(countError)throw countError;
+    document.getElementById('notifCount').textContent=count>99?'99+':String(count||0);
+  }catch(e){console.warn('Compteur de notifications indisponible',e)}
+}
+async function setupNotificationRealtime(userId){
+  if(activeNotificationUserId===userId&&activeNotificationsChannel)return;
+  if(activeNotificationsChannel){try{await museaSupabase.removeChannel(activeNotificationsChannel)}catch(e){}activeNotificationsChannel=null}
+  activeNotificationUserId=userId;
+  if(!userId){document.getElementById('notifCount').textContent='0';return}
+  activeNotificationsChannel=museaSupabase.channel('musea-notifications-'+userId)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'recipient_id=eq.'+userId},payload=>{
+      refreshNotificationBadge();
+      if(document.getElementById('screen-notifications')?.classList.contains('active'))renderNotifications();
+      toast('Tu as une nouvelle notification.');
+    }).subscribe();
+}
+async function loadNotificationPreferences(userId){
+  const {data,error}=await museaSupabase.from('notification_preferences').select('likes,comments,reposts,messages').eq('user_id',userId).maybeSingle();
+  if(error)throw error;
+  notificationPrefs={likes:data?.likes!==false,comments:data?.comments!==false,reposts:data?.reposts!==false,messages:data?.messages!==false};
+}
+async function saveNotificationPreference(category,enabled){
+  if(!['likes','comments','reposts','messages'].includes(category))return;
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user){toast('Connecte-toi pour enregistrer tes préférences.');return}
+    notificationPrefs={...notificationPrefs,[category]:!!enabled};
+    const {error:saveError}=await museaSupabase.from('notification_preferences').upsert({
+      user_id:data.user.id,likes:notificationPrefs.likes,comments:notificationPrefs.comments,
+      reposts:notificationPrefs.reposts,messages:notificationPrefs.messages
+    },{onConflict:'user_id'});
+    if(saveError)throw saveError;
+    toast('Préférence enregistrée.');
+  }catch(e){console.error(e);toast('Impossible d’enregistrer cette préférence.');renderNotifications()}
+}
+async function openNotificationTarget(notification){
+  try{
+    await markNotificationRead(notification.id,false);
+    if(notification.type==='message'){
+      const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+      if(userError)throw userError;
+      const {data:conversation,error}=await museaSupabase.from('direct_conversations').select('id,user_one,user_two').eq('id',notification.target_id).maybeSingle();
+      if(error)throw error;
+      if(!conversation||!userData.user)return toast('Cette conversation n’est plus disponible.');
+      const peerId=conversation.user_one===userData.user.id?conversation.user_two:conversation.user_one;
+      navigate('messages');
+      await openDirectConversation(conversation.id,peerId);
+      return;
+    }
+    navigate('discover');
+    setTimeout(()=>document.getElementById('post-'+notification.target_id)?.scrollIntoView({behavior:'smooth',block:'center'}),350);
+  }catch(e){console.error(e);toast('Impossible d’ouvrir cette activité.')}
+}
+async function markNotificationRead(id,refresh=true){
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user)return;
+    const {error:updateError}=await museaSupabase.from('notifications').update({read_at:new Date().toISOString()}).eq('id',id).eq('recipient_id',data.user.id).is('read_at',null);
+    if(updateError)throw updateError;
+    if(refresh){await refreshNotificationBadge();await renderNotifications()}
+  }catch(e){console.error(e);toast('Impossible de mettre à jour la notification.')}
+}
+async function markRead(){
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user)return toast('Connecte-toi pour consulter tes notifications.');
+    const {error:updateError}=await museaSupabase.from('notifications').update({read_at:new Date().toISOString()}).eq('recipient_id',data.user.id).is('read_at',null);
+    if(updateError)throw updateError;
+    await renderNotifications();await refreshNotificationBadge();toast('Toutes les notifications sont marquées comme lues.');
+  }catch(e){console.error(e);toast('Impossible de marquer les notifications comme lues.')}
+}
+async function renderNotifications(){
+  const list=document.getElementById('notificationList'),settings=document.getElementById('notificationSettings');
+  if(!list||!settings)return;
+  list.innerHTML='<p class="muted small">Chargement des notifications…</p>';
+  try{
+    const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+    if(userError)throw userError;
+    if(!userData.user){
+      list.innerHTML='<div class="notice">Connecte-toi à ton compte MUSEA pour retrouver tes notifications.</div>';
+      settings.innerHTML='<p class="muted small">Les préférences seront disponibles après connexion.</p>';
+      document.getElementById('notifCount').textContent='0';
+      return;
+    }
+    const userId=userData.user.id;
+    const [rowsResult,prefsResult]=await Promise.all([
+      museaSupabase.from('notifications').select('id,type,actor_id,actor_username,target_type,target_id,created_at,read_at').eq('recipient_id',userId).order('created_at',{ascending:false}).limit(60),
+      museaSupabase.from('notification_preferences').select('likes,comments,reposts,messages').eq('user_id',userId).maybeSingle()
+    ]);
+    if(rowsResult.error)throw rowsResult.error;
+    if(prefsResult.error)throw prefsResult.error;
+    notificationPrefs={likes:prefsResult.data?.likes!==false,comments:prefsResult.data?.comments!==false,reposts:prefsResult.data?.reposts!==false,messages:prefsResult.data?.messages!==false};
+    const rows=rowsResult.data||[];
+    list.innerHTML=rows.map(n=>{
+      const read=!!n.read_at,actor=escapeHtml(n.actor_username||'Utilisateur');
+      const label=notificationLabel(n.type,n.actor_username);
+      return '<div class="switchrow" style="align-items:flex-start;gap:9px"><div class="avatar">'+(n.type==='message'?'✉':n.type==='like'?'♡':n.type==='comment'?'▤':'↻')+'</div><div style="flex:1;min-width:0"><div class="row wrap"><strong>'+escapeHtml(n.type==='message'?'Message':n.type==='like'?'J’aime':n.type==='comment'?'Commentaire':'Repost')+'</strong>'+(read?'':'<span class="tag">Nouveau</span>')+'</div><div>'+escapeHtml(label)+'</div><div class="small muted">'+escapeHtml(notificationTime(n.created_at))+'</div><button class="btn soft" style="margin-top:7px" onclick="openNotificationTarget('+JSON.stringify({id:n.id,type:n.type,target_id:n.target_id}).replace(/"/g,'&quot;')+')">Voir</button></div>'+(read?'':'<button class="iconbtn" aria-label="Marquer comme lu" onclick="markNotificationRead(\''+n.id+'\')">✓</button>')+'</div>';
+    }).join('')||'<p class="muted">Aucune notification pour le moment.</p>';
+    settings.innerHTML=[
+      ['likes','J’aime reçus'],['comments','Commentaires reçus'],['reposts','Reposts reçus'],['messages','Nouveaux messages']
+    ].map(([key,label])=>'<div class="switchrow"><span>'+label+'</span><input type="checkbox" '+(notificationPrefs[key]?'checked':'')+' onchange="saveNotificationPreference(\''+key+'\',this.checked)"></div>').join('');
+    await refreshNotificationBadge();
+  }catch(e){
+    console.error('Chargement des notifications :',e);
+    list.innerHTML='<div class="notice">Impossible de charger les notifications. Vérifie que la migration de cette étape a bien été exécutée dans Supabase.</div>';
+    settings.innerHTML='<p class="muted small">Préférences indisponibles.</p>';
+  }
+}
 async function renderProfile(){
   document.getElementById('profileName').textContent='@'+state.username;
   document.getElementById('profileBio').textContent=state.bio;
@@ -991,9 +1116,12 @@ async function museaRefreshAccount() {
     .classList.toggle('hidden', !user);
 
   if (!user) {
+    await setupNotificationRealtime(null);
     document.getElementById('profileName').textContent = '@monprofil';
     return;
   }
+  await setupNotificationRealtime(user.id);
+  await refreshNotificationBadge();
 
   const {data: profile, error} = await museaSupabase
     .from('profiles')
@@ -1003,6 +1131,7 @@ async function museaRefreshAccount() {
 
   if (error) return museaMessage(error.message);
 
+  try{await loadNotificationPreferences(user.id)}catch(notificationPrefsError){console.warn('Préférences de notification indisponibles',notificationPrefsError)}
   if (profile) {
     state.username = profile.username;
     state.bio = profile.bio || '';
