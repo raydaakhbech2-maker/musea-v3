@@ -120,3 +120,34 @@ L'interface présente cette formule comme étant en préparation. Aucun abonneme
 Une étape distincte est réservée à l'intégration d'un prestataire de paiement et au véritable cycle de facturation. Elle devra inclure au minimum : création de session de paiement côté serveur, confirmation exclusivement par webhook signé, gestion des abonnements et de leur état, droits Premium contrôlés côté serveur, factures/reçus, annulation et remboursement, journal de transactions, suivi des frais et des virements, protection contre les doubles événements et tests en environnement sandbox. Aucune clé secrète de paiement ne devra être exposée dans le fichier client.
 
 L'activation commerciale dépendra de la structure juridique, des conditions du prestataire, de la vérification du titulaire du compte et des obligations fiscales applicables. Pour un créateur mineur, le représentant légal devra intervenir selon les règles du prestataire ; aucun contrôle d'âge ou d'identité ne doit être contourné.
+
+
+## MUSEA Encaissement — architecture technique (étape 23)
+
+Le dépôt contient désormais le socle serveur Stripe, mais **aucun paiement n'est activé** et aucun prélèvement réel ne peut être lancé tant que le titulaire légal du compte marchand n'a pas configuré et validé le prestataire et les secrets côté serveur.
+
+### Composants ajoutés
+
+- `supabase/migrations/2026-11-04_billing_core.sql` : correspondance client, abonnements, factures et journal d'événements.
+- `supabase/functions/create-signature-checkout/` : crée une session Checkout après vérification de la session MUSEA et de l'absence d'abonnement actif. Le tarif est lu depuis une variable serveur, jamais depuis le navigateur, et doit être un prix mensuel actif en euros.
+- `supabase/functions/stripe-webhook/` : vérifie la signature Stripe sur le corps brut, relit l'état actuel de l'abonnement chez Stripe et synchronise les droits et factures côté serveur.
+- `supabase/functions/create-billing-portal/` : crée un accès authentifié au portail de facturation.
+- `supabase/config.toml` : seul le webhook Stripe est public au niveau JWT Supabase ; sa signature Stripe reste obligatoire.
+
+### Secrets attendus côté Supabase
+
+`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SIGNING_SECRET`, `STRIPE_SIGNATURE_PRICE_ID`, `SUPABASE_URL`, `SUPABASE_ANON_KEY` et `SUPABASE_SERVICE_ROLE_KEY`.
+
+Les secrets Stripe et la clé de service Supabase ne doivent jamais être placés dans `index.html`, dans GitHub Pages, dans le dépôt public ou dans un message. Les valeurs doivent être configurées uniquement dans le coffre de secrets Supabase par l'adulte ou la structure légalement responsable du compte marchand.
+
+### État d'activation
+
+1. La migration SQL doit être appliquée dans le projet Supabase.
+2. Le compte marchand, le produit mensuel Signature et le webhook doivent être configurés et vérifiés par le titulaire légal autorisé.
+3. Les Edge Functions doivent être déployées avec les secrets ci-dessus.
+4. Les événements de test doivent confirmer que seul un webhook signé active un abonnement.
+5. Le portail client doit être activé côté prestataire pour permettre la gestion et la résiliation.
+
+L'interface MUSEA ne donne toujours aucun accès Premium par simple modification du navigateur. L'accès est fondé sur `musea_has_signature_access()`, alimentée par la base serveur. La résiliation, les remboursements et les éventuels litiges restent soumis au prestataire et au titulaire du compte ; aucun tableau de remboursement automatisé n'est présenté comme déjà disponible.
+
+**Cadre légal :** comme le projet est porté par un mineur, toute ouverture et gestion du compte marchand, acceptation des contrats, vérification d'identité et réception des fonds doivent être prises en charge avec le représentant légal ou la structure habilitée, selon les conditions du prestataire. Aucun contrôle d'âge, d'identité ou de conformité ne doit être contourné.
