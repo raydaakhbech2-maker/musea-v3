@@ -51,7 +51,7 @@ Ne jamais désactiver RLS pour contourner une erreur. Une erreur de permission d
 - Les offres Premium, points, récompenses et achats restent des simulations : aucun paiement réel n'est traité.
 - Les notifications sont dans l'application ; les notifications push lorsque l'application est fermée ne sont pas garanties.
 - Les appels audio/vidéo et les pièces jointes personnelles dans les messages ne sont pas implémentés.
-- Les stories disponibles dans certaines vues sont des brouillons locaux, pas un service de stories synchronisées complet.
+- Les Stories synchronisées sont maintenant préparées sur la branche de remise à niveau ; la migration doit être appliquée avant activation. L'expiration masque les Stories après 24 h, mais le nettoyage automatique des anciens fichiers de stockage reste à finaliser.
 - La modération repose sur des signalements et des décisions humaines autorisées ; aucun système automatique ne garantit la détection de tous les abus.
 
 ## Boussole créative — transparence et contrôle
@@ -233,3 +233,16 @@ Le Studio comprend désormais les points d'entrée pour développer une idée, p
 ### Paiement Signature — environnement de test uniquement
 
 L'interface appelle maintenant `create-signature-checkout`. L'Edge Function refuse explicitement toute clé Stripe autre que `sk_test_`. Les flags serveur `MUSEA_BILLING_ENABLED` et `MUSEA_MERCHANT_READY` doivent aussi être validés pour les tests. Aucun paiement réel ne peut être lancé depuis cette branche. La mise en production nécessitera une revue distincte du compte marchand, des obligations légales, des conditions commerciales, des remboursements et de la résiliation.
+
+
+## Stories synchronisées — remise à niveau
+
+La branche `final/musea-v3-product-polish` remplace les brouillons locaux par un vrai flux Stories :
+- Stories texte, photo et vidéo, avec légende limitée à 240 caractères.
+- Bucket privé `musea-stories` ; liens signés temporaires, aucun accès public direct.
+- Expiration serveur après 24 heures, vue unique par membre et compteur visible par le propriétaire.
+- Filtrage des comptes bloqués via `user_blocks` et fonction SQL de visibilité sécurisée.
+- Actualisation Realtime de la liste et suppression par le propriétaire.
+- Taille maximale : 20 Mo ; formats JPG, PNG, WebP, GIF, MP4 et WebM.
+- Migration : `2026-11-06_stories_live.sql`, à appliquer après `2026-11-04_messaging_collaboration.sql`.
+- Limites restantes : audience ouverte aux membres connectés non bloqués (pas encore limitée aux abonnés) ; les anciens fichiers des Stories expirées doivent encore être purgés automatiquement par une tâche serveur planifiée.
