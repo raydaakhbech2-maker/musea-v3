@@ -99,12 +99,7 @@ using (public.musea_is_conversation_member(conversations.id,array['invited','acc
 drop policy if exists "Members can read conversation membership" on public.conversation_members;
 create policy "Members can read conversation membership"
 on public.conversation_members for select to authenticated
-using (exists (
-  select 1 from public.conversation_members own
-  where own.conversation_id=conversation_members.conversation_id
-    and own.user_id=auth.uid()
-    and own.status in ('invited','accepted')
-));
+using (public.musea_is_conversation_member(conversation_members.conversation_id,array['invited','accepted']));
 
 drop policy if exists "Users update their own conversation read marker" on public.conversation_members;
 create policy "Users update their own conversation read marker"
@@ -284,7 +279,7 @@ grant execute on function public.musea_create_conversation(text,text,text,uuid[]
 grant execute on function public.musea_respond_conversation_invite(uuid,boolean) to authenticated;
 
 create or replace function public.musea_touch_conversation()
-returns trigger language plpgsql set search_path=public,pg_temp as $$
+returns trigger language plpgsql security definer set search_path=public,pg_temp as $
 begin
   update public.conversations set updated_at=now() where id=new.conversation_id;
   return new;
