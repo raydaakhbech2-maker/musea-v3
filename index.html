@@ -529,6 +529,7 @@ window.museaSupabase = window.supabase.createClient(
     <div class="home-feed-modes" role="group" aria-label="Choisir le type de fil">
       <button class="home-mode active" data-home-mode="affinity" onclick="setHomeFeedMode('affinity')"><strong>Pour toi</strong><span>Affinités</span></button>
       <button class="home-mode" data-home-mode="recent" onclick="setHomeFeedMode('recent')"><strong>Au fil du temps</strong><span>Les plus récents</span></button>
+      <button class="home-mode" data-home-mode="following" onclick="setHomeFeedMode('following')"><strong>Mon cercle</strong><span>Créateurs suivis</span></button>
       <button class="home-mode" data-home-mode="emerging" onclick="setHomeFeedMode('emerging')"><strong>À révéler</strong><span>Talents émergents</span></button>
     </div>
     <label class="home-search-wrap" for="homeFeedSearch"><span class="home-search-symbol" aria-hidden="true">⌕</span><input class="field" id="homeFeedSearch" type="search" placeholder="Un style, une idée, un créateur…" oninput="filterHomeFeed()"></label>
@@ -553,6 +554,16 @@ window.museaSupabase = window.supabase.createClient(
       <button class="chip" data-mode="detour" onclick="setDiscoveryMode('detour',this)">↗ Détours créatifs</button>
       <button class="chip" data-mode="emerging" onclick="setDiscoveryMode('emerging',this)">◈ Talents émergents</button>
     </div>
+  </div>
+  <div class="card creator-discovery-card">
+    <div class="eyebrow">MUSEA / RENCONTRES</div><h3 class="h3">Trouver des créateurs</h3>
+    <label class="label" for="creatorSearch">Rechercher un pseudo</label><input class="field" id="creatorSearch" maxlength="40" placeholder="Ex. : @atelier..." oninput="renderCreatorDirectory()">
+    <div id="creatorResults" aria-live="polite"><p class="small muted">Saisis au moins deux caractères pour découvrir des créateurs.</p></div>
+  </div>
+  <div class="card">
+    <div class="row between wrap"><div><div class="eyebrow">TON CERCLE</div><h3 class="h3">Mes centres d'intérêt</h3></div><span class="small muted" id="interestStatus">0 / 5</span></div>
+    <p class="small muted">Choisis jusqu'à cinq univers pour personnaliser les passerelles de découverte.</p>
+    <div id="interestPicker" class="row wrap"></div>
   </div>
   <div class="card">
     <div class="row between wrap"><div><div class="eyebrow">Ta boussole</div><h3 class="h3">Les univers qui t'inspirent</h3></div><span class="small muted" id="discoveryStyleCount">0 / 5</span></div>
@@ -817,10 +828,15 @@ window.museaSupabase = window.supabase.createClient(
     <div class="creator-stats">
       <div class="stat"><strong id="milestonesStat">0</strong><span class="muted small">Repères créatifs</span></div>
       <div class="stat"><strong id="followersStat">—</strong><span class="muted small">Abonnés</span></div>
+      <div class="stat"><strong id="followingStat">—</strong><span class="muted small">Abonnements</span></div>
       <div class="stat"><strong id="likesStat">0</strong><span class="muted small">Likes donnés</span></div>
     </div>
   </div>
 
+  <div class="card creator-circle-card">
+    <div class="eyebrow">MUSEA / MON CERCLE</div><h2 class="h3">Les créateurs que je rencontre</h2>
+    <div class="circle-columns"><div><strong>Abonnements</strong><div id="myFollowing"><p class="small muted">Chargement…</p></div></div><div><strong>Abonnés</strong><div id="myFollowers"><p class="small muted">Chargement…</p></div></div></div>
+  </div>
   <div class="card creator-tools-hub">
     <div class="eyebrow">MUSEA / OUTILS DE CRÉATEUR</div>
     <h2 class="h3">Organiser et faire évoluer tes créations</h2>
