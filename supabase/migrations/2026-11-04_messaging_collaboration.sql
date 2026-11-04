@@ -342,6 +342,14 @@ begin
   end if;
   if char_length(coalesce(p_description,''))>500 then raise exception 'La description est trop longue.'; end if;
 
+  if exists (
+    select 1 from public.user_blocks ub
+    where ub.blocker_id=any(array_append(p_participant_ids,v_user))
+      and ub.blocked_id=any(array_append(p_participant_ids,v_user))
+  ) then
+    raise exception 'Une invitation est impossible lorsqu’un blocage existe entre des participants.';
+  end if;
+
   for v_target in select distinct participant_id from unnest(p_participant_ids) as u(participant_id) where participant_id is not null and participant_id<>v_user loop
     select allow_messages_from_non_followers,allow_project_invites
       into v_profile from public.profiles where id=v_target;
