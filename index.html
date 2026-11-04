@@ -439,6 +439,19 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .story-viewer-caption{white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 2px 14px}
 .story-preview-media{display:block;width:100%;max-height:300px;object-fit:contain;border-radius:14px;background:#17151c;margin-top:10px}
 @media(max-width:430px){.story-viewer-box{padding:10px}.story-viewer-media{min-height:180px}}
+
+.creation-journal{margin:12px 0;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.creation-journal summary{cursor:pointer;font-weight:800;color:var(--accent)}
+.creation-journal-content p{font-size:13px;line-height:1.55;margin:10px 0}
+.creator-tools-hub{border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line))}
+.atlas-list-item,.feedback-response,.feedback-request-card,.atlas-post{border:1px solid var(--line);border-radius:15px;padding:13px;margin:9px 0;background:var(--surface)}
+.feedback-request-card{display:block;width:100%;text-align:left;color:var(--ink);cursor:pointer}
+.feedback-request-card p{margin:10px 0;font-weight:700}
+.atlas-post-image{width:100%;max-height:280px;object-fit:contain;border-radius:12px;background:var(--bg);margin:8px 0}
+.atlas-detail-card,.feedback-detail-card{margin-top:16px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line))}
+.atlas-post-list,.feedback-responses{margin:12px 0}
+.feedback-response p{white-space:pre-wrap;overflow-wrap:anywhere}
+.feedback-reply-form{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -1979,6 +1992,283 @@ function handleStoryMediaChange(event){
     :'<img class="story-preview-media" src="'+storyPreviewUrl+'" alt="Aperçu de ta Story">';
   preview.innerHTML=media;preview.classList.remove('hidden');
 }
+async function openJournalComposer(postId){
+  const user=await requireSocialUser();if(!user)return;
+  const post=communityPosts.find(item=>String(item.id)===String(postId));
+  if(!post||post.user_id!==user.id)return toast('Le Carnet est réservé à tes propres publications.');
+  journalPendingPostId=String(postId);
+  const journal=post.creation_journal||{};
+  document.getElementById('journalIntention').value=journal.intention||'';
+  document.getElementById('journalChoice').value=journal.choice||'';
+  document.getElementById('journalDiscovery').value=journal.discovery||'';
+  document.getElementById('journalDeleteButton').classList.toggle('hidden',!post.creation_journal);
+  document.getElementById('journalModal').classList.remove('hidden');
+  document.getElementById('journalIntention').focus();
+}
+function closeJournalComposer(){
+  document.getElementById('journalModal').classList.add('hidden');
+  journalPendingPostId=null;
+}
+async function saveCreationJournal(){
+  if(!journalPendingPostId)return;
+  const args={
+    p_post_id:journalPendingPostId,
+    p_intention:document.getElementById('journalIntention').value,
+    p_choice:document.getElementById('journalChoice').value,
+    p_discovery:document.getElementById('journalDiscovery').value
+  };
+  if(!args.p_intention.trim()&&!args.p_choice.trim()&&!args.p_discovery.trim())return toast('Ajoute au moins un fragment ou supprime le Carnet.');
+  try{
+    const {error}=await museaSupabase.rpc('musea_save_creation_journal',args);
+    if(error)throw error;
+    const postId=journalPendingPostId;closeJournalComposer();await refreshSocialViews(postId);
+    toast('Les coulisses de ta création sont enregistrées.');
+  }catch(error){console.error('Carnet:',error);toast('Impossible d’enregistrer le Carnet : '+(error.message||'erreur Supabase'));}
+}
+async function deleteCreationJournal(){
+  if(!journalPendingPostId||!confirm('Supprimer les fragments de ce Carnet ?'))return;
+  try{
+    const {error}=await museaSupabase.rpc('musea_delete_creation_journal',{p_post_id:journalPendingPostId});
+    if(error)throw error;
+    const postId=journalPendingPostId;closeJournalComposer();await refreshSocialViews(postId);toast('Carnet supprimé.');
+  }catch(error){console.error(error);toast('Impossible de supprimer le Carnet.');}
+}
+
+async function renderAtlases(){
+  const mineBox=document.getElementById('atlasMine'),communityBox=document.getElementById('atlasCommunity');
+  if(!mineBox||!communityBox)return;
+  mineBox.innerHTML=communityBox.innerHTML='<p class="small muted">Chargement des Atlas…</p>';
+  try{
+    const user=await requireSocialUser();
+    if(!user){mineBox.innerHTML=communityBox.innerHTML='<div class="notice">Connecte-toi pour créer et explorer des Atlas.</div>';return;}
+    const {data:rows,error}=await museaSupabase.from('creative_atlases')
+      .select('id,owner_id,title,description,visibility,updated_at')
+      .order('updated_at',{ascending:false}).limit(100);
+    if(error)throw error;
+    const atlases=rows||[],ownerIds=[...new Set(atlases.map(item=>item.owner_id))];
+    let profiles=[];
+    if(ownerIds.length){
+      const result=await museaSupabase.from('profiles').select('id,username').in('id',ownerIds);
+      if(result.error)throw result.error;profiles=result.data||[];
+    }
+    const card=item=>{
+      const own=item.owner_id===user.id;
+      const username=profiles.find(profile=>profile.id===item.owner_id)?.username||'Créateur';
+      return '<article class="atlas-list-item"><div class="row between wrap"><div><strong>'+escapeHtml(item.title)+'</strong><div class="small muted">'+(own?'Ton Atlas':'@'+escapeHtml(username))+' · '+(item.visibility==='public'?'Public':'Privé')+'</div></div><button class="btn" onclick="openAtlas(\''+item.id+'\')">Ouvrir</button></div>'+(item.description?'<p class="small muted">'+escapeHtml(item.description)+'</p>':'')+'</article>';
+    };
+    const mine=atlases.filter(item=>item.owner_id===user.id);
+    const community=atlases.filter(item=>item.owner_id!==user.id&&item.visibility==='public');
+    mineBox.innerHTML=mine.length?mine.map(card).join(''):'<p class="small muted">Tu n’as pas encore créé d’Atlas. Commence par donner un titre à ton premier parcours.</p>';
+    communityBox.innerHTML=community.length?community.map(card).join(''):'<p class="small muted">Aucun Atlas public à découvrir pour le moment.</p>';
+  }catch(error){
+    console.error('Atlas:',error);
+    mineBox.innerHTML=communityBox.innerHTML='<div class="notice">Les Atlas ne sont pas encore disponibles. Vérifie que la migration Atlas a été appliquée.</div>';
+  }
+}
+async function createAtlas(){
+  const title=document.getElementById('atlasTitle').value.trim();
+  const description=document.getElementById('atlasDescription').value.trim();
+  const visibility=document.getElementById('atlasVisibility').value;
+  if(title.length<3||title.length>60)return toast('Le titre doit contenir entre 3 et 60 caractères.');
+  if(description.length>240)return toast('La description est limitée à 240 caractères.');
+  try{
+    const user=await requireSocialUser();if(!user)return;
+    const {data,error}=await museaSupabase.from('creative_atlases').insert({owner_id:user.id,title,description,visibility}).select('id').single();
+    if(error)throw error;
+    document.getElementById('atlasTitle').value='';document.getElementById('atlasDescription').value='';
+    await renderAtlases();toast('Ton Atlas est créé.');
+    if(atlasPendingPostId)await openAtlasPicker(atlasPendingPostId);
+    else if(data?.id)await openAtlas(data.id);
+  }catch(error){console.error('Création Atlas:',error);toast('Impossible de créer cet Atlas : '+(error.message||'erreur Supabase'));}
+}
+async function openAtlas(atlasId){
+  activeAtlasId=String(atlasId);
+  const detail=document.getElementById('atlasDetail');
+  if(!detail)return;
+  detail.innerHTML='<div class="card"><p class="small muted">Ouverture de ton Atlas…</p></div>';
+  try{
+    const user=await requireSocialUser();if(!user)return;
+    const {data:atlas,error}=await museaSupabase.from('creative_atlases')
+      .select('id,owner_id,title,description,visibility,updated_at').eq('id',activeAtlasId).maybeSingle();
+    if(error)throw error;if(!atlas)throw new Error('Cet Atlas n’est plus accessible.');
+    const {data:items,error:itemError}=await museaSupabase.from('creative_atlas_items')
+      .select('id,post_id,note,position').eq('atlas_id',activeAtlasId).order('position',{ascending:true}).order('created_at',{ascending:true});
+    if(itemError)throw itemError;
+    const itemRows=items||[],postIds=itemRows.map(item=>item.post_id);
+    let posts=[],profiles=[];
+    if(postIds.length){
+      const result=await museaSupabase.from('posts').select('id,user_id,caption,style,image_url,created_at').in('id',postIds).eq('visibility','public');
+      if(result.error)throw result.error;posts=result.data||[];
+      const ownerIds=[...new Set(posts.map(post=>post.user_id))];
+      if(ownerIds.length){const p=await museaSupabase.from('profiles').select('id,username').in('id',ownerIds);if(p.error)throw p.error;profiles=p.data||[];}
+    }
+    const own=atlas.owner_id===user.id;
+    const content=itemRows.map((item,index)=>{
+      const post=posts.find(entry=>entry.id===item.post_id);
+      if(!post)return '';
+      const username=profiles.find(profile=>profile.id===post.user_id)?.username||'Créateur';
+      const image=post.image_url?'<img class="atlas-post-image" src="'+escapeHtml(post.image_url)+'" alt="Création de @'+escapeHtml(username)+'" loading="lazy">':'';
+      return '<article class="atlas-post"><div class="row between"><strong>@'+escapeHtml(username)+'</strong>'+(own?'<div class="row"><button class="iconbtn" aria-label="Monter" '+(index===0?'disabled':'')+' onclick="moveAtlasItem(\''+item.id+'\',-1)">↑</button><button class="iconbtn" aria-label="Descendre" '+(index===itemRows.length-1?'disabled':'')+' onclick="moveAtlasItem(\''+item.id+'\',1)">↓</button><button class="iconbtn danger" aria-label="Retirer" onclick="removeAtlasItem(\''+item.id+'\')">Retirer</button></div>':'')+'</div>'+image+'<p>'+escapeHtml(post.caption||'Création')+'</p>'+(item.note?'<p class="small muted">'+escapeHtml(item.note)+'</p>':'')+'</article>';
+    }).join('');
+    detail.innerHTML='<div class="card atlas-detail-card"><div class="row between wrap"><div><div class="eyebrow">'+(own?'TON PARCOURS':'ATLAS PUBLIC')+'</div><h2 class="h2">'+escapeHtml(atlas.title)+'</h2><p class="small muted">'+escapeHtml(atlas.description||'')+'</p></div><div class="row wrap"><span class="chip">'+(atlas.visibility==='public'?'Public':'Privé')+'</span>'+(own?'<button class="btn danger" onclick="deleteAtlas(\''+atlas.id+'\')">Supprimer</button>':'')+'</div></div><div class="atlas-post-list">'+(content||'<p class="small muted">Cet Atlas ne contient pas encore de créations accessibles.</p>')+'</div><button class="btn" onclick="document.getElementById(\'atlasDetail\').innerHTML=\'\'">Fermer le parcours</button></div>';
+    detail.scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(error){console.error('Ouverture Atlas:',error);detail.innerHTML='<div class="card notice">Impossible d’ouvrir cet Atlas : '+escapeHtml(error.message||'erreur Supabase')+'</div>';}
+}
+async function openAtlasPicker(postId){
+  const user=await requireSocialUser();if(!user)return;
+  atlasPendingPostId=String(postId);
+  try{
+    const {data,error}=await museaSupabase.from('creative_atlases').select('id,title').eq('owner_id',user.id).order('updated_at',{ascending:false});
+    if(error)throw error;
+    const rows=data||[];
+    if(!rows.length){navigate('atlas');toast('Crée d’abord un Atlas, puis ajoute cette création.');return;}
+    document.getElementById('atlasTargetSelect').innerHTML=rows.map(item=>'<option value="'+item.id+'">'+escapeHtml(item.title)+'</option>').join('');
+    document.getElementById('atlasItemNote').value='';
+    document.getElementById('atlasAddModal').classList.remove('hidden');
+    document.getElementById('atlasTargetSelect').focus();
+  }catch(error){console.error(error);toast('Impossible de charger tes Atlas.');}
+}
+function closeAtlasPicker(){document.getElementById('atlasAddModal').classList.add('hidden');atlasPendingPostId=null;}
+async function savePostToAtlas(){
+  const atlasId=document.getElementById('atlasTargetSelect').value;
+  const note=document.getElementById('atlasItemNote').value.trim();
+  if(!atlasPendingPostId||!atlasId)return toast('Choisis un Atlas.');
+  if(note.length>240)return toast('La note est limitée à 240 caractères.');
+  try{
+    const {data:existing,error:readError}=await museaSupabase.from('creative_atlas_items').select('position').eq('atlas_id',atlasId).order('position',{ascending:false}).limit(1);
+    if(readError)throw readError;
+    const position=(existing?.[0]?.position??-1)+1;
+    const {error}=await museaSupabase.from('creative_atlas_items').insert({atlas_id:atlasId,post_id:atlasPendingPostId,note,position});
+    if(error){if(error.code==='23505')return toast('Cette création est déjà dans cet Atlas.');throw error;}
+    const id=atlasId;closeAtlasPicker();toast('Création ajoutée à ton Atlas.');
+    if(activeAtlasId===id)await openAtlas(id);
+  }catch(error){console.error(error);toast('Impossible d’ajouter cette création : '+(error.message||'erreur Supabase'));}
+}
+async function moveAtlasItem(itemId,direction){
+  if(!activeAtlasId)return;
+  try{
+    const {data:items,error}=await museaSupabase.from('creative_atlas_items').select('id,position').eq('atlas_id',activeAtlasId).order('position',{ascending:true});
+    if(error)throw error;
+    const index=(items||[]).findIndex(item=>item.id===itemId),next=index+direction;
+    if(index<0||next<0||next>=items.length)return;
+    const current=items[index],target=items[next];
+    const a=await museaSupabase.from('creative_atlas_items').update({position:target.position}).eq('id',current.id);
+    if(a.error)throw a.error;
+    const b=await museaSupabase.from('creative_atlas_items').update({position:current.position}).eq('id',target.id);
+    if(b.error)throw b.error;
+    await openAtlas(activeAtlasId);
+  }catch(error){console.error(error);toast('Impossible de réorganiser ce parcours.');}
+}
+async function removeAtlasItem(itemId){
+  if(!confirm('Retirer cette création de l’Atlas ? La publication originale ne sera pas supprimée.'))return;
+  try{const {error}=await museaSupabase.from('creative_atlas_items').delete().eq('id',itemId);if(error)throw error;await openAtlas(activeAtlasId);toast('Création retirée de l’Atlas.');}
+  catch(error){console.error(error);toast('Impossible de retirer cette création.');}
+}
+async function deleteAtlas(atlasId){
+  if(!confirm('Supprimer cet Atlas et son parcours ? Les publications originales resteront intactes.'))return;
+  try{const {error}=await museaSupabase.from('creative_atlases').delete().eq('id',atlasId);if(error)throw error;activeAtlasId=null;document.getElementById('atlasDetail').innerHTML='';await renderAtlases();toast('Atlas supprimé.');}
+  catch(error){console.error(error);toast('Impossible de supprimer cet Atlas.');}
+}
+
+async function openFeedbackComposer(postId){
+  const user=await requireSocialUser();if(!user)return;
+  const post=communityPosts.find(item=>String(item.id)===String(postId));
+  if(!post||post.user_id!==user.id)return toast('Tu peux demander un regard uniquement sur ta propre publication.');
+  feedbackPendingPostId=String(postId);
+  document.getElementById('feedbackQuestionKind').value='impression';
+  document.getElementById('feedbackQuestion').value='';
+  document.getElementById('feedbackComposeModal').classList.remove('hidden');
+  document.getElementById('feedbackQuestion').focus();
+}
+function closeFeedbackComposer(){document.getElementById('feedbackComposeModal').classList.add('hidden');feedbackPendingPostId=null;}
+async function createFeedbackRequest(){
+  const question=document.getElementById('feedbackQuestion').value.trim();
+  const kind=document.getElementById('feedbackQuestionKind').value;
+  if(!feedbackPendingPostId)return toast('Choisis une création avant de continuer.');
+  if(question.length<12||question.length>180)return toast('Ta question doit contenir entre 12 et 180 caractères.');
+  try{
+    const user=await requireSocialUser();if(!user)return;
+    const post=communityPosts.find(item=>String(item.id)===String(feedbackPendingPostId));
+    if(!post||post.user_id!==user.id)return toast('Tu peux demander un regard uniquement sur ta propre publication.');
+    const {data,error}=await museaSupabase.from('creative_feedback_requests').insert({post_id:feedbackPendingPostId,owner_id:user.id,question_kind:kind,question}).select('id').single();
+    if(error){if(error.code==='23505')return toast('Cette création possède déjà une demande de Regards.');throw error;}
+    const requestId=data.id;closeFeedbackComposer();navigate('feedback');await renderFeedbackHub();await openFeedbackRequest(requestId);await refreshSocialViews(feedbackPendingPostId);toast('Ta question est ouverte à la communauté.');
+  }catch(error){console.error('Regards:',error);toast('Impossible d’ouvrir les Regards : '+(error.message||'erreur Supabase'));}
+}
+async function renderFeedbackHub(){
+  const community=document.getElementById('feedbackRequestList'),mine=document.getElementById('myFeedbackRequests');
+  if(!community||!mine)return;
+  community.innerHTML=mine.innerHTML='<p class="small muted">Chargement…</p>';
+  try{
+    const user=await requireSocialUser();
+    if(!user){community.innerHTML=mine.innerHTML='<div class="notice">Connecte-toi pour participer aux Regards.</div>';return;}
+    const {data:requests,error}=await museaSupabase.from('creative_feedback_requests')
+      .select('id,post_id,owner_id,question_kind,question,status,created_at,updated_at')
+      .order('updated_at',{ascending:false}).limit(100);
+    if(error)throw error;
+    const rows=requests||[],ownerIds=[...new Set(rows.map(item=>item.owner_id))],requestIds=rows.map(item=>item.id);
+    let profiles=[],counts={};
+    if(ownerIds.length){const result=await museaSupabase.from('profiles').select('id,username').in('id',ownerIds);if(result.error)throw result.error;profiles=result.data||[];}
+    if(requestIds.length){const result=await museaSupabase.from('creative_feedback_responses').select('request_id').in('request_id',requestIds);if(result.error)throw result.error;(result.data||[]).forEach(item=>counts[item.request_id]=(counts[item.request_id]||0)+1);}
+    const label={impression:'Première impression',intention:'Clarté de l’intention',exploration:'Pistes à explorer'};
+    const card=item=>'<button class="feedback-request-card" onclick="openFeedbackRequest(\''+item.id+'\')"><div class="row between"><strong>@'+escapeHtml(profiles.find(p=>p.id===item.owner_id)?.username||'Créateur')+'</strong><span class="chip">'+(item.status==='open'?'Ouvert':'Fermé')+'</span></div><p>'+escapeHtml(item.question)+'</p><div class="small muted">'+(label[item.question_kind]||'Regard créatif')+' · '+(counts[item.id]||0)+' réponse(s)</div></button>';
+    const own=rows.filter(item=>item.owner_id===user.id),open=rows.filter(item=>item.owner_id!==user.id&&item.status==='open');
+    mine.innerHTML=own.length?own.map(card).join(''):'<p class="small muted">Tu n’as pas encore demandé de regard sur tes créations.</p>';
+    community.innerHTML=open.length?open.map(card).join(''):'<p class="small muted">Aucune question ouverte pour le moment. Reviens découvrir les prochaines demandes.</p>';
+  }catch(error){
+    console.error('Hub Regards:',error);
+    community.innerHTML=mine.innerHTML='<div class="notice">Les Regards ne sont pas encore disponibles. Vérifie que la migration correspondante a été appliquée.</div>';
+  }
+}
+async function openFeedbackRequest(requestId){
+  if(!document.getElementById('screen-feedback')?.classList.contains('active'))navigate('feedback');
+  activeFeedbackRequestId=String(requestId);
+  const detail=document.getElementById('feedbackDetail');
+  detail.innerHTML='<div class="card"><p class="small muted">Ouverture de la conversation…</p></div>';
+  try{
+    const user=await requireSocialUser();if(!user)return;
+    const {data:request,error}=await museaSupabase.from('creative_feedback_requests')
+      .select('id,post_id,owner_id,question_kind,question,status,created_at').eq('id',activeFeedbackRequestId).maybeSingle();
+    if(error)throw error;if(!request)throw new Error('Cette demande n’est plus accessible.');
+    const [postResult,responseResult,ownerResult]=await Promise.all([
+      museaSupabase.from('posts').select('id,caption,style').eq('id',request.post_id).maybeSingle(),
+      museaSupabase.from('creative_feedback_responses').select('id,author_id,perspective,content,created_at').eq('request_id',request.id).order('created_at',{ascending:true}),
+      museaSupabase.from('profiles').select('username').eq('id',request.owner_id).maybeSingle()
+    ]);
+    if(postResult.error)throw postResult.error;if(responseResult.error)throw responseResult.error;
+    const responses=responseResult.data||[],authorIds=[...new Set(responses.map(item=>item.author_id))];
+    let authors=[];
+    if(authorIds.length){const a=await museaSupabase.from('profiles').select('id,username').in('id',authorIds);if(a.error)throw a.error;authors=a.data||[];}
+    const own=request.owner_id===user.id;
+    const perspective={emotion:'Ressenti',clarity:'Clarté',possibility:'Possibilité'};
+    const responseMarkup=responses.map(item=>'<article class="feedback-response"><div class="row between"><strong>@'+escapeHtml(authors.find(a=>a.id===item.author_id)?.username||'Membre')+'</strong><span class="chip">'+(perspective[item.perspective]||'Regard')+'</span></div><p>'+escapeHtml(item.content)+'</p>'+(item.author_id===user.id?'<button class="chip" onclick="deleteFeedbackResponse(\''+item.id+'\')">Supprimer ma réponse</button>':'')+'</article>').join('');
+    const ownerName=ownerResult.data?.username||'Créateur';
+    detail.innerHTML='<div class="card feedback-detail-card"><div class="row between wrap"><div><div class="eyebrow">'+(own?'TA DEMANDE':'QUESTION DE @'+escapeHtml(ownerName))+'</div><h2 class="h2">'+escapeHtml(request.question)+'</h2><p class="small muted">'+escapeHtml(postResult.data?.caption||'Création')+' · '+escapeHtml(postResult.data?.style||'')+'</p></div><span class="chip">'+(request.status==='open'?'Ouvert':'Fermé')+'</span></div><div class="feedback-responses">'+(responseMarkup||'<p class="small muted">Pas encore de réponse. Tu peux ouvrir la conversation avec un regard constructif.</p>')+'</div>'+(own?'<div class="row wrap"><button class="btn" onclick="setFeedbackStatus(\''+request.id+'\',\''+(request.status==='open'?'closed':'open')+'\')">'+(request.status==='open'?'Fermer la demande':'Rouvrir la demande')+'</button><button class="btn danger" onclick="deleteFeedbackRequest(\''+request.id+'\')">Supprimer la demande</button></div>':(request.status==='open'?'<div class="feedback-reply-form"><label class="label" for="feedbackPerspective">Ton angle de réponse</label><select class="field" id="feedbackPerspective"><option value="emotion">Ressenti</option><option value="clarity">Clarté</option><option value="possibility">Possibilité</option></select><label class="label" for="feedbackResponseText">Ta réponse (20 à 500 caractères)</label><textarea class="field" id="feedbackResponseText" rows="3" minlength="20" maxlength="500" placeholder="Décris ce que cette création t’évoque, ce que tu comprends ou une piste qu’elle ouvre…"></textarea><button class="btn primary" onclick="submitFeedbackResponse()">Envoyer mon regard</button></div>':'<p class="small muted">Cette demande est fermée.</p>'))+'</div>';
+    detail.scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(error){console.error('Détail Regards:',error);detail.innerHTML='<div class="card notice">Impossible d’ouvrir cette demande : '+escapeHtml(error.message||'erreur Supabase')+'</div>';}
+}
+async function submitFeedbackResponse(){
+  const content=document.getElementById('feedbackResponseText')?.value.trim()||'';
+  const perspective=document.getElementById('feedbackPerspective')?.value||'emotion';
+  if(content.length<20||content.length>500)return toast('Ta réponse doit contenir entre 20 et 500 caractères.');
+  try{const user=await requireSocialUser();if(!user)return;const {error}=await museaSupabase.from('creative_feedback_responses').insert({request_id:activeFeedbackRequestId,author_id:user.id,perspective,content});if(error){if(error.code==='23505')return toast('Tu as déjà répondu à cette demande.');throw error;}await openFeedbackRequest(activeFeedbackRequestId);await renderFeedbackHub();toast('Ton regard a été envoyé.');}
+  catch(error){console.error(error);toast('Impossible d’envoyer ta réponse : '+(error.message||'erreur Supabase'));}
+}
+async function deleteFeedbackResponse(responseId){
+  if(!confirm('Supprimer ta réponse ?'))return;
+  try{const user=await requireSocialUser();if(!user)return;const {error}=await museaSupabase.from('creative_feedback_responses').delete().eq('id',responseId).eq('author_id',user.id);if(error)throw error;await openFeedbackRequest(activeFeedbackRequestId);await renderFeedbackHub();}
+  catch(error){console.error(error);toast('Impossible de supprimer cette réponse.');}
+}
+async function setFeedbackStatus(requestId,status){
+  try{const user=await requireSocialUser();if(!user)return;const {error}=await museaSupabase.from('creative_feedback_requests').update({status}).eq('id',requestId).eq('owner_id',user.id);if(error)throw error;await renderFeedbackHub();await openFeedbackRequest(requestId);toast(status==='closed'?'Demande fermée.':'Demande rouverte.');}
+  catch(error){console.error(error);toast('Impossible de modifier cette demande.');}
+}
+async function deleteFeedbackRequest(requestId){
+  if(!confirm('Supprimer définitivement cette demande et ses réponses ?'))return;
+  try{const user=await requireSocialUser();if(!user)return;const {error}=await museaSupabase.from('creative_feedback_requests').delete().eq('id',requestId).eq('owner_id',user.id);if(error)throw error;activeFeedbackRequestId=null;document.getElementById('feedbackDetail').innerHTML='';await renderFeedbackHub();toast('Demande supprimée.');}
+  catch(error){console.error(error);toast('Impossible de supprimer cette demande.');}
+}
+
 function setTrendPeriod(period){
   if(!['7d','30d','all'].includes(period))return;
   trendPeriod=period;
