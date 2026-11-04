@@ -47,7 +47,7 @@ Ne jamais désactiver RLS pour contourner une erreur. Une erreur de permission d
 ## Limites actuelles à ne pas présenter comme des fonctionnalités terminées
 
 - Le navigateur MUSEA ouvre les pages dans le navigateur de l'appareil ; ce n'est pas un moteur web intégré comparable à Chrome ou Opera GX.
-- La génération IA n'est pas reliée à un fournisseur IA opérationnel dans cette version.
+- L'intégration IA est présente sur la branche de remise à niveau, mais elle reste désactivée tant que la migration de quotas, l'Edge Function et les secrets serveur ne sont pas déployés et vérifiés.
 - Les offres Premium, points, récompenses et achats restent des simulations : aucun paiement réel n'est traité.
 - Les notifications sont dans l'application ; les notifications push lorsque l'application est fermée ne sont pas garanties.
 - Les appels audio/vidéo et les pièces jointes personnelles dans les messages ne sont pas implémentés.
@@ -87,7 +87,7 @@ Le Studio permet de préparer des créations avant publication :
 - états « En création » et « Prêt à publier » ;
 - publication déclenchée explicitement par le créateur.
 
-Aucun moteur de génération IA n'est connecté dans cette version. Les outils de retouche fonctionnent localement dans le navigateur ; aucune image n'est envoyée à un fournisseur IA. La migration `2026-11-04_creator_studio.sql` doit être appliquée dans Supabase pour activer les brouillons synchronisés et leur stockage privé.
+Les outils de retouche fonctionnent localement dans le navigateur. Le moteur IA est préparé séparément et reste désactivé jusqu'au déploiement de `musea-ai`, de la migration `2026-11-06_ai_usage_limits.sql` et des secrets serveur. La migration `2026-11-04_creator_studio.sql` doit être appliquée dans Supabase pour activer les brouillons synchronisés et leur stockage privé.
 
 ## Installation sur téléphone
 
