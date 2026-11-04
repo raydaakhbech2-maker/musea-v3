@@ -205,10 +205,7 @@ window.museaSupabase = window.supabase.createClient(
 <div id="planModal" class="modal hidden"><div class="modalbox"><div class="row between"><div><div class="eyebrow">Bienvenue sur MUSEA</div><h2 class="h1">Choisis ton expérience.</h2></div><button class="iconbtn" onclick="closePlans()">✕</button></div><p class="muted">Tu pourras modifier ton choix ensuite. Aucun paiement ne sera prélevé dans ce prototype.</p><div class="grid"><div class="card" style="margin:0"><span class="chip">GRATUIT</span><h3 class="h3" style="margin-top:12px">Découvrir</h3><div class="price">0 €</div><p class="small muted">Pour commencer et tester la communauté.</p><ul class="small"><li>Fil et profil</li><li>Crédits IA limités</li><li>Likes, commentaires, collections</li><li>Stories et messages de base</li></ul><button class="btn full" onclick="choosePlan('free')">Choisir Gratuit</button></div><div class="card" style="margin:0;border:2px solid var(--accent)"><span class="chip selected">PREMIUM</span><h3 class="h3" style="margin-top:12px">Créer plus</h3><div class="price">5,99 €<span style="font-size:13px;font-weight:600">/mois</span></div><p class="small muted">Prix cible à tester, pas un paiement réel.</p><ul class="small"><li>Plus de crédits IA, avec plafond</li><li>Thèmes exclusifs et options de profil</li><li>Collections avancées</li><li>Outils créatifs supplémentaires</li><li>Éligibilité possible à la vérification</li></ul><button class="btn primary full" onclick="choosePlan('premium')">Choisir Premium</button></div></div><p class="small muted" style="margin-top:14px">Le prix devra être validé avec les coûts d'IA, les commissions des stores, la TVA, l'hébergement et les tests utilisateurs. Aucun abonnement n'est encore vendu.</p></div></div>
 <script>
 const defaultPosts = [];
-let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:['luna.creative','noah.visuals','aya.studio','kai.3d'],ownStories:[],messages:[{who:'Luna Creative',text:'Salut ! J’aime beaucoup tes idées créatives ✨',mine:false}],groups:[],notifications:[
-{type:'Like',text:'luna.creative a aimé ta création.',time:'Il y a 4 min',read:false},
-{type:'Mention',text:'noah.visuals t’a mentionné dans un commentaire.',time:'Il y a 18 min',read:false},
-{type:'Pour toi',text:'Une création pourrait te plaire.',time:'Il y a 1 h',read:false}],
+let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:['luna.creative','noah.visuals','aya.studio','kai.3d'],ownStories:[],messages:[{who:'Luna Creative',text:'Salut ! J’aime beaucoup tes idées créatives ✨',mine:false}],groups:[],
 prefs:{likes:true,collections:true,online:true,dm:false,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
 let feedKind='all',discoverKind='Tout',currentChat='Luna Creative',customStories=[];
 function load(){try{let s=JSON.parse(localStorage.getItem('museaState')||'null');if(s)state={...state,...s,prefs:{...state.prefs,...s.prefs}}}catch(e){}}
@@ -493,6 +490,11 @@ function setNotificationFilter(filter,button){
 }
 async function loadNotifications(userId){
   try{
+    if(notificationChannelUser!==userId){
+      await stopNotificationRealtime();
+      notificationRows=[];
+      notificationChannelUser=userId;
+    }
     const [rowsResult,prefsResult]=await Promise.all([
       museaSupabase.from('notifications')
         .select('id,recipient_id,actor_id,type,post_id,comment_id,created_at,read_at')
@@ -504,7 +506,9 @@ async function loadNotifications(userId){
     if(rowsResult.error) throw rowsResult.error;
     if(prefsResult.error) console.warn('Préférences de notification indisponibles :',prefsResult.error);
     notificationPrefs={...notificationPrefs,...(prefsResult.data||{})};
-    notificationRows=rowsResult.data||[];
+    const merged=new Map();
+    [...(rowsResult.data||[]),...notificationRows].forEach(n=>merged.set(n.id,n));
+    notificationRows=[...merged.values()].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,100);
     const actorIds=[...new Set(notificationRows.map(n=>n.actor_id).filter(Boolean))];
     if(actorIds.length){
       const {data,error}=await museaSupabase.from('profiles').select('id,username').in('id',actorIds);
@@ -945,8 +949,8 @@ async function museaRefreshAccount() {
     return;
   }
 
-  await loadNotifications(user.id);
   await startNotificationRealtime(user.id);
+  await loadNotifications(user.id);
 
   const {data: profile, error} = await museaSupabase
     .from('profiles')
