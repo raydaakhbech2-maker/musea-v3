@@ -281,8 +281,8 @@ function artMarkup(p){
 function postMarkup(p){
   museaPostCache.set(String(p.id),p);
   const liked=!!p.liked,saved=state.saved.includes(p.id),reposted=!!p.reposted,id=escapeHtml(String(p.id));
-  const followButton=myUserId&&p.author_id&&p.author_id!==myUserId?'<button class="iconbtn '+(myFollowIds.has(p.author_id)?'on':'')+'" onclick="toggleFollow(\\''+escapeHtml(p.author_id)+'\\')">'+(myFollowIds.has(p.author_id)?'✓ Abonné':'＋ Suivre')+'</button>':'';
-  const comments=(p.comments||[]).map(c=>`<div class="switchrow" style="align-items:flex-start"><div style="flex:1"><strong>${escapeHtml(c.username||'Utilisateur')}</strong><div>${escapeHtml(c.content)}</div><div class="small muted">${escapeHtml(new Date(c.created_at).toLocaleString('fr-FR'))}</div></div>${c.owned?'<button class="iconbtn" onclick="deleteComment(\\''+escapeHtml(c.id)+'\\',\\''+id+'\\')">Supprimer</button>':''}</div>`).join('');
+  const followButton=myUserId&&p.author_id&&p.author_id!==myUserId?`<button class="iconbtn ${myFollowIds.has(p.author_id)?'on':''}" onclick="toggleFollow('${escapeHtml(p.author_id)}')">${myFollowIds.has(p.author_id)?'✓ Abonné':'＋ Suivre'}</button>`:'';
+  const comments=(p.comments||[]).map(c=>`<div class="switchrow" style="align-items:flex-start"><div style="flex:1"><strong>${escapeHtml(c.username||'Utilisateur')}</strong><div>${escapeHtml(c.content)}</div><div class="small muted">${escapeHtml(new Date(c.created_at).toLocaleString('fr-FR'))}</div></div>${c.owned?`<button class="iconbtn" onclick="deleteComment('${escapeHtml(c.id)}','${id}')">Supprimer</button>`:''}</div>`).join('');
   const lineage=p.remix_source?`<div class="notice small" style="margin-top:10px">✦ Écho de @${escapeHtml(p.remix_source.username)} · ${escapeHtml(p.remix_source.note)}</div>`:'';
   const echoCount=p.remix_count?`<span class="small muted">✦ ${p.remix_count} Écho${p.remix_count>1?'s':''}</span>`:'';
   const remixButton=p.remote?`<button class="iconbtn" onclick="startRemix('${id}')">✦ Créer un Écho</button>`:'';
