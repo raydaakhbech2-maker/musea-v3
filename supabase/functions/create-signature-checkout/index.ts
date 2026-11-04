@@ -56,6 +56,11 @@ Deno.serve(async (req) => {
   if (activeRows?.length) return json({ error: "Un abonnement Signature est déjà actif." }, 409);
 
   const stripe = new Stripe(stripeKey);
+  const configuredPrice = await stripe.prices.retrieve(priceId);
+  if (!configuredPrice.active || configuredPrice.type !== "recurring" ||
+      configuredPrice.currency !== "eur" || configuredPrice.recurring?.interval !== "month") {
+    return json({ error: "Le tarif Signature configuré n'est pas un abonnement mensuel actif en euros." }, 503);
+  }
   const { data: existingCustomer, error: customerReadError } = await admin
     .from("billing_customers")
     .select("stripe_customer_id")
