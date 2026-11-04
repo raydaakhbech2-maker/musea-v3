@@ -381,6 +381,17 @@ body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibi
 .musea-offline-notice{margin:10px 16px 0;border:1px solid #d49a45;background:#fff0d6;color:#68440c;padding:11px 13px;border-radius:12px;font-size:12px}
 [data-theme="dark"] .musea-offline-notice{background:#45351d;color:#ffe0a5;border-color:#8b672d}
 @media(max-width:430px){.musea-signal-row{grid-template-columns:1fr;gap:6px}.musea-signal-state{justify-self:start}}
+.account-toolbar{display:grid;gap:8px;background:linear-gradient(145deg,var(--card),var(--surface))}
+.account-toolbar .h3{margin:0}
+.billing-dashboard{border-color:color-mix(in srgb,var(--accent) 30%,var(--line))}
+.billing-dashboard>.row{align-items:center}
+.billing-invoices{margin-top:14px}
+.billing-invoice-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+.billing-invoice-row strong,.billing-invoice-row span{display:block}
+.billing-invoice-row a{font-size:12px;font-weight:750;white-space:nowrap}
+.post-actions .iconbtn.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 35%,var(--line))}
+.post-actions .iconbtn{min-height:42px}
+@media(max-width:430px){.billing-invoice-row{align-items:flex-start;flex-direction:column;gap:5px}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -430,8 +441,6 @@ window.museaSupabase = window.supabase.createClient(
   </div>
 
   <p id="authMessage" class="small muted"></p>
-  <button id="authLogout" class="btn danger hidden"
-          onclick="museaLogout()">Déconnexion</button>
   </section>
 <section class="screen active" id="screen-home">
   <section class="home-intro">
@@ -738,6 +747,20 @@ window.museaSupabase = window.supabase.createClient(
 </section>
 <section class="screen" id="screen-settings">
   <div class="row between"><h2 class="h1">Paramètres</h2><button class="btn" onclick="navigate('profile')">Retour au profil</button></div>
+  <section class="card account-toolbar" aria-labelledby="accountToolbarTitle">
+    <div class="eyebrow">TON ESPACE PERSONNEL</div><h3 class="h3" id="accountToolbarTitle">Compte et accès</h3>
+    <p id="authAccountSummary" class="small muted">Connecte-toi pour gérer ton compte.</p>
+    <button id="authLogout" class="btn danger hidden" type="button" onclick="museaLogout()">Se déconnecter</button>
+  </section>
+  <section class="card billing-dashboard" id="museaBillingCard" aria-labelledby="billingDashboardTitle">
+    <div class="eyebrow">MUSEA / FACTURATION SÉCURISÉE</div>
+    <div class="row between wrap"><h3 class="h3" id="billingDashboardTitle">Abonnement et factures</h3><button class="btn" type="button" onclick="loadBillingOverview()">Actualiser</button></div>
+    <p id="museaBillingStatus" class="notice" aria-live="polite">Vérification de ton compte…</p>
+    <div id="museaBillingDetails" class="small muted"></div>
+    <div id="museaBillingInvoices" class="billing-invoices"></div>
+    <div class="row wrap"><button id="museaBillingPortalButton" class="btn primary" type="button" onclick="openBillingPortal()" hidden>Gérer mon abonnement sur le portail sécurisé</button></div>
+    <p class="small muted">Les factures et l'état de l'abonnement sont lus depuis Supabase avec les droits de ton compte. Aucun achat n'est activé depuis cette application. La gestion des paiements dépend de la configuration du titulaire légal du compte marchand.</p>
+  </section>
   <section class="card musea-signal-card" aria-labelledby="museaSignalTitle">
     <div class="eyebrow">MUSEA / FIABILITÉ & TRANSPARENCE</div>
     <div class="row between wrap"><div><h3 class="h3" id="museaSignalTitle">Signal — état de ton espace</h3><p class="small muted">Un contrôle local pour comprendre ce qui fonctionne sur cet appareil, sans envoyer de rapport.</p></div><span class="musea-signal-mark" aria-hidden="true">◎</span></div>
@@ -788,6 +811,9 @@ window.museaSupabase = window.supabase.createClient(
 const defaultPosts = [];
 let state={theme:'system',plan:null,liked:[],saved:[],following:[],comments:{},stories:[],ownStories:[],displayName:'',headline:'',creativeSignature:'',specialties:[],messages:[],groups:[],
 prefs:{likes:true,collections:true,online:true,dm:false,projectInvites:true,private:false},username:'monprofil',bio:'Créateur en devenir ✨'};
+let museaCurrentUserId=null;
+let museaSignatureAccess=false;
+const deletingMuseaPosts=new Set();
 let feedKind='all',homeFeedMode='affinity',discoverKind='Tout',customStories=[];
 let studioImage=null,studioImageObjectUrl=null,studioExistingImagePath=null,studioActiveDraftId=null,studioDraftRows=[];
 let discoverMode='affinity';
