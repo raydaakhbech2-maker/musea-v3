@@ -54,7 +54,8 @@ create index if not exists creator_portfolio_user_order_idx
 
 alter table public.creator_portfolio_items enable row level security;
 revoke all on public.creator_portfolio_items from anon, authenticated;
-grant select, insert, update, delete on public.creator_portfolio_items to authenticated;
+grant select on public.creator_portfolio_items to anon, authenticated;
+grant insert, update, delete on public.creator_portfolio_items to authenticated;
 
 drop policy if exists "Portfolio items visible to their owner or public profile visitors"
   on public.creator_portfolio_items;
@@ -116,6 +117,7 @@ begin
   if tg_op = 'UPDATE' and old.user_id = new.user_id then
     return new;
   end if;
+  perform 1 from public.profiles where id = new.user_id for update;
   select count(*) into current_count
   from public.creator_portfolio_items
   where user_id = new.user_id;
