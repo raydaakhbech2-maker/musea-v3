@@ -972,7 +972,7 @@ function toast(msg){let el=document.getElementById('toast');el.textContent=msg;e
 function setTheme(t){state.theme=t;save();applyTheme();toast('Apparence mise à jour.')}
 function applyTheme(){let t=state.theme;if(t==='system')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]').content=t==='dark'?'#171522':'#f8f6f2'}
 function navigate(name){
-  const routeNames={home:'Accueil',discover:'Explorer',create:'Créer',trends:'Tendances',messages:'Messages',notifications:'Notifications',moderation:'Modération',profile:'Profil créateur',settings:'Paramètres',stories:'Stories',rewards:'Récompenses',browser:'Navigateur',creator:'Profil créateur'};
+  const routeNames={home:'Accueil',discover:'Explorer',create:'Créer',trends:'Tendances',messages:'Messages',notifications:'Notifications',moderation:'Modération',profile:'Profil créateur',settings:'Paramètres',stories:'Stories',atlas:'Atlas créatifs',feedback:'Les Regards',rewards:'Récompenses',browser:'Navigateur',creator:'Profil créateur'};
   document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
   let el=document.getElementById('screen-'+name);
   if(!el){name='home';el=document.getElementById('screen-home');}
@@ -998,6 +998,8 @@ function navigate(name){
   if(name==='settings'){loadMyModerationCases();loadBillingOverview();}
   if(name==='profile')loadBillingOverview();
   if(name==='stories')renderStories();
+  if(name==='atlas')renderAtlases();
+  if(name==='feedback')renderFeedbackHub();
   if(name==='rewards')renderRewards();
   if(name==='create')studioLoadDrafts();
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1143,8 +1145,12 @@ function postMarkup(p){
     <div class="post-title">${escapeHtml(p.title||'Création')}</div>
     <div class="post-description">${escapeHtml(p.desc||'')}</div>
     ${p.lineage?'<div class="musea-lineage"><span class="musea-lineage-mark">↳</span><div><strong>'+(p.lineage.relation_type==='remix'?'Réinterprétation de':'Inspirée par')+'</strong><div class="small muted">'+escapeHtml(p.lineage.source_user?'@'+p.lineage.source_user:'une création MUSEA')+(p.lineage.source_title?' · '+escapeHtml(p.lineage.source_title):'')+'</div>'+(p.lineage.note?'<p class="small">'+escapeHtml(p.lineage.note)+'</p>':'')+'<button class="chip" onclick="openLineageSource(\''+escapeHtml(p.lineage.source_post_id)+'\')">Voir la création d’origine</button></div></div>':''}
+    ${p.creation_journal?'<details class="creation-journal"><summary>Les coulisses de cette création</summary><div class="creation-journal-content">'+(p.creation_journal.intention?'<p><strong>L’étincelle</strong><br>'+escapeHtml(p.creation_journal.intention)+'</p>':'')+(p.creation_journal.choice?'<p><strong>Le choix</strong><br>'+escapeHtml(p.creation_journal.choice)+'</p>':'')+(p.creation_journal.discovery?'<p><strong>La découverte</strong><br>'+escapeHtml(p.creation_journal.discovery)+'</p>':'')+'</div></details>':''}
     <div class="row wrap" style="margin-top:9px"><span class="chip">${escapeHtml(p.tag||'#MaCreation')}</span></div>
     <div class="post-actions">
+      ${isOwn?'<button class="iconbtn" onclick="openJournalComposer(\''+escapeHtml(id)+'\')">'+(p.creation_journal?'Modifier le Carnet':'＋ Carnet')+'</button>':''}
+      ${p.feedback_request?'<button class="iconbtn" onclick="openFeedbackRequest(\''+escapeHtml(p.feedback_request.id)+'\')">Voir les Regards</button>':(isOwn?'<button class="iconbtn" onclick="openFeedbackComposer(\''+escapeHtml(id)+'\')">Demander un regard</button>':'')}
+      <button class="iconbtn" onclick="openAtlasPicker(\''+escapeHtml(id)+'\')">＋ Atlas</button>
       <button class="iconbtn ${liked?'on':''}" aria-label="${liked?'Ne plus aimer':'Aimer'} cette création, ${likes} mentions J’aime" aria-pressed="${liked}" onclick="toggleLike('${escapeHtml(id)}')">♡ ${likes}</button>
       <button class="iconbtn" aria-label="Afficher ${comments} commentaires" aria-expanded="${window.openCommentPostId===id}" onclick="commentPost('${escapeHtml(id)}')">▢ ${comments}</button>
       <button class="iconbtn ${saved?'on':''}" aria-label="${saved?'Retirer des collections':'Enregistrer dans les collections'}" aria-pressed="${saved}" onclick="toggleSave('${escapeHtml(id)}')">☆ ${saved?'Enregistré':'Enregistrer'}</button>
@@ -1243,6 +1249,22 @@ async function loadCommunityPosts(){
     const source=sourceRows.find(x=>String(x.id)===String(link.source_post_id));
     post.lineage={...link,source_user:sourceProfiles.find(x=>x.id===source?.user_id)?.username||'Créateur MUSEA',source_title:(source?.caption||'Création d’origine').slice(0,70)};
   });
+  if(postIds.length){
+    const [journalResult,feedbackResult]=await Promise.all([
+      museaSupabase.from('post_creation_journals').select('post_id,author_id,intention,choice,discovery,updated_at').in('post_id',postIds),
+      museaSupabase.from('creative_feedback_requests').select('id,post_id,owner_id,question_kind,question,status').in('post_id',postIds)
+    ]);
+    const journalMap=new Map();
+    if(journalResult.error)console.warn('Carnets créatifs indisponibles :',journalResult.error);
+    else (journalResult.data||[]).forEach(item=>journalMap.set(String(item.post_id),item));
+    const feedbackMap=new Map();
+    if(feedbackResult.error)console.warn('Regards créatifs indisponibles :',feedbackResult.error);
+    else (feedbackResult.data||[]).forEach(item=>feedbackMap.set(String(item.post_id),item));
+    communityPosts.forEach(post=>{
+      post.creation_journal=journalMap.get(String(post.id))||null;
+      post.feedback_request=feedbackMap.get(String(post.id))||null;
+    });
+  }
   refreshLineageSourceOptions();
   return communityPosts;
 }
