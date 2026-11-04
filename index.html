@@ -1171,6 +1171,7 @@ async function unblockUser(userId){
   if(error)return toast('Déblocage impossible : '+error.message);
   toast('Compte débloqué.');
   await loadBlockedUsers();
+  await loadMessageWorkspace();
 }
 async function fillMessageSafetyTargets(){
   const select=document.getElementById('messageSafetyTarget');
