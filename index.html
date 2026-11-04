@@ -3408,6 +3408,14 @@ async function museaRefreshAccount() {
   if (!user) {
     museaSignatureAccess=false;
     updatePlan();
+    const billingStatus=document.getElementById('museaBillingStatus');
+    const billingDetails=document.getElementById('museaBillingDetails');
+    const billingInvoices=document.getElementById('museaBillingInvoices');
+    const billingPortal=document.getElementById('museaBillingPortalButton');
+    if(billingStatus)billingStatus.textContent='Connecte-toi pour consulter ton abonnement et tes factures.';
+    if(billingDetails)billingDetails.textContent='';
+    if(billingInvoices)billingInvoices.innerHTML='';
+    if(billingPortal)billingPortal.hidden=true;
     await stopMessageRealtime();
     activeConversationId=null;
     currentConversation=null;
