@@ -1989,7 +1989,7 @@ async function renderProfile(){
       if(portfolio)portfolio.innerHTML='<div class="notice">Connecte-toi pour construire un portfolio synchronisé.</div>';
       if(postSelect)postSelect.innerHTML='<option value="">Connexion nécessaire</option>';
       if(activity)activity.innerHTML='<p class="muted small">Connecte-toi pour retrouver tes likes et tes collections.</p>';
-      if(pulse){pulse.setAttribute('aria-busy','false');pulse.innerHTML='<div class="notice">Connecte-toi per consulter tes statistiques de création.</div>';}
+      if(pulse){pulse.setAttribute('aria-busy','false');pulse.innerHTML='<div class="notice">Connecte-toi pour consulter tes statistiques de création.</div>';}
       set('likesStat','—');
       return;
     }
@@ -2064,7 +2064,7 @@ async function renderProfile(){
 
     const posts=postsResult.data||[];
     const publicPosts=posts.filter(p=>p.visibility==='public');
-    await renderCreatorPulse(publicPosts,user.id);
+    await renderCreatorPulse(publicPosts);
     if(container){
       const mapped=posts.map(p=>({
         id:p.id,user_id:p.user_id,user:state.username,avatar:(state.username||'M')[0].toUpperCase(),
@@ -2094,7 +2094,20 @@ async function renderProfile(){
     if(postSelect)postSelect.innerHTML='<option value="">Portfolio indisponible</option>';
   }
 }
-async function renderCreatorPulse(publicPosts,userId){
+async function loadCreatorInteractionRows(table,postIds){
+  const all=[];
+  const pageSize=1000;
+  for(let offset=0;;offset+=pageSize){
+    const {data,error}=await museaSupabase.from(table).select('post_id')
+      .in('post_id',postIds).range(offset,offset+pageSize-1);
+    if(error)throw error;
+    const page=data||[];
+    all.push(...page);
+    if(page.length<pageSize)break;
+  }
+  return all;
+}
+async function renderCreatorPulse(publicPosts){
   const target=document.getElementById('creatorPulse');
   if(!target)return;
   const posts=Array.isArray(publicPosts)?publicPosts:[];
@@ -2105,14 +2118,11 @@ async function renderCreatorPulse(publicPosts,userId){
     return;
   }
   try{
-    const results=await Promise.all([
-      museaSupabase.from('post_likes').select('post_id').in('post_id',ids),
-      museaSupabase.from('post_comments').select('post_id').in('post_id',ids),
-      museaSupabase.from('post_reposts').select('post_id').in('post_id',ids)
+    const [likes,comments,reposts]=await Promise.all([
+      loadCreatorInteractionRows('post_likes',ids),
+      loadCreatorInteractionRows('post_comments',ids),
+      loadCreatorInteractionRows('post_reposts',ids)
     ]);
-    const failed=results.find(result=>result.error);
-    if(failed)throw failed.error;
-    const likes=results[0].data||[],comments=results[1].data||[],reposts=results[2].data||[];
     const counts=new Map(posts.map(post=>[post.id,{likes:0,comments:0,reposts:0,total:0,post}]));
     likes.forEach(row=>{const item=counts.get(row.post_id);if(item)item.likes++;});
     comments.forEach(row=>{const item=counts.get(row.post_id);if(item)item.comments++;});
