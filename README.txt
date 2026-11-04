@@ -169,3 +169,19 @@ Le centre « Mon dossier MUSEA » permet à un membre connecté de télécharger
 Cette étape est une proposition cohérente pour la suite du projet ; aucun titre ni périmètre original confirmé des étapes 24 à 26 n'a été retrouvé dans les échanges précédents.
 
 **Validation effectuée :** vérification statique des catégories interrogées, de leurs filtres d'identité, de l'utilisation de la session Supabase côté client et de l'absence de clé privilégiée dans le code ajouté. L'export doit encore être essayé avec un compte de test sur le projet Supabase réel ; il ne peut inclure que les tables et politiques effectivement déployées.
+
+
+## MUSEA Filiations — transmission créative (étape 25 proposée)
+
+Une publication peut être reliée à une œuvre publique MUSEA comme « Inspirée par » ou « Réinterprétation ». Le crédit de l'œuvre source apparaît sur la publication dérivée, avec un lien pour retrouver l'origine et une note facultative sur ce qui a été transformé.
+
+- La filiation est facultative : une publication sans source reste une création indépendante.
+- La migration `supabase/migrations/2026-11-05_creative_lineage.sql` crée une relation unique par publication dérivée, avec RLS, vérification de propriété de l'œuvre dérivée, source publique, interdiction de l'auto-référence et suppression réservée à son créateur.
+- Le fil récupère les filiations des publications chargées et affiche le crédit. Le sélecteur de Studio propose les publications publiques déjà chargées dans le fil (limite actuelle : 100).
+- Si la migration n'est pas appliquée, les publications normales continuent de fonctionner ; une filiation choisie affichera un avertissement si son enregistrement échoue.
+- Aucune rémunération, propriété intellectuelle ou licence n'est transférée par ce lien. Les droits et autorisations nécessaires restent à respecter.
+- L'export MUSEA Empreinte a été déplacé dans le script applicatif exécutable : il n'est plus inséré dans la balise du SDK Supabase, dont le contenu inline est ignoré lorsqu'un attribut `src` est présent.
+
+Cette étape est une proposition de continuité produit, les intitulés originaux des étapes 25–26 n'ayant pas été retrouvés.
+
+**Validation statique :** présence du formulaire de filiation, du chargement des relations, de l'affichage du crédit, de l'insertion liée à la publication, de la migration RLS et du déplacement du code d'export. Pas de test en direct Supabase ni de migration exécutée à distance.
