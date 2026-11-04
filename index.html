@@ -452,6 +452,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .atlas-post-list,.feedback-responses{margin:12px 0}
 .feedback-response p{white-space:pre-wrap;overflow-wrap:anywhere}
 .feedback-reply-form{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+
+.creator-stats{grid-template-columns:repeat(4,minmax(0,1fr))}.creator-circle-card .circle-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.creator-circle-card .switchrow{padding:8px 0}.follow-post-button{align-self:center;white-space:nowrap}.creator-discovery-card .switchrow{gap:12px}
+@media(max-width:560px){.creator-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.creator-circle-card .circle-columns{grid-template-columns:1fr}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -2295,6 +2298,108 @@ async function deleteFeedbackRequest(requestId){
   catch(error){console.error(error);toast('Impossible de supprimer cette demande.');}
 }
 
+async function loadRelationshipContext(){
+  myFollowIds=new Set();myInterests=[];
+  try{
+    const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+    if(userError)throw userError;
+    const user=userData?.user;if(!user)return;
+    const [follows,interests]=await Promise.all([
+      museaSupabase.from('follows').select('followed_id').eq('follower_id',user.id),
+      museaSupabase.from('profile_interests').select('interest').eq('user_id',user.id)
+    ]);
+    if(follows.error)throw follows.error;
+    if(interests.error)throw interests.error;
+    myFollowIds=new Set((follows.data||[]).map(item=>String(item.followed_id)));
+    myInterests=(interests.data||[]).map(item=>item.interest);
+    if(!activeFollowsChannel){
+      activeFollowsChannel=museaSupabase.channel('musea-follows-live')
+        .on('postgres_changes',{event:'*',schema:'public',table:'follows'},async()=>{
+          await loadRelationshipContext();
+          const active=document.querySelector('.screen.active')?.id;
+          if(active==='screen-home')renderHomeFeedFromCache();
+          if(active==='screen-discover')renderCreatorDirectory();
+          if(active==='screen-profile')renderMyCircle();
+        }).subscribe();
+    }
+  }catch(error){console.warn('Relations MUSEA indisponibles :',error);myFollowIds=new Set();myInterests=[];}
+}
+async function toggleFollow(targetId){
+  try{
+    const user=await requireSocialUser();if(!user)return;
+    const id=String(targetId||'');if(!id||id===user.id)return;
+    const exists=myFollowIds.has(id);
+    const result=exists
+      ?await museaSupabase.from('follows').delete().eq('follower_id',user.id).eq('followed_id',id)
+      :await museaSupabase.from('follows').insert({follower_id:user.id,followed_id:id});
+    if(result.error){if(result.error.code==='23505')return;throw result.error;}
+    if(exists)myFollowIds.delete(id);else myFollowIds.add(id);
+    toast(exists?'Tu ne suis plus ce créateur.':'Créateur ajouté à ton cercle.');
+    const active=document.querySelector('.screen.active')?.id;
+    if(active==='screen-home')renderFeed();
+    if(active==='screen-discover'){renderCreatorDirectory();renderDiscover();}
+    if(active==='screen-profile'){renderMyCircle();renderProfile();}
+  }catch(error){console.error('Follow:',error);toast('Impossible de modifier cet abonnement. Vérifie la migration Relations.');}
+}
+const museaInterestOptions=['Art digital','Fantasy','Photographie','3D','Design','Sciences','Technologie','Architecture','Cinéma','Mode','Écriture','Musique'];
+function renderInterestPicker(){
+  const box=document.getElementById('interestPicker');if(!box)return;
+  box.innerHTML=museaInterestOptions.map(tag=>{
+    const selected=myInterests.includes(tag);
+    return '<button class="chip '+(selected?'selected':'')+'" aria-pressed="'+selected+'" onclick="toggleInterest(\''+tag+'\')">'+tag+'</button>';
+  }).join('');
+  const status=document.getElementById('interestStatus');
+  if(status)status.textContent=myInterests.length+' / 5';
+}
+async function toggleInterest(tag){
+  try{
+    const user=await requireSocialUser();if(!user)return;
+    const exists=myInterests.includes(tag);
+    if(!exists&&myInterests.length>=5)return toast('Choisis au maximum cinq centres d’intérêt.');
+    const result=exists
+      ?await museaSupabase.from('profile_interests').delete().eq('user_id',user.id).eq('interest',tag)
+      :await museaSupabase.from('profile_interests').insert({user_id:user.id,interest:tag});
+    if(result.error)throw result.error;
+    myInterests=exists?myInterests.filter(item=>item!==tag):[...myInterests,tag];
+    renderInterestPicker();toast('Tes centres d’intérêt sont à jour.');
+    if(document.getElementById('screen-home')?.classList.contains('active'))renderFeed();
+  }catch(error){console.error('Intérêts:',error);toast('Impossible de modifier tes centres d’intérêt.');}
+}
+async function renderCreatorDirectory(){
+  const box=document.getElementById('creatorResults');if(!box)return;
+  const query=(document.getElementById('creatorSearch')?.value||'').trim().replace(/^@/,'');
+  if(query.length<2){box.innerHTML='<p class="small muted">Saisis au moins deux caractères pour découvrir des créateurs.</p>';return;}
+  box.innerHTML='<p class="small muted">Recherche des créateurs…</p>';
+  try{
+    const user=await requireSocialUser();if(!user){box.innerHTML='<p class="small muted">Connecte-toi pour rechercher des créateurs.</p>';return;}
+    await loadRelationshipContext();
+    const {data,error}=await museaSupabase.rpc('musea_search_creators',{p_query:query});
+    if(error)throw error;
+    const rows=data||[];
+    box.innerHTML=rows.length?rows.map(item=>{
+      const followed=myFollowIds.has(String(item.id));
+      return '<div class="switchrow"><div style="flex:1;min-width:0"><strong>@'+escapeHtml(item.username)+'</strong><div class="small muted">'+escapeHtml((item.bio||'Créateur MUSEA').slice(0,100))+'</div></div><button class="btn '+(followed?'':'primary')+'" aria-pressed="'+followed+'" onclick="toggleFollow(\''+item.id+'\')">'+(followed?'Suivi ✓':'Suivre ＋')+'</button></div>';
+    }).join(''):'<p class="small muted">Aucun créateur visible ne correspond à ce pseudo.</p>';
+  }catch(error){console.error('Recherche créateurs:',error);box.innerHTML='<p class="notice">Recherche indisponible. Vérifie la migration Relations.</p>';}
+}
+async function renderMyCircle(userOverride=null){
+  const followingBox=document.getElementById('myFollowing'),followersBox=document.getElementById('myFollowers');
+  if(!followingBox||!followersBox)return;
+  try{
+    const user=userOverride||await requireSocialUser();if(!user){followingBox.innerHTML=followersBox.innerHTML='<p class="small muted">Connecte-toi pour voir ton cercle.</p>';return;}
+    const [following,followers]=await Promise.all([
+      museaSupabase.from('follows').select('followed_id,created_at').eq('follower_id',user.id).order('created_at',{ascending:false}).limit(100),
+      museaSupabase.from('follows').select('follower_id,created_at').eq('followed_id',user.id).order('created_at',{ascending:false}).limit(100)
+    ]);
+    if(following.error)throw following.error;if(followers.error)throw followers.error;
+    const ids=[...new Set([...(following.data||[]).map(x=>x.followed_id),...(followers.data||[]).map(x=>x.follower_id)])];
+    let profiles=[];
+    if(ids.length){const result=await museaSupabase.from('profiles').select('id,username').in('id',ids);if(result.error)throw result.error;profiles=result.data||[];}
+    const username=id=>profiles.find(item=>item.id===id)?.username||'Utilisateur';
+    followingBox.innerHTML=(following.data||[]).length?following.data.map(item=>'<div class="switchrow"><strong>@'+escapeHtml(username(item.followed_id))+'</strong><button class="btn" onclick="toggleFollow(\''+item.followed_id+'\')">Ne plus suivre</button></div>').join(''):'<p class="small muted">Tu ne suis encore personne. Explore pour trouver tes premiers créateurs.</p>';
+    followersBox.innerHTML=(followers.data||[]).length?followers.data.map(item=>'<div class="switchrow"><strong>@'+escapeHtml(username(item.follower_id))+'</strong><button class="btn '+(myFollowIds.has(String(item.follower_id))?'':'primary')+'" onclick="toggleFollow(\''+item.follower_id+'\')">'+(myFollowIds.has(String(item.follower_id))?'Suivi ✓':'Suivre en retour')+'</button></div>').join(''):'<p class="small muted">Tes premiers abonnés apparaîtront ici.</p>';
+  }catch(error){console.error('Cercle:',error);followingBox.innerHTML=followersBox.innerHTML='<p class="notice">Impossible de charger ton cercle. Vérifie la migration Relations.</p>';}
+}
 function setTrendPeriod(period){
   if(!['7d','30d','all'].includes(period))return;
   trendPeriod=period;
@@ -3001,6 +3106,7 @@ async function renderProfile(){
   set('milestonesStat','0');
   set('likesStat',state.liked.length);
   set('followersStat','—');
+  set('followingStat','—');
   set('privacyTag',state.prefs.private?'Privé':'Public');
   set('activityPrivacyTag',state.prefs.private?'Masquée':'Selon mes réglages');
   const activity=document.getElementById('profileActivity');
@@ -3036,6 +3142,14 @@ async function renderProfile(){
       return;
     }
 
+    await loadRelationshipContext();
+    const [followerCount,followingCount]=await Promise.all([
+      museaSupabase.from('follows').select('id',{count:'exact',head:true}).eq('followed_id',user.id),
+      museaSupabase.from('follows').select('id',{count:'exact',head:true}).eq('follower_id',user.id)
+    ]);
+    if(!followerCount.error)set('followersStat',followerCount.count||0);
+    if(!followingCount.error)set('followingStat',followingCount.count||0);
+    await renderMyCircle(user);
     const {data:profile,error:profileError}=await museaSupabase.from('profiles')
       .select('username,display_name,bio,headline,creative_signature,specialties,is_private,allow_messages_from_non_followers,allow_project_invites')
       .eq('id',user.id).maybeSingle();
