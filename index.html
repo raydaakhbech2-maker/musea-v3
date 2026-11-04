@@ -127,9 +127,42 @@ window.museaSupabase = window.supabase.createClient(
   <button class="btn primary full" style="margin-top:10px" onclick="addStory()">＋ Ajouter une story</button></div>
 </section>
 <section class="screen" id="screen-messages">
-  <div class="card"><div class="eyebrow">Messages</div><h2 class="h1">Tes conversations.</h2><p class="muted">Les échanges ci-dessous restent sur cet appareil. Aucun vrai message n'est envoyé.</p><div id="conversationList"></div></div>
-  <div class="card" id="chatCard"><div class="row between"><div><h3 class="h3" id="chatName">Luna Creative</h3><span class="small muted" id="chatStatus">En ligne · statut fictif</span></div><div class="row"><button class="iconbtn" onclick="toast('Un appel audio réel nécessite un service WebRTC et un backend.')">☎</button><button class="iconbtn" onclick="toast('Un appel vidéo réel nécessite un service WebRTC et un backend.')">▣</button></div></div><div class="line"></div><div id="chatLog"></div><div class="row"><input class="field" id="messageInput" placeholder="Écrire un message…" onkeydown="if(event.key==='Enter')sendMessage()"><button class="btn primary" onclick="sendMessage()">Envoyer</button></div></div>
-  <div class="card"><h3 class="h3">Groupes</h3><p class="muted small">Les groupes devraient être réservés aux abonnements réciproques ou aux invitations acceptées.</p><input class="field" id="groupName" placeholder="Nom du groupe"><button class="btn full" style="margin-top:9px" onclick="createGroup()">＋ Créer un groupe de test</button><div id="groups"></div></div>
+  <div class="card">
+    <div class="eyebrow">Messagerie privée</div>
+    <h2 class="h1">Tes conversations.</h2>
+    <p class="muted small">Échanges privés entre comptes MUSEA. Les messages sont enregistrés sur le serveur et accessibles uniquement aux deux participants.</p>
+    <label class="label" for="contactSearch">Trouver un utilisateur</label>
+    <div class="row">
+      <input class="field" id="contactSearch" placeholder="Rechercher un pseudonyme…" maxlength="40" onkeydown="if(event.key==='Enter')searchMessageContacts()">
+      <button class="btn primary" onclick="searchMessageContacts()">Rechercher</button>
+    </div>
+    <div id="contactResults" aria-live="polite"></div>
+    <div class="line"></div>
+    <h3 class="h3">Conversations</h3>
+    <div id="conversationList"><p class="muted small">Chargement…</p></div>
+  </div>
+  <div class="card" id="chatCard">
+    <div class="row between">
+      <div style="min-width:0">
+        <h3 class="h3" id="chatName">Sélectionne une conversation</h3>
+        <span class="small muted" id="chatStatus">Tes messages resteront privés.</span>
+      </div>
+      <button class="iconbtn" onclick="closeActiveConversation()" aria-label="Fermer la conversation">×</button>
+    </div>
+    <div class="line"></div>
+    <div id="chatLog" aria-live="polite"><p class="muted small">Choisis une conversation ou recherche un utilisateur pour commencer.</p></div>
+    <div class="line"></div>
+    <label class="label" for="messageInput">Ton message</label>
+    <div class="row">
+      <textarea class="field" id="messageInput" rows="2" maxlength="4000" placeholder="Écrire un message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
+      <button class="btn primary" id="messageSendBtn" onclick="sendMessage()" disabled>Envoyer</button>
+    </div>
+    <p class="small muted">Entrée pour envoyer · Maj + Entrée pour un retour à la ligne · 4 000 caractères maximum.</p>
+  </div>
+  <div class="card">
+    <h3 class="h3">Fonctions complémentaires</h3>
+    <p class="muted small">Les appels audio/vidéo et les conversations de groupe ne sont pas encore activés. Ils seront ajoutés avec leur propre système de connexion et de confidentialité.</p>
+  </div>
 </section>
 <section class="screen" id="screen-notifications">
   <div class="row between"><h2 class="h1">Notifications</h2><button class="btn" onclick="markRead()">Tout lire</button></div>
@@ -210,7 +243,7 @@ let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],co
 {type:'Mention',text:'noah.visuals t’a mentionné dans un commentaire.',time:'Il y a 18 min',read:false},
 {type:'Pour toi',text:'Une création pourrait te plaire.',time:'Il y a 1 h',read:false}],
 prefs:{likes:true,collections:true,online:true,dm:false,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
-let feedKind='all',discoverKind='Tout',currentChat='Luna Creative',customStories=[];
+let feedKind='all',discoverKind='Tout',activeConversationId=null,activeConversationPeer=null,activeMessageChannel=null,messageRefreshBusy=false,customStories=[];
 function load(){try{let s=JSON.parse(localStorage.getItem('museaState')||'null');if(s)state={...state,...s,prefs:{...state.prefs,...s.prefs}}}catch(e){}}
 function save(){try{localStorage.setItem('museaState',JSON.stringify(state))}catch(e){}}
 function toast(msg){let el=document.getElementById('toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.add('hidden'),2800)}
@@ -330,10 +363,156 @@ function renderStories(){let names=[...state.stories,...state.ownStories];let ht
 function viewStory(s){toast('Story de '+s+' — contenu fictif dans cette démo.')}
 function addStory(){let s=document.getElementById('storyText').value.trim();if(!s)return toast('Ajoute un texte pour ta story.');state.ownStories.unshift('Ta story');state.points+=2;save();document.getElementById('storyText').value='';renderStories();toast('Story ajoutée localement. Pas de téléversement réel.')}
 function renderLeaderboard(){let entries=[{n:'luna.creative',p:1840,r:'Créateur vedette'},{n:'noah.visuals',p:1420,r:'Mise en avant'},{n:'aya.studio',p:980,r:'Crédits IA bonus'},{n:state.username,p:state.points,r:'Continue à créer'}].sort((a,b)=>b.p-a.p);document.getElementById('leaderboard').innerHTML=entries.map((e,i)=>`<div class="card"><div class="row"><div class="avatar">${i+1}</div><div style="flex:1"><strong>${escapeHtml(e.n)}</strong><div class="small muted">${e.p.toLocaleString('fr-FR')} points</div></div><span class="chip">#${i+1}</span></div><div class="small muted" style="margin-top:9px">Récompense possible : ${e.r}</div></div>`).join('')}
-function renderMessages(){document.getElementById('conversationList').innerHTML=`<button class="btn soft full" onclick="openChat('Luna Creative')">◉ Luna Creative <span class="muted">· en ligne (démo)</span></button><button class="btn full" style="margin-top:7px" onclick="openChat('Noah Visuals')">◉ Noah Visuals <span class="muted">· vu récemment (démo)</span></button>`;document.getElementById('chatName').textContent=currentChat;document.getElementById('chatStatus').textContent=state.prefs.online?'Statut fictif visible':'Statut masqué selon tes préférences';document.getElementById('chatLog').innerHTML=state.messages.map(m=>`<div style="display:flex;justify-content:${m.mine?'flex-end':'flex-start'};margin:8px 0"><div style="max-width:85%;background:${m.mine?'var(--accent2)':'var(--bg)'};padding:10px 12px;border-radius:13px">${escapeHtml(m.text)}<div class="small muted">${m.mine?'Toi':escapeHtml(m.who)}</div></div></div>`).join('')}
-function openChat(n){currentChat=n;renderMessages()}
-function sendMessage(){let el=document.getElementById('messageInput'),v=el.value.trim();if(!v)return;state.messages.push({who:'Toi',text:v,mine:true});el.value='';save();renderMessages();toast('Message enregistré localement dans la démo.')}
-function createGroup(){let n=document.getElementById('groupName').value.trim();if(!n)return toast('Donne un nom au groupe.');state.groups.push(n);save();document.getElementById('groupName').value='';document.getElementById('groups').innerHTML=state.groups.map(g=>`<div class="notice" style="margin-top:8px">👥 ${escapeHtml(g)} · groupe de démonstration</div>`).join('');toast('Groupe créé localement.')}
+async function renderMessages(){
+  const list=document.getElementById('conversationList');
+  if(!list)return;
+  list.innerHTML='<p class="muted small">Chargement des conversations…</p>';
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user){
+      list.innerHTML='<div class="notice">Connecte-toi à ton compte MUSEA pour utiliser la messagerie privée.</div>';
+      document.getElementById('chatLog').innerHTML='<p class="muted small">La messagerie est réservée aux comptes connectés.</p>';
+      document.getElementById('messageSendBtn').disabled=true;
+      return;
+    }
+    const user=data.user;
+    const {data:conversations,error:conversationError}=await museaSupabase
+      .from('direct_conversations')
+      .select('id,user_one,user_two,updated_at')
+      .or('user_one.eq.'+user.id+',user_two.eq.'+user.id)
+      .order('updated_at',{ascending:false})
+      .limit(100);
+    if(conversationError)throw conversationError;
+    const rows=conversations||[];
+    if(!rows.length){
+      list.innerHTML='<p class="muted small">Aucune conversation pour le moment. Recherche un pseudonyme ci-dessus pour envoyer ton premier message.</p>';
+    }else{
+      const peerIds=[...new Set(rows.map(c=>c.user_one===user.id?c.user_two:c.user_one))];
+      const {data:profiles,error:profileError}=await museaSupabase.from('profiles').select('id,username').in('id',peerIds);
+      if(profileError)throw profileError;
+      const {data:recentMessages,error:recentError}=await museaSupabase.from('direct_messages').select('id,conversation_id,sender_id,content,created_at,read_at').in('conversation_id',rows.map(c=>c.id)).order('created_at',{ascending:false}).limit(200);
+      if(recentError)throw recentError;
+      const lastByConversation={};
+      (recentMessages||[]).forEach(m=>{if(!lastByConversation[m.conversation_id])lastByConversation[m.conversation_id]=m});
+      list.innerHTML=rows.map(c=>{
+        const peerId=c.user_one===user.id?c.user_two:c.user_one;
+        const peer=(profiles||[]).find(p=>p.id===peerId);
+        const name=peer?.username||'Utilisateur';
+        const last=lastByConversation[c.id];
+        const preview=last?(last.sender_id===user.id?'Toi : ':'')+last.content:'Conversation créée';
+        const unread=(recentMessages||[]).some(m=>m.conversation_id===c.id&&m.sender_id!==user.id&&!m.read_at);
+        return '<button class="switchrow" style="width:100%;text-align:left;cursor:pointer" onclick="openDirectConversation(\''+escapeHtml(c.id)+'\',\''+escapeHtml(peerId)+'\',\''+escapeHtml(name)+'\')"><div class="avatar">'+escapeHtml(name[0]?.toUpperCase()||'M')+'</div><div style="flex:1;min-width:0"><strong>'+escapeHtml(name)+'</strong><div class="small muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escapeHtml(preview)+'</div></div>'+(unread?'<span class="tag">Nouveau</span>':'')+'</button>';
+      }).join('');
+    }
+    if(activeConversationId&&activeConversationPeer){
+      const peerName=activeConversationPeer.username||'Utilisateur';
+      document.getElementById('chatName').textContent='@'+peerName;
+      document.getElementById('chatStatus').textContent='Conversation privée';
+      document.getElementById('messageSendBtn').disabled=false;
+    }
+  }catch(e){
+    console.error('Chargement messagerie :',e);
+    list.innerHTML='<div class="notice">Impossible de charger les conversations. Vérifie que la migration de messagerie a été exécutée dans Supabase.</div>';
+  }
+}
+async function searchMessageContacts(){
+  const input=document.getElementById('contactSearch'),target=document.getElementById('contactResults');
+  const query=(input?.value||'').trim().replace(/^@/,'');
+  if(query.length<2){target.innerHTML='<p class="small muted">Saisis au moins 2 caractères.</p>';return}
+  target.innerHTML='<p class="small muted">Recherche…</p>';
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user){target.innerHTML='<p class="small muted">Connecte-toi pour rechercher des utilisateurs.</p>';return}
+    const {data:users,error:searchError}=await museaSupabase.from('profiles').select('id,username').ilike('username','%'+query+'%').neq('id',data.user.id).limit(12);
+    if(searchError)throw searchError;
+    if(!users?.length){target.innerHTML='<p class="small muted">Aucun utilisateur trouvé pour « '+escapeHtml(query)+' ».</p>';return}
+    target.innerHTML=users.map(u=>'<div class="switchrow"><div class="avatar">'+escapeHtml(u.username?.[0]?.toUpperCase()||'M')+'</div><div style="flex:1"><strong>@'+escapeHtml(u.username||'Utilisateur')+'</strong></div><button class="btn primary" onclick="startDirectConversation(\''+escapeHtml(u.id)+'\',\''+escapeHtml(u.username||'Utilisateur')+'\')">Message</button></div>').join('');
+  }catch(e){console.error(e);target.innerHTML='<p class="small muted">La recherche est indisponible. Vérifie la configuration du profil Supabase.</p>'}
+}
+async function startDirectConversation(peerId,peerName){
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user){toast('Connecte-toi pour démarrer une conversation.');return}
+    if(peerId===data.user.id)return;
+    const pair=[data.user.id,peerId].sort();
+    const {data:conversation,error:upsertError}=await museaSupabase.from('direct_conversations').upsert({user_one:pair[0],user_two:pair[1]},{onConflict:'user_one,user_two'}).select('id,user_one,user_two').single();
+    if(upsertError)throw upsertError;
+    document.getElementById('contactResults').innerHTML='';
+    document.getElementById('contactSearch').value='';
+    await openDirectConversation(conversation.id,peerId,peerName);
+    await renderMessages();
+  }catch(e){console.error(e);toast('Impossible de créer cette conversation. Vérifie la migration Supabase.')}
+}
+async function openDirectConversation(conversationId,peerId,peerName){
+  activeConversationId=conversationId;
+  activeConversationPeer={id:peerId,username:peerName};
+  document.getElementById('chatName').textContent='@'+peerName;
+  document.getElementById('chatStatus').textContent='Conversation privée';
+  document.getElementById('messageSendBtn').disabled=false;
+  if(activeMessageChannel){try{await museaSupabase.removeChannel(activeMessageChannel)}catch(e){}activeMessageChannel=null}
+  await refreshActiveConversation();
+  activeMessageChannel=museaSupabase.channel('musea-dm-'+conversationId)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'direct_messages',filter:'conversation_id=eq.'+conversationId},payload=>{
+      if(payload.new?.conversation_id===activeConversationId)refreshActiveConversation();
+    }).subscribe();
+}
+async function refreshActiveConversation(){
+  if(!activeConversationId||messageRefreshBusy)return;
+  messageRefreshBusy=true;
+  const conversationId=activeConversationId;
+  try{
+    const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+    if(userError)throw userError;
+    if(!userData.user)return;
+    const {data:messages,error}=await museaSupabase.from('direct_messages').select('id,sender_id,content,created_at,read_at').eq('conversation_id',conversationId).order('created_at',{ascending:true}).limit(500);
+    if(error)throw error;
+    if(conversationId!==activeConversationId)return;
+    const userId=userData.user.id;
+    const log=document.getElementById('chatLog');
+    log.innerHTML=(messages||[]).map(m=>{
+      const mine=m.sender_id===userId;
+      const status=mine?(m.read_at?'Lu':'Envoyé'):'';
+      return '<div style="display:flex;justify-content:'+(mine?'flex-end':'flex-start')+';margin:8px 0"><div style="max-width:88%;white-space:pre-wrap;overflow-wrap:anywhere;background:'+(mine?'var(--accent2)':'var(--bg)')+';padding:10px 12px;border-radius:13px"><div>'+escapeHtml(m.content)+'</div><div class="small muted" style="text-align:right;margin-top:5px">'+escapeHtml(new Date(m.created_at).toLocaleString('fr-FR'))+(status?' · '+status:'')+'</div></div></div>';
+    }).join('')||'<p class="muted small">Début de la conversation. Envoie ton premier message.</p>';
+    const unreadIds=(messages||[]).filter(m=>m.sender_id!==userId&&!m.read_at).map(m=>m.id);
+    if(unreadIds.length){
+      const {error:readError}=await museaSupabase.from('direct_messages').update({read_at:new Date().toISOString()}).in('id',unreadIds);
+      if(readError)console.warn('Accusés de lecture indisponibles',readError);
+    }
+    log.scrollTop=log.scrollHeight;
+    await renderMessages();
+  }catch(e){console.error('Actualisation conversation :',e);document.getElementById('chatLog').innerHTML='<p class="notice">Impossible de charger les messages de cette conversation.</p>'}
+  finally{messageRefreshBusy=false}
+}
+async function sendMessage(){
+  const input=document.getElementById('messageInput'),content=(input?.value||'').trim();
+  if(!content)return;
+  if(content.length>4000){toast('Ton message dépasse 4 000 caractères.');return}
+  if(!activeConversationId){toast('Choisis une conversation avant d’envoyer un message.');return}
+  const button=document.getElementById('messageSendBtn');button.disabled=true;
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user){toast('Connecte-toi pour envoyer un message.');return}
+    const {error:insertError}=await museaSupabase.from('direct_messages').insert({conversation_id:activeConversationId,sender_id:data.user.id,content});
+    if(insertError)throw insertError;
+    input.value='';
+    await refreshActiveConversation();
+  }catch(e){console.error(e);toast('Message non envoyé. Vérifie ta connexion et la configuration Supabase.')}
+  finally{button.disabled=!activeConversationId}
+}
+async function closeActiveConversation(){
+  activeConversationId=null;activeConversationPeer=null;
+  if(activeMessageChannel){try{await museaSupabase.removeChannel(activeMessageChannel)}catch(e){}activeMessageChannel=null}
+  document.getElementById('chatName').textContent='Sélectionne une conversation';
+  document.getElementById('chatStatus').textContent='Tes messages resteront privés.';
+  document.getElementById('chatLog').innerHTML='<p class="muted small">Choisis une conversation ou recherche un utilisateur pour commencer.</p>';
+  document.getElementById('messageSendBtn').disabled=true;
+}
+function createGroup(){toast('Les groupes seront ajoutés dans une prochaine étape avec leurs invitations et leurs règles de confidentialité.')}
 function renderNotifications(){document.getElementById('notifCount').textContent=state.notifications.filter(n=>!n.read).length;document.getElementById('notificationList').innerHTML=state.notifications.map((n,i)=>`<div class="switchrow" style="align-items:flex-start"><div style="flex:1"><div class="row wrap"><strong>${escapeHtml(n.type)}</strong>${n.read?'':'<span class="tag">Nouveau</span>'}</div><div>${escapeHtml(n.text)}</div><div class="small muted">${escapeHtml(n.time)}</div></div><button class="iconbtn" onclick="state.notifications[${i}].read=true;save();renderNotifications()">✓</button></div>`).join('')||'<p class="muted">Aucune notification.</p>';let types=['Likes et commentaires','Mentions','Messages','Nouveaux abonnés','Recommandations Pour toi','Tendances hebdomadaires'];document.getElementById('notificationSettings').innerHTML=types.map(t=>`<div class="switchrow"><span>${t}</span><input type="checkbox" checked onchange="toast('Préférence enregistrée pour cette démo.')"></div>`).join('')}
 function markRead(){state.notifications.forEach(n=>n.read=true);save();renderNotifications();toast('Notifications marquées comme lues.')}
 async function renderProfile(){
