@@ -227,7 +227,40 @@ function artMarkup(p){
   }
   return `<div class="art ${p.art}"><span>${escapeHtml(p.title)}</span></div>`;
 }function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function postMarkup(p){let liked=state.liked.includes(p.id),saved=state.saved.includes(p.id);return `<article class="card"><div class="post-head"><div class="avatar">${p.avatar||'✦'}</div><div style="flex:1"><strong>${escapeHtml(p.user)}</strong><div class="small muted">${escapeHtml(p.style)} · ${p.tag}</div></div><button class="iconbtn" onclick="toast('Options de publication : signaler, bloquer, masquer (démo).')">•••</button></div>${artMarkup(p)}<div class="post-title">${escapeHtml(p.title)}</div><div>${escapeHtml(p.desc)}</div><div class="row wrap" style="margin-top:9px"><span class="chip">${p.tag}</span><button class="chip" onclick="translatePost(${p.id})">文 Traduire</button></div><div class="post-actions"><button class="iconbtn ${liked?'on':''}" onclick="toggleLike(${p.id})">♡ ${p.likes+(liked?1:0)}</button><button class="iconbtn" onclick="commentPost(${p.id})">▢ ${state.comments[p.id]?.length||0}</button><button class="iconbtn ${saved?'on':''}" onclick="toggleSave(${p.id})">☆ ${saved?'Enregistré':'Enregistrer'}</button><button class="iconbtn" onclick="toast('Repost simulé. Un vrai repost doit afficher la source originale.')">⟳ Reposter</button></div><div id="comments-${p.id}"></div></article>`}
+function postMarkup(p){
+  const liked=!!p.liked,saved=state.saved.includes(p.id),reposted=!!p.reposted,id=escapeHtml(String(p.id));
+  const comments=(p.comments||[]).map(c=>'<div class="switchrow" style="align-items:flex-start"><div style="flex:1"><strong>'+escapeHtml(c.username||'Utilisateur')+'</strong><div>'+escapeHtml(c.content)+'</div><div class="small muted">'+escapeHtml(new Date(c.created_at).toLocaleString('fr-FR'))+'</div></div></div>').join('');
+  return '<article class="card" data-post-id="'+id+'"><div class="post-head"><div class="avatar">'+escapeHtml(p.avatar||'✦')+'</div><div style="flex:1"><strong>'+escapeHtml(p.user)+'</strong><div class="small muted">'+escapeHtml(p.style||'Création')+' · '+escapeHtml(p.tag||'#MaCreation')+'</div></div><button class="iconbtn" onclick="toast(\'Options de signalement et de modération à venir.\')">•••</button></div>'+artMarkup(p)+'<div class="post-title">'+escapeHtml(p.title)+'</div><div>'+escapeHtml(p.desc)+'</div><div class="row wrap" style="margin-top:9px"><span class="chip">'+escapeHtml(p.tag||'#MaCreation')+'</span><button class="chip" onclick="translatePost(\''+id+'\')">文 Traduire</button></div><div class="post-actions"><button class="iconbtn '+(liked?'on':'')+'" onclick="toggleLike(\''+id+'\')">'+(liked?'♥':'♡')+' '+(p.like_count||0)+'</button><button class="iconbtn" onclick="toggleComments(\''+id+'\')">▢ '+(p.comment_count||0)+'</button><button class="iconbtn '+(saved?'on':'')+'" onclick="toggleSave(\''+id+'\')">☆ '+(saved?'Enregistré':'Enregistrer')+'</button><button class="iconbtn '+(reposted?'on':'')+'" onclick="toggleRepost(\''+id+'\')">⟳ '+(reposted?'Reposté':'Reposter')+' '+(p.repost_count||0)+'</button></div><div id="comments-'+id+'" class="hidden"><div class="line"></div><div>'+comments+'</div><label class="label" for="comment-input-'+id+'">Ajouter un commentaire</label><textarea class="field" id="comment-input-'+id+'" maxlength="1000" rows="2" placeholder="Partage ton avis…"></textarea><button class="btn primary full" style="margin-top:8px" onclick="submitComment(\''+id+'\')">Publier le commentaire</button></div></article>';
+}
+async function attachPostInteractions(posts){
+  const ids=posts.filter(p=>p.remote).map(p=>p.id);
+  if(!ids.length)return posts.map(p=>({...p,like_count:0,comment_count:0,repost_count:0,liked:false,reposted:false,comments:[]}));
+  const [likesRes,commentsRes,repostsRes,userRes]=await Promise.all([
+    museaSupabase.from('post_likes').select('post_id,user_id').in('post_id',ids),
+    museaSupabase.from('post_comments').select('id,post_id,user_id,content,created_at').in('post_id',ids).order('created_at',{ascending:true}),
+    museaSupabase.from('post_reposts').select('post_id,user_id').in('post_id',ids),
+    museaSupabase.auth.getUser()
+  ]);
+  const failed=[likesRes,commentsRes,repostsRes].find(x=>x.error);if(failed)throw failed.error;
+  const currentUser=userRes.data?.user?.id||null,commentRows=commentsRes.data||[],commenterIds=[...new Set(commentRows.map(c=>c.user_id))];let profiles=[];
+  if(commenterIds.length){const pr=await museaSupabase.from('profiles').select('id,username').in('id',commenterIds);if(!pr.error)profiles=pr.data||[]}
+  return posts.map(p=>{
+    const likes=(likesRes.data||[]).filter(x=>x.post_id===p.id),comments=commentRows.filter(x=>x.post_id===p.id),reposts=(repostsRes.data||[]).filter(x=>x.post_id===p.id);
+    return {...p,like_count:likes.length,comment_count:comments.length,repost_count:reposts.length,liked:!!currentUser&&likes.some(x=>x.user_id===currentUser),reposted:!!currentUser&&reposts.some(x=>x.user_id===currentUser),comments:comments.map(c=>({...c,username:profiles.find(u=>u.id===c.user_id)?.username||'Utilisateur'}))};
+  });
+}
+async function requireSocialUser(){const {data,error}=await museaSupabase.auth.getUser();if(error)throw error;if(!data.user){toast('Connecte-toi pour interagir avec les publications.');return null}return data.user}
+async function toggleLike(id){
+  try{const user=await requireSocialUser();if(!user)return;const {data:existing,error:findError}=await museaSupabase.from('post_likes').select('id').eq('post_id',id).eq('user_id',user.id).maybeSingle();if(findError)throw findError;const result=existing?await museaSupabase.from('post_likes').delete().eq('id',existing.id):await museaSupabase.from('post_likes').insert({post_id:id,user_id:user.id});if(result.error)throw result.error;if(!existing){state.notifications.unshift({type:'Like',text:'Tu as aimé une publication.',time:'À l’instant',read:false});save();renderNotifications()}await renderFeed()}catch(e){console.error(e);toast('Impossible d’enregistrer le like. Vérifie la configuration Supabase.')}
+}
+function toggleComments(id){document.getElementById('comments-'+id)?.classList.toggle('hidden')}
+async function submitComment(id){
+  const input=document.getElementById('comment-input-'+id),content=input?.value.trim();if(!content)return toast('Écris un commentaire avant de publier.');if(content.length>1000)return toast('Ton commentaire est trop long (1 000 caractères maximum).');
+  try{const user=await requireSocialUser();if(!user)return;const {error}=await museaSupabase.from('post_comments').insert({post_id:id,user_id:user.id,content});if(error)throw error;state.notifications.unshift({type:'Commentaire',text:'Ton commentaire a été publié.',time:'À l’instant',read:false});save();renderNotifications();await renderFeed();document.getElementById('comments-'+id)?.classList.remove('hidden');toast('Commentaire publié.')}catch(e){console.error(e);toast('Impossible de publier le commentaire. Vérifie la configuration Supabase.')}
+}
+async function toggleRepost(id){
+  try{const user=await requireSocialUser();if(!user)return;const {data:existing,error:findError}=await museaSupabase.from('post_reposts').select('id').eq('post_id',id).eq('user_id',user.id).maybeSingle();if(findError)throw findError;const result=existing?await museaSupabase.from('post_reposts').delete().eq('id',existing.id):await museaSupabase.from('post_reposts').insert({post_id:id,user_id:user.id});if(result.error)throw result.error;await renderFeed();toast(existing?'Repost retiré.':'Publication repostée sur ton activité.')}catch(e){console.error(e);toast('Impossible d’enregistrer le repost. Vérifie la configuration Supabase.')}
+}
 async function renderFeed(){
   const feed = document.getElementById('feed');
   feed.innerHTML = '<p class="muted small">Chargement des publications...</p>';
@@ -256,27 +289,13 @@ async function renderFeed(){
       const profile = profiles.find(p => p.id === row.user_id);
       const username = profile?.username || 'Utilisateur';
 
-      return {
-        id: row.id,
-        user: username,
-        avatar: username[0]?.toUpperCase() || 'M',
-        title: (row.caption || 'Publication').slice(0, 60),
-        desc: row.caption || '',
-        image_url: row.image_url,
-        style: row.style || 'Création',
-        kind: 'art',
-        art: 'a4',
-        likes: 0,
-        tag: '#MaCreation'
-      };
+      return {id:row.id,remote:true,user:username,avatar:username[0]?.toUpperCase()||'M',title:(row.caption||'Publication').slice(0,60),desc:row.caption||'',image_url:row.image_url,style:row.style||'Création',kind:'art',art:'a4',tag:'#MaCreation'};
     });
 
     const allPosts = [...realPosts, ...defaultPosts];
-    const filtered = allPosts.filter(p =>
-      feedKind === 'all' || p.kind === feedKind
-    );
-
-    feed.innerHTML = filtered.map(postMarkup).join('');
+    const filtered = allPosts.filter(p => feedKind === 'all' || p.kind === feedKind);
+    try{const enriched=await attachPostInteractions(filtered);feed.innerHTML=enriched.map(postMarkup).join('')}
+    catch(interactionError){console.warn('Interactions Supabase indisponibles',interactionError);feed.innerHTML=filtered.map(postMarkup).join('')+'<p class="notice">Les interactions sociales nécessitent l’activation du schéma Supabase fourni dans le dépôt.</p>'}
   } catch (error) {
     console.error(error);
     const filtered = defaultPosts.filter(p =>
@@ -293,7 +312,7 @@ function toggleLike(id){if(state.liked.includes(id)){state.liked=state.liked.fil
 function toggleSave(id){if(state.saved.includes(id)){state.saved=state.saved.filter(x=>x!==id)}else{state.saved.push(id)}save();renderFeed();renderProfile();toast(state.saved.includes(id)?'Ajouté à tes collections.':'Retiré de tes collections.')}
 function commentPost(id){let txt=prompt('Écris un commentaire de démonstration :');if(txt&&txt.trim()){state.comments[id]=state.comments[id]||[];state.comments[id].push(txt.trim());state.notifications.unshift({type:'Activité',text:'Commentaire ajouté sur une publication.',time:'À l’instant',read:false});save();renderFeed();toast('Commentaire ajouté au prototype.')} }
 function translatePost(id){let p=defaultPosts.find(x=>x.id===id);let lang=document.getElementById('language')?.value||'Français';toast('Traduction IA simulée vers '+lang+' : la connexion au service de traduction reste à faire.');}
-async function renderDiscover(){const target=document.getElementById('discoverResults');if(!target)return;const q=(document.getElementById('searchInput')?.value||'').toLowerCase();target.innerHTML='<p class="muted small">Recherche des créations…</p>';let realPosts=[];try{const {data:rows,error}=await museaSupabase.from('posts').select('id,user_id,caption,style,visibility,image_url,created_at').order('created_at',{ascending:false}).limit(60);if(error)throw error;const ids=[...new Set((rows||[]).map(p=>p.user_id))];let profiles=[];if(ids.length){const result=await museaSupabase.from('profiles').select('id,username').in('id',ids);if(!result.error)profiles=result.data||[]}realPosts=(rows||[]).map(row=>{const username=profiles.find(p=>p.id===row.user_id)?.username||'Utilisateur';return{id:row.id,user:username,avatar:username[0]?.toUpperCase()||'M',title:(row.caption||'Publication').slice(0,60),desc:row.caption||'',image_url:row.image_url,style:row.style||'Création',kind:'art',art:'a4',likes:0,tag:'#MaCreation'}})}catch(error){console.warn('Recherche distante indisponible :',error)}const all=[...realPosts,...defaultPosts];const list=all.filter(p=>(discoverKind==='Tout'||p.style===discoverKind)&&(`${p.user} ${p.title} ${p.desc} ${p.style} ${p.tag}`).toLowerCase().includes(q));target.innerHTML=list.length?list.map(postMarkup).join():'<div class="card muted">Aucun résultat. Essaie un autre mot-clé.</div>'}
+async function renderDiscover(){const target=document.getElementById('discoverResults');if(!target)return;const q=(document.getElementById('searchInput')?.value||'').toLowerCase();target.innerHTML='<p class="muted small">Recherche des créations…</p>';let realPosts=[];try{const {data:rows,error}=await museaSupabase.from('posts').select('id,user_id,caption,style,visibility,image_url,created_at').order('created_at',{ascending:false}).limit(60);if(error)throw error;const ids=[...new Set((rows||[]).map(p=>p.user_id))];let profiles=[];if(ids.length){const result=await museaSupabase.from('profiles').select('id,username').in('id',ids);if(!result.error)profiles=result.data||[]}realPosts=(rows||[]).map(row=>{const username=profiles.find(p=>p.id===row.user_id)?.username||'Utilisateur';return{id:row.id,remote:true,user:username,avatar:username[0]?.toUpperCase()||'M',title:(row.caption||'Publication').slice(0,60),desc:row.caption||'',image_url:row.image_url,style:row.style||'Création',kind:'art',art:'a4',tag:'#MaCreation'}})}catch(error){console.warn('Recherche distante indisponible :',error)}const all=[...realPosts,...defaultPosts];const list=all.filter(p=>(discoverKind==='Tout'||p.style===discoverKind)&&(`${p.user} ${p.title} ${p.desc} ${p.style} ${p.tag}`).toLowerCase().includes(q));if(list.length){try{const enriched=await attachPostInteractions(list);target.innerHTML=enriched.map(postMarkup).join()}catch(e){console.warn('Interactions Supabase indisponibles',e);target.innerHTML=list.map(postMarkup).join()+'<p class="notice">Active le schéma social Supabase pour utiliser les interactions.</p>'}}else target.innerHTML='<div class="card muted">Aucun résultat. Essaie un autre mot-clé.</div>'}
 function setDiscover(k,b){discoverKind=k;document.querySelectorAll('#screen-discover .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderDiscover()}
 function renderStories(){let names=[...state.stories,...state.ownStories];let html=names.map((s,i)=>`<button class="story" style="border:0;background:transparent;color:var(--ink)" onclick="viewStory('${escapeHtml(s)}')"><div class="story-ring"><div>${s==='Ta story'?'＋':escapeHtml(s[0].toUpperCase())}</div></div>${escapeHtml(s)}</button>`).join('');document.getElementById('storyRow').innerHTML=html;let all=document.getElementById('allStories');if(all)all.innerHTML=html}
 function viewStory(s){toast('Story de '+s+' — contenu fictif dans cette démo.')}
@@ -312,6 +331,7 @@ async function renderProfile(){
   document.getElementById('bio').value=state.bio;
   document.getElementById('pointsStat').textContent=state.points;
   document.getElementById('likesStat').textContent=state.liked.length;
+  try{const {data}=await museaSupabase.auth.getUser();if(data.user){const count=await museaSupabase.from('post_likes').select('id',{count:'exact',head:true}).eq('user_id',data.user.id);if(!count.error)document.getElementById('likesStat').textContent=count.count||0}}catch(e){console.warn('Compteur likes indisponible',e)}
   document.getElementById('privacyTag').textContent=state.prefs.private?'Privé':'Visible';
 
   let items=[];
