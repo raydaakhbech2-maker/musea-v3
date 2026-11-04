@@ -258,6 +258,7 @@ create policy "Accepted project members create tasks"
 on public.conversation_tasks for insert to authenticated
 with check (
   created_by=auth.uid()
+  and not public.musea_conversation_has_block(conversation_tasks.conversation_id)
   and exists (
     select 1 from public.conversations c
     join public.conversation_members cm on cm.conversation_id=c.id
@@ -281,7 +282,8 @@ drop policy if exists "Accepted project members update tasks" on public.conversa
 create policy "Accepted project members update tasks"
 on public.conversation_tasks for update to authenticated
 using (
-  exists (
+  not public.musea_conversation_has_block(conversation_tasks.conversation_id)
+  and exists (
     select 1 from public.conversations c
     join public.conversation_members cm on cm.conversation_id=c.id
     where c.id=conversation_tasks.conversation_id
@@ -291,7 +293,8 @@ using (
   )
 )
 with check (
-  exists (
+  not public.musea_conversation_has_block(conversation_tasks.conversation_id)
+  and exists (
     select 1 from public.conversations c
     join public.conversation_members cm on cm.conversation_id=c.id
     where c.id=conversation_tasks.conversation_id
