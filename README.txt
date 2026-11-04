@@ -148,6 +148,9 @@ Les secrets Stripe et la clé de service Supabase ne doivent jamais être placé
 4. Les événements de test doivent confirmer que seul un webhook signé active un abonnement.
 5. Le portail client doit être activé côté prestataire pour permettre la gestion et la résiliation.
 
-L'interface MUSEA ne donne toujours aucun accès Premium par simple modification du navigateur. L'accès est fondé sur `musea_has_signature_access()`, alimentée par la base serveur. La résiliation, les remboursements et les éventuels litiges restent soumis au prestataire et au titulaire du compte ; aucun tableau de remboursement automatisé n'est présenté comme déjà disponible.
+L'interface MUSEA ne donne toujours aucun accès Premium par simple modification du navigateur. La fonction SQL `musea_has_signature_access()` fournit le contrôle serveur de base pour les futures fonctions Signature, mais aucune fonction Premium n'est encore déverrouillée dans l'interface. La résiliation est prévue via le portail prestataire lorsqu'il sera configuré ; les remboursements et les éventuels litiges restent gérés par le titulaire du compte et le prestataire. Aucun outil de remboursement automatisé n'est présenté comme déjà disponible.
 
 **Cadre légal :** comme le projet est porté par un mineur, toute ouverture et gestion du compte marchand, acceptation des contrats, vérification d'identité et réception des fonds doivent être prises en charge avec le représentant légal ou la structure habilitée, selon les conditions du prestataire. Aucun contrôle d'âge, d'identité ou de conformité ne doit être contourné.
+
+
+**Validation réalisée pour l'étape 23 :** revue statique des chemins d'authentification, contrôle de l'origine, validation du prix mensuel en EUR, vérification de signature du webhook sur le corps brut, synchronisation serveur et politiques RLS. Aucune migration n'a été exécutée sur le projet Supabase, aucune Edge Function n'a été déployée et aucun paiement de test ou réel n'a été effectué.
