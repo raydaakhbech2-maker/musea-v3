@@ -37,6 +37,19 @@
 .discovery-reason{display:flex;align-items:center;gap:7px;margin:0 0 6px 3px;font-size:12px;color:var(--muted)}
 .discovery-feedback{display:flex;gap:8px;flex-wrap:wrap;margin:-4px 4px 12px}
 .discovery-feedback .chip{font-size:12px}
+.creator-pulse-card{overflow:hidden}
+.creator-pulse-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}
+.creator-pulse-stat{min-width:0;padding:13px;border:1px solid var(--line);border-radius:15px;background:var(--surface)}
+.creator-pulse-stat span,.creator-pulse-stat small{display:block;color:var(--muted);font-size:11px;line-height:1.45}
+.creator-pulse-stat strong{display:block;font-size:clamp(22px,5vw,30px);letter-spacing:-.04em;margin:4px 0;overflow-wrap:anywhere}
+.creator-pulse-highlight{padding:15px;border-radius:16px;background:linear-gradient(135deg,var(--accent2),var(--surface));border:1px solid var(--line)}
+.creator-pulse-highlight strong{display:block;margin:7px 0;font-size:16px;overflow-wrap:anywhere}
+.creator-pulse-highlight p{margin:4px 0 0}
+.creator-pulse-note{font-size:11px;line-height:1.55;color:var(--muted);margin:12px 2px 0}
+.creator-pulse-empty{text-align:center;padding:22px 12px}
+.creator-pulse-empty span{display:block;font-size:30px;color:var(--accent);margin-bottom:8px}
+.creator-pulse-empty p{max-width:390px;margin:7px auto 0}
+@media(min-width:600px){.creator-pulse-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .discovery-controls .h3{margin:4px 0 6px}
 .discovery-control-block{padding:12px 0;border-top:1px solid var(--line)}
 .discovery-balance{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 5px}
@@ -588,6 +601,12 @@ window.museaSupabase = window.supabase.createClient(
       <div class="stat"><strong id="likesStat">0</strong><span class="muted small">Likes donnés</span></div>
     </div>
   </div>
+
+  <section class="card creator-pulse-card" aria-labelledby="creatorPulseTitle">
+    <div class="row between wrap"><div><div class="eyebrow">MUSEA / RETOUR DE CRÉATION</div><h2 class="h2" id="creatorPulseTitle">Mon Pulse créateur</h2></div><span class="chip">Privé · visible par toi</span></div>
+    <p class="small muted">Comprends comment tes créations déclenchent des échanges, sans réduire ton travail à un compteur de vues.</p>
+    <div id="creatorPulse" aria-live="polite" aria-busy="true"><div class="notice">Lecture de tes données réelles…</div></div>
+  </section>
 
   <div class="card creator-editor">
     <div class="row between"><div><div class="eyebrow">TON IDENTITÉ</div><h3 class="h3">Façonner ma vitrine</h3></div><span class="chip">Éditable</span></div>
@@ -1921,6 +1940,8 @@ async function openNotificationPost(postId){
 }
 async function renderProfile(){
   const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value??'';};
+  const pulse=document.getElementById('creatorPulse');
+  if(pulse){pulse.setAttribute('aria-busy','true');pulse.innerHTML='<div class="notice">Lecture de tes données réelles…</div>';}
   set('profileName','@'+state.username);
   set('profileBio',state.bio||'');
   set('profileDisplayName',state.displayName||state.username||'Mon univers, mes règles.');
@@ -1968,6 +1989,7 @@ async function renderProfile(){
       if(portfolio)portfolio.innerHTML='<div class="notice">Connecte-toi pour construire un portfolio synchronisé.</div>';
       if(postSelect)postSelect.innerHTML='<option value="">Connexion nécessaire</option>';
       if(activity)activity.innerHTML='<p class="muted small">Connecte-toi pour retrouver tes likes et tes collections.</p>';
+      if(pulse){pulse.setAttribute('aria-busy','false');pulse.innerHTML='<div class="notice">Connecte-toi per consulter tes statistiques de création.</div>';}
       set('likesStat','—');
       return;
     }
@@ -2042,6 +2064,7 @@ async function renderProfile(){
 
     const posts=postsResult.data||[];
     const publicPosts=posts.filter(p=>p.visibility==='public');
+    await renderCreatorPulse(publicPosts,user.id);
     if(container){
       const mapped=posts.map(p=>({
         id:p.id,user_id:p.user_id,user:state.username,avatar:(state.username||'M')[0].toUpperCase(),
@@ -2069,6 +2092,54 @@ async function renderProfile(){
     if(container)container.innerHTML='<div class="notice">Impossible de charger tes publications : '+escapeHtml(error.message||'Erreur inconnue')+'</div>';
     if(portfolio)portfolio.innerHTML='<div class="notice">Impossible de charger ton portfolio. Vérifie que la migration Profils créateurs a été exécutée.</div>';
     if(postSelect)postSelect.innerHTML='<option value="">Portfolio indisponible</option>';
+  }
+}
+async function renderCreatorPulse(publicPosts,userId){
+  const target=document.getElementById('creatorPulse');
+  if(!target)return;
+  const posts=Array.isArray(publicPosts)?publicPosts:[];
+  const ids=posts.map(p=>p.id).filter(Boolean);
+  if(!ids.length){
+    target.setAttribute('aria-busy','false');
+    target.innerHTML='<div class="creator-pulse-empty"><span aria-hidden="true">✳</span><strong>Ton premier signal commence ici.</strong><p class="small muted">Publie une création publique pour commencer à suivre les échanges qu’elle suscite. Tes brouillons restent hors de ces statistiques.</p></div>';
+    return;
+  }
+  try{
+    const results=await Promise.all([
+      museaSupabase.from('post_likes').select('post_id').in('post_id',ids),
+      museaSupabase.from('post_comments').select('post_id').in('post_id',ids),
+      museaSupabase.from('post_reposts').select('post_id').in('post_id',ids)
+    ]);
+    const failed=results.find(result=>result.error);
+    if(failed)throw failed.error;
+    const likes=results[0].data||[],comments=results[1].data||[],reposts=results[2].data||[];
+    const counts=new Map(posts.map(post=>[post.id,{likes:0,comments:0,reposts:0,total:0,post}]));
+    likes.forEach(row=>{const item=counts.get(row.post_id);if(item)item.likes++;});
+    comments.forEach(row=>{const item=counts.get(row.post_id);if(item)item.comments++;});
+    reposts.forEach(row=>{const item=counts.get(row.post_id);if(item)item.reposts++;});
+    const rows=[...counts.values()].map(item=>({...item,total:item.likes+item.comments+item.reposts}));
+    const totals=rows.reduce((sum,item)=>({
+      likes:sum.likes+item.likes,comments:sum.comments+item.comments,
+      reposts:sum.reposts+item.reposts,total:sum.total+item.total
+    }),{likes:0,comments:0,reposts:0,total:0});
+    const since=Date.now()-7*86400000;
+    const recent=posts.filter(post=>post.created_at&&new Date(post.created_at).getTime()>=since).length;
+    const best=rows.slice().sort((a,b)=>b.total-a.total||new Date(b.post.created_at||0)-new Date(a.post.created_at||0))[0];
+    const bestTitle=escapeHtml((best?.post.caption||'Création sans titre').slice(0,72));
+    target.innerHTML=`<div class="creator-pulse-grid">
+      <div class="creator-pulse-stat"><span>Créations publiques</span><strong>${posts.length}</strong><small>${recent} publiée(s) sur les 7 derniers jours</small></div>
+      <div class="creator-pulse-stat"><span>Interactions reçues</span><strong>${totals.total}</strong><small>Toutes tes publications publiques</small></div>
+      <div class="creator-pulse-stat"><span>Likes</span><strong>${totals.likes}</strong><small>Appréciations reçues</small></div>
+      <div class="creator-pulse-stat"><span>Conversations</span><strong>${totals.comments}</strong><small>Commentaires reçus</small></div>
+      <div class="creator-pulse-stat"><span>Reposts</span><strong>${totals.reposts}</strong><small>Créations repartagées</small></div>
+    </div>
+    <div class="creator-pulse-highlight"><div class="eyebrow">ÉCHO DU MOMENT</div><strong>${bestTitle}</strong><p class="small muted">${best?.total||0} interaction(s) · ${best?.likes||0} likes · ${best?.comments||0} commentaires · ${best?.reposts||0} reposts</p></div>
+    <p class="creator-pulse-note">Données calculées à partir des interactions réellement enregistrées sur tes publications publiques. Les interactions ne sont pas des vues, ne représentent pas des personnes uniques et ne mesurent pas la qualité d’une création.</p>`;
+    target.setAttribute('aria-busy','false');
+  }catch(error){
+    console.error('Pulse créateur indisponible :',error);
+    target.setAttribute('aria-busy','false');
+    target.innerHTML='<div class="notice"><strong>Statistiques momentanément indisponibles.</strong><p class="small">Les publications restent accessibles. Vérifie les autorisations Supabase des likes, commentaires et reposts.</p><button class="btn" onclick="renderProfile()">Réessayer</button></div>';
   }
 }
 function updateCreatorSpecialtyCount(){
