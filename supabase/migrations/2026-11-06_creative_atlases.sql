@@ -108,3 +108,61 @@ drop trigger if exists musea_touch_atlas_updated_at on public.creative_atlases;
 create trigger musea_touch_atlas_updated_at before update on public.creative_atlases
 for each row execute function public.musea_touch_atlas_updated_at();
 revoke all on function public.musea_touch_atlas_updated_at() from public,anon,authenticated;
+
+create or replace function public.musea_limit_creative_atlases()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform pg_advisory_xact_lock(hashtextextended(new.owner_id::text,1));
+  if (select count(*) from public.creative_atlases where owner_id=new.owner_id)>=50 then
+    raise exception 'A creator can keep up to 50 Atlases';
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists musea_limit_creative_atlases on public.creative_atlases;
+create trigger musea_limit_creative_atlases before insert on public.creative_atlases
+for each row execute function public.musea_limit_creative_atlases();
+revoke all on function public.musea_limit_creative_atlases() from public,anon,authenticated;
+
+create or replace function public.musea_limit_creative_atlas_items()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform pg_advisory_xact_lock(hashtextextended(new.atlas_id::text,2));
+  if not exists(select 1 from public.creative_atlas_items where atlas_id=new.atlas_id and post_id=new.post_id)
+     and (select count(*) from public.creative_atlas_items where atlas_id=new.atlas_id)>=100 then
+    raise exception 'An Atlas can contain up to 100 creations';
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists musea_limit_creative_atlas_items on public.creative_atlas_items;
+create trigger musea_limit_creative_atlas_items before insert on public.creative_atlas_items
+for each row execute function public.musea_limit_creative_atlas_items();
+revoke all on function public.musea_limit_creative_atlas_items() from public,anon,authenticated;
+
+create or replace function public.musea_touch_atlas_on_item_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_atlas_id uuid := coalesce(new.atlas_id,old.atlas_id);
+begin
+  update public.creative_atlases set updated_at=now() where id=v_atlas_id;
+  return coalesce(new,old);
+end;
+$$;
+drop trigger if exists musea_touch_atlas_on_item_change on public.creative_atlas_items;
+create trigger musea_touch_atlas_on_item_change
+after insert or update or delete on public.creative_atlas_items
+for each row execute function public.musea_touch_atlas_on_item_change();
+revoke all on function public.musea_touch_atlas_on_item_change() from public,anon,authenticated;
