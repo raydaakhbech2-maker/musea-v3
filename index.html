@@ -496,7 +496,7 @@ async function renderAtlases(){
     }
     const {data:rows,error}=await museaSupabase.from('creative_atlases').select('id,owner_id,title,description,visibility,created_at,updated_at').order('updated_at',{ascending:false}).limit(80);
     if(error)throw error;
-    const atlases=rows||[],mineRows=atlases.filter(a=>a.owner_id===userData.user.id),publicRows=atlases.filter(a=>a.visibility==='public');
+    const atlases=rows||[],mineRows=atlases.filter(a=>a.owner_id===userData.user.id),publicRows=atlases.filter(a=>a.visibility==='public'&&a.owner_id!==userData.user.id);
     const ids=atlases.map(a=>a.id);let itemRows=[];
     if(ids.length){const result=await museaSupabase.from('creative_atlas_items').select('atlas_id').in('atlas_id',ids);if(!result.error)itemRows=result.data||[]}
     const counts=new Map();itemRows.forEach(x=>counts.set(x.atlas_id,(counts.get(x.atlas_id)||0)+1));
