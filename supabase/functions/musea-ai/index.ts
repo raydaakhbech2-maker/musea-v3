@@ -12,7 +12,7 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
   headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" },
 });
 
-type AIAction = "develop_idea" | "caption" | "translate" | "generate_image";
+type AIAction = "develop_idea" | "caption" | "translate" | "generate_image" | "edit_image";
 
 function cleanText(value: unknown, max: number): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
@@ -82,15 +82,19 @@ Deno.serve(async (req) => {
   try { body = await req.json(); } catch { return json({ error: "Requête JSON invalide." }, 400); }
 
   const action = body?.action as AIAction;
-  if (!["develop_idea", "caption", "translate", "generate_image"].includes(action)) {
+  if (!["develop_idea", "caption", "translate", "generate_image", "edit_image"].includes(action)) {
     return json({ error: "Action IA inconnue." }, 400);
   }
 
   const prompt = cleanText(body?.prompt, 1800);
   const style = cleanText(body?.style, 60);
   const language = cleanText(body?.language, 40);
+  const imageDataUrl = typeof body?.image_data_url === "string" ? body.image_data_url : "";
   if (prompt.length < 3) return json({ error: "Ajoute quelques mots pour guider l'assistant." }, 400);
   if (action === "translate" && !language) return json({ error: "Choisis une langue cible." }, 400);
+  if (action === "edit_image" && (!/^data:image\/webp;base64,[A-Za-z0-9+/=]+$/.test(imageDataUrl) || imageDataUrl.length > 12_000_000)) {
+    return json({ error: "Importe d’abord un visuel WebP valide de moins de 8 Mo dans le Studio." }, 400);
+  }
 
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -111,7 +115,7 @@ Deno.serve(async (req) => {
     );
   }
 
-  const isImage = action === "generate_image";
+  const isImage = action === "generate_image" || action === "edit_image";
   const dailyLimit = isImage
     ? (isSignature ? 5 : 1)
     : (isSignature ? 80 : 8);
@@ -133,22 +137,33 @@ Deno.serve(async (req) => {
   try {
     if (isImage) {
       const imagePrompt = [
-        "Create one original, polished visual artwork for a creative social platform.",
-        "Do not include typography, watermarks, logos, signatures, or UI.",
+        action === "edit_image"
+          ? "Edit the supplied image according to the creator's direction. Preserve the important subject, intent and details unless the creator explicitly asks to change them."
+          : "Create one original, polished, age-appropriate visual artwork for a creative social platform.",
+        "Do not add typography, watermarks, logos, signatures, or UI.",
         "Creative direction: " + (style || "open visual exploration"),
-        "Creator brief: " + prompt,
+        "Creator direction: " + prompt,
       ].join("\n");
-      const imageResponse = await fetch("https://api.openai.com/v1/images/generations", {
+      const imageEndpoint = action === "edit_image"
+        ? "https://api.openai.com/v1/images/edits"
+        : "https://api.openai.com/v1/images/generations";
+      const imageModel = action === "edit_image"
+        ? (Deno.env.get("OPENAI_EDIT_MODEL") || "gpt-image-2.5-sunburst")
+        : (Deno.env.get("OPENAI_IMAGE_MODEL") || "gpt-image-2.5-flare");
+      const imageBody: Record<string, unknown> = {
+        model: imageModel,
+        prompt: imagePrompt,
+        size: "1024x1024",
+        quality: "medium",
+        output_format: "webp",
+        moderation: "auto",
+        n: 1,
+      };
+      if (action === "edit_image") imageBody.images = [{ image_url: imageDataUrl }];
+      const imageResponse = await fetch(imageEndpoint, {
         method: "POST",
         headers: { "Authorization": "Bearer " + openaiKey, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: Deno.env.get("OPENAI_IMAGE_MODEL") || "gpt-image-2.5-flare",
-          prompt: imagePrompt,
-          size: "1024x1024",
-          quality: "medium",
-          output_format: "webp",
-          n: 1,
-        }),
+        body: JSON.stringify(imageBody),
         signal: AbortSignal.timeout(90000),
       });
       const imagePayload = await imageResponse.json().catch(() => ({}));
@@ -160,7 +175,7 @@ Deno.serve(async (req) => {
       if (typeof imageBase64 !== "string" || imageBase64.length < 100) {
         return json({ error: "Le service IA n'a pas renvoyé d'image exploitable." }, 502);
       }
-      return json({ image_base64: imageBase64, mime_type: "image/webp", model: Deno.env.get("OPENAI_IMAGE_MODEL") || "gpt-image-2.5-flare" });
+      return json({ image_base64: imageBase64, mime_type: "image/webp", model: imageModel });
     }
 
     const model = Deno.env.get("OPENAI_TEXT_MODEL") || "gpt-6-luna";
