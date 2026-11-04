@@ -490,11 +490,12 @@ window.museaSupabase = window.supabase.createClient(
 <section class="screen" id="screen-settings">
   <div class="row between"><h2 class="h1">Paramètres</h2><button class="btn" onclick="navigate('profile')">Retour au profil</button></div>
   <div class="card"><h3 class="h3">Apparence</h3><div class="row wrap"><button class="btn" onclick="setTheme('light')">☀ Clair</button><button class="btn" onclick="setTheme('dark')">☾ Sombre</button><button class="btn" onclick="setTheme('system')">◐ Système</button></div></div>
-  <div class="card"><h3 class="h3">Préférences de confidentialité</h3><p class="muted small">Choisis ce qui est visible sur ton profil. Les données de cette démo restent sur cet appareil.</p>
+  <div class="card"><h3 class="h3">Préférences de confidentialité</h3><p class="muted small">Choisis ce qui est visible sur ton profil. Ces préférences sont synchronisées avec ton compte lorsque tu es connecté.</p>
   <div class="switchrow"><span>Afficher les publications aimées</span><input type="checkbox" id="prefLikes" checked onchange="savePrefs()"></div>
   <div class="switchrow"><span>Afficher mes collections</span><input type="checkbox" id="prefCollections" checked onchange="savePrefs()"></div>
   <div class="switchrow"><span>Afficher mon statut en ligne</span><input type="checkbox" id="prefOnline" checked onchange="savePrefs()"></div>
-  <div class="switchrow"><span>Autoriser les messages des non-abonnés</span><input type="checkbox" id="prefDM" onchange="savePrefs()"></div>\n  <div class="switchrow"><span>Autoriser les invitations aux ateliers collectifs</span><input type="checkbox" id="prefProjectInvites" checked onchange="savePrefs()"></div>
+  <div class="switchrow"><span>Autoriser les messages des non-abonnés</span><input type="checkbox" id="prefDM" onchange="savePrefs()"></div>
+  <div class="switchrow"><span>Autoriser les invitations aux ateliers collectifs</span><input type="checkbox" id="prefProjectInvites" checked onchange="savePrefs()"></div>
   <div class="switchrow"><span>Profil privé</span><input type="checkbox" id="prefPrivate" onchange="savePrefs()"></div>
   </div>
   <div class="card"><h3 class="h3">Langue</h3><select class="field" id="language"><option>Français</option><option>English</option><option>Español</option><option>العربية</option><option>中文</option><option>日本語</option><option>Deutsch</option><option>Português</option></select><p class="muted small">L'interface complète et la traduction IA seront intégrées dans une future version.</p><button class="btn" onclick="translateDemo()">Traduire un texte de démonstration</button><div id="translationResult" class="notice hidden" style="margin-top:10px"></div></div>
@@ -1067,7 +1068,8 @@ async function searchMessagePeople(){
   if(!messagePeople.length){target.innerHTML='<p class="small muted">Aucun créateur trouvé avec ce pseudo.</p>';return;}
   target.innerHTML=messagePeople.map(p=>{
     const selected=selectedMessagePeople.includes(p.id);
-    return '<label class="message-person-option"><input type="checkbox" '+(selected?'checked':'')+' onchange="toggleMessagePerson(\''+escapeHtml(p.id)+'\',this.checked)"><span class="person-copy"><strong>@'+escapeHtml(p.username)+'</strong><span class="small muted">'+escapeHtml(p.display_name||p.headline||'Créateur MUSEA')+'</span></span><span class="small muted">'+(p.allow_messages_from_non_followers?'DM ouvert':'DM sur demande désactivé')+'</span></label>';
+    const inviteStatus=p.allow_project_invites===false?'Invitations aux ateliers fermées':'Invitations aux ateliers ouvertes';
+    return '<label class="message-person-option"><input type="checkbox" '+(selected?'checked':'')+' onchange="toggleMessagePerson(\\''+escapeHtml(p.id)+'\\',this.checked)"><span class="person-copy"><strong>@'+escapeHtml(p.username)+'</strong><span class="small muted">'+escapeHtml(p.display_name||p.headline||'Créateur MUSEA')+'</span><span class="small muted">'+(p.allow_messages_from_non_followers?'DM ouvert':'DM sur demande désactivé')+' · '+inviteStatus+'</span></span></label>';
   }).join('');
 }
 function toggleMessagePerson(id,checked){
