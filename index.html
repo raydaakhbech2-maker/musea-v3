@@ -402,7 +402,7 @@ async function renderMessages(){
         const last=lastByConversation[c.id];
         const preview=last?(last.sender_id===user.id?'Toi : ':'')+last.content:'Conversation créée';
         const unread=(recentMessages||[]).some(m=>m.conversation_id===c.id&&m.sender_id!==user.id&&!m.read_at);
-        return '<button class="switchrow" style="width:100%;text-align:left;cursor:pointer" onclick="openDirectConversation(\''+escapeHtml(c.id)+'\',\''+escapeHtml(peerId)+'\',\''+escapeHtml(name)+'\')"><div class="avatar">'+escapeHtml(name[0]?.toUpperCase()||'M')+'</div><div style="flex:1;min-width:0"><strong>'+escapeHtml(name)+'</strong><div class="small muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escapeHtml(preview)+'</div></div>'+(unread?'<span class="tag">Nouveau</span>':'')+'</button>';
+        return '<button class="switchrow" style="width:100%;text-align:left;cursor:pointer" onclick="openDirectConversation(\''+escapeHtml(c.id)+'\',\''+escapeHtml(peerId)+'\')"><div class="avatar">'+escapeHtml(name[0]?.toUpperCase()||'M')+'</div><div style="flex:1;min-width:0"><strong>'+escapeHtml(name)+'</strong><div class="small muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escapeHtml(preview)+'</div></div>'+(unread?'<span class="tag">Nouveau</span>':'')+'</button>';
       }).join('');
     }
     if(activeConversationId&&activeConversationPeer){
@@ -428,7 +428,7 @@ async function searchMessageContacts(){
     const {data:users,error:searchError}=await museaSupabase.from('profiles').select('id,username').ilike('username','%'+query+'%').neq('id',data.user.id).limit(12);
     if(searchError)throw searchError;
     if(!users?.length){target.innerHTML='<p class="small muted">Aucun utilisateur trouvé pour « '+escapeHtml(query)+' ».</p>';return}
-    target.innerHTML=users.map(u=>'<div class="switchrow"><div class="avatar">'+escapeHtml(u.username?.[0]?.toUpperCase()||'M')+'</div><div style="flex:1"><strong>@'+escapeHtml(u.username||'Utilisateur')+'</strong></div><button class="btn primary" onclick="startDirectConversation(\''+escapeHtml(u.id)+'\',\''+escapeHtml(u.username||'Utilisateur')+'\')">Message</button></div>').join('');
+    target.innerHTML=users.map(u=>'<div class="switchrow"><div class="avatar">'+escapeHtml(u.username?.[0]?.toUpperCase()||'M')+'</div><div style="flex:1"><strong>@'+escapeHtml(u.username||'Utilisateur')+'</strong></div><button class="btn primary" onclick="startDirectConversation(\''+escapeHtml(u.id)+'\')">Message</button></div>').join('');
   }catch(e){console.error(e);target.innerHTML='<p class="small muted">La recherche est indisponible. Vérifie la configuration du profil Supabase.</p>'}
 }
 async function startDirectConversation(peerId){
