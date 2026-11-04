@@ -47,7 +47,7 @@ on public.creative_drafts for delete to authenticated
 using (owner_id = auth.uid());
 
 grant select, insert, update, delete on public.creative_drafts to authenticated;
-revoke all on public.creative_drafts from anon;
+revoke all on public.creative_drafts from public, anon;
 
 create or replace function public.musea_touch_creative_draft_updated_at()
 returns trigger
