@@ -1168,6 +1168,7 @@ function postMarkup(p){
         <div class="small muted">${escapeHtml(p.style||'Création')} · ${escapeHtml(p.tag||'#MaCreation')}</div>
         <time class="small muted" datetime="${escapeHtml(p.created_at||'')}">${escapeHtml(postDateLabel(p.created_at))}</time>
       </div>
+      ${!isOwn&&p.user_id?'<button class="chip follow-post-button '+(myFollowIds.has(String(p.user_id))?'selected':'')+'" aria-pressed="'+myFollowIds.has(String(p.user_id))+'" onclick="toggleFollow(\''+escapeHtml(p.user_id)+'\')">'+(myFollowIds.has(String(p.user_id))?'Suivi ✓':'Suivre ＋')+'</button>':''}
       ${isOwn?'<button class="iconbtn danger" aria-label="Supprimer ma création" title="Gérer ma création" onclick="deleteOwnPost(\''+escapeHtml(id)+'\')">Supprimer</button>':'<button class="iconbtn" aria-label="Signaler cette création" title="Signaler cette création" onclick="openContentReport(\''+escapeHtml(id)+'\')">•••</button>'}
     </div>
     ${artMarkup(p)}
@@ -1340,7 +1341,7 @@ function useDailyPrompt(){
   toast("L'étincelle du jour a rejoint ton atelier.");
 }
 function setHomeFeedMode(mode){
-  homeFeedMode=mode;
+  if(!['affinity','recent','emerging','following'].includes(mode))return;\n  homeFeedMode=mode;
   document.querySelectorAll('[data-home-mode]').forEach(el=>el.classList.toggle('active',el.dataset.homeMode===mode));
   renderHomeFeedFromCache();
 }
@@ -1351,11 +1352,12 @@ function renderHomeFeedFromCache(){
   const filtered=communityPosts.filter(post=>{
     const category=feedKind==='all'||post.kind===feedKind;
     const matches=!query||[post.user,post.title,post.desc,post.style,post.tag].join(' ').toLowerCase().includes(query);
-    return category&&matches;
+    const follows=homeFeedMode!=='following'||myFollowIds.has(String(post.user_id));
+    return category&&matches&&follows;
   });
   let ordered=filtered;
   const previousMode=discoverMode;
-  if(homeFeedMode==='recent'){
+  if(homeFeedMode==='recent'||homeFeedMode==='following'){
     ordered=[...filtered].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
   }else{
     discoverMode=homeFeedMode==='emerging'?'emerging':'affinity';
@@ -1367,17 +1369,21 @@ function renderHomeFeedFromCache(){
     ?'Un fil composé à partir de tes affinités, de la fraîcheur et de la diversité des créateurs.'
     :homeFeedMode==='recent'
     ?'Les créations publiques les plus récentes apparaissent en premier, sans classement de popularité.'
+    :homeFeedMode==='following'
+    ?'Les créations des comptes que tu suis, dans l’ordre chronologique.'
     :'Un espace supplémentaire pour les créations récentes et moins exposées.';
   feed.setAttribute('aria-busy','false');
   if(!ordered.length){
-    feed.innerHTML='<div class="home-empty card"><div class="home-empty-icon">✳</div><h3 class="h3">La prochaine idée à découvrir pourrait être la tienne.</h3><p class="muted small">Aucune création ne correspond à cette sélection pour le moment.</p><button class="btn primary" onclick="navigate(&quot;create&quot;)">Proposer une création</button></div>';
+    feed.innerHTML=homeFeedMode==='following'
+      ?'<div class="home-empty card"><div class="home-empty-icon">✳</div><h3 class="h3">Ton cercle commence ici.</h3><p class="muted small">Suis quelques créateurs pour retrouver leurs nouvelles créations dans cet espace.</p><button class="btn primary" onclick="navigate(&quot;discover&quot;)">Découvrir des créateurs</button></div>'
+      :'<div class="home-empty card"><div class="home-empty-icon">✳</div><h3 class="h3">La prochaine idée à découvrir pourrait être la tienne.</h3><p class="muted small">Aucune création ne correspond à cette sélection pour le moment.</p><button class="btn primary" onclick="navigate(&quot;create&quot;)">Proposer une création</button></div>';
     return;
   }
   feed.innerHTML=ordered.map(post=>{
-    const reason=homeFeedMode==='recent'?'Publication récente':(post._discoveryReason||'Une piste à explorer');
+    const reason=homeFeedMode==='recent'?'Publication récente':homeFeedMode==='following'?'Dans ton cercle':(post._discoveryReason||'Une piste à explorer');
     const id=escapeHtml(post.id);
     const details=(post._discoverySignals||[]).map(x=>'<li>'+escapeHtml(x)+'</li>').join('');
-    const why=homeFeedMode==='recent'?'':'<div class="discovery-transparency"><button class="chip" aria-expanded="false" aria-controls="home-discovery-why-'+id+'" onclick="toggleDiscoveryWhy(\''+id+'\',this,\'home\')">Pourquoi ce choix ?</button><div class="discovery-why" id="home-discovery-why-'+id+'" hidden><strong>Pourquoi cette création apparaît dans ton fil</strong><ul>'+details+'</ul><p class="small muted">Les critères décrivent le classement actuel et ne garantissent pas une portée.</p></div></div>';
+    const why=(homeFeedMode==='recent'||homeFeedMode==='following')?'':'<div class="discovery-transparency"><button class="chip" aria-expanded="false" aria-controls="home-discovery-why-'+id+'" onclick="toggleDiscoveryWhy(\''+id+'\',this,\'home\')">Pourquoi ce choix ?</button><div class="discovery-why" id="home-discovery-why-'+id+'" hidden><strong>Pourquoi cette création apparaît dans ton fil</strong><ul>'+details+'</ul><p class="small muted">Les critères décrivent le classement actuel et ne garantissent pas une portée.</p></div></div>';
     return '<div class="home-feed-result"><div class="home-feed-reason"><span>✳</span>'+escapeHtml(reason)+'</div>'+postMarkup(post)+why+'</div>';
   }).join('');
 }
@@ -1387,6 +1393,7 @@ async function renderFeed(){
   feed.setAttribute('aria-busy','true');
   try{
     await loadCommunityPosts();
+    await loadRelationshipContext();
     await loadDiscoverySettings();
     renderHomeFeedFromCache();
   }catch(error){
@@ -1798,6 +1805,9 @@ async function renderDiscover(){
   container.innerHTML='<p class="muted small">La boussole explore les créations publiques…</p>';
   try{
     await loadCommunityPosts();
+    await loadRelationshipContext();
+    renderInterestPicker();
+    renderCreatorDirectory();
     await loadDiscoverySettings();
     const categoryFiltered=communityPosts.filter(post=>{
       const categoryMatch=discoverKind==='Tout'
