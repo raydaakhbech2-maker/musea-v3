@@ -63,7 +63,7 @@ alter table public.moderation_appeals enable row level security;
 alter table public.moderation_decision_log enable row level security;
 
 revoke all on public.moderation_content_actions,public.moderation_user_sanctions,public.moderation_appeals,public.moderation_decision_log from anon,authenticated;
-grant select,insert on public.moderation_appeals to authenticated;
+grant select on public.moderation_appeals to authenticated;
 
 drop policy if exists "Members read their own sanctions" on public.moderation_user_sanctions;
 create policy "Members read their own sanctions" on public.moderation_user_sanctions
