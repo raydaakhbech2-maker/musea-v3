@@ -353,6 +353,49 @@ async function renderProfile(){
       ? '<div class="notice">Ton profil est privé. Ton activité n’est pas affichée publiquement.</div>'
       : items.join('')||'<p class="muted small">Tes réactions et collections apparaîtront ici selon tes préférences.</p>';
 
+  // Les reposts sont chargés depuis Supabase et affichés dans l'activité du profil.
+  if(!state.prefs.private){
+    try{
+      const {data:profileUser,error:profileUserError}=await museaSupabase.auth.getUser();
+      if(profileUserError) throw profileUserError;
+      if(profileUser.user){
+        const {data:repostRows,error:repostError}=await museaSupabase
+          .from('post_reposts')
+          .select('id,post_id,created_at')
+          .eq('user_id',profileUser.user.id)
+          .order('created_at',{ascending:false})
+          .limit(30);
+        if(repostError) throw repostError;
+        const repostIds=[...new Set((repostRows||[]).map(r=>r.post_id))];
+        if(repostIds.length){
+          const {data:repostPosts,error:repostPostsError}=await museaSupabase
+            .from('posts')
+            .select('id,user_id,caption,style,image_url,created_at')
+            .in('id',repostIds);
+          if(repostPostsError) throw repostPostsError;
+          const ownerIds=[...new Set((repostPosts||[]).map(p=>p.user_id))];
+          let repostProfiles=[];
+          if(ownerIds.length){
+            const profilesResult=await museaSupabase.from('profiles').select('id,username').in('id',ownerIds);
+            if(!profilesResult.error) repostProfiles=profilesResult.data||[];
+          }
+          const repostCards=repostRows.map(repost=>{
+            const p=(repostPosts||[]).find(item=>item.id===repost.post_id);
+            if(!p) return null;
+            const username=repostProfiles.find(x=>x.id===p.user_id)?.username||'Utilisateur';
+            return {id:p.id,remote:true,user:username,avatar:username[0]?.toUpperCase()||'M',title:(p.caption||'Publication').slice(0,60),desc:p.caption||'',image_url:p.image_url,style:p.style||'Création',kind:'art',art:'a4',tag:'#MaCreation',reposted:true,repostDate:repost.created_at};
+          }).filter(Boolean);
+          const enrichedReposts=await attachPostInteractions(repostCards);
+          const repostMarkup=enrichedReposts.map(p=>'<div class="small muted" style="margin:14px 0 6px">↻ Tu as reposté cette publication · '+escapeHtml(new Date(p.repostDate).toLocaleDateString('fr-FR'))+'</div>'+postMarkup(p)).join('');
+          if(repostMarkup){
+            const activity=document.getElementById('profileActivity');
+            activity.insertAdjacentHTML('beforeend','<h3 style="margin-top:18px">Mes reposts</h3>'+repostMarkup);
+          }
+        }
+      }
+    }catch(repostLoadError){console.warn('Chargement des reposts du profil indisponible',repostLoadError)}
+  }
+
   document.getElementById('followersStat').textContent=24+state.following.length;
   document.getElementById('prefLikes').checked=state.prefs.likes;
   document.getElementById('prefCollections').checked=state.prefs.collections;
