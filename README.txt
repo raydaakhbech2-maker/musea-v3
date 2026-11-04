@@ -154,3 +154,18 @@ L'interface MUSEA ne donne toujours aucun accès Premium par simple modification
 
 
 **Validation réalisée pour l'étape 23 :** revue statique des chemins d'authentification, contrôle de l'origine, validation du prix mensuel en EUR, vérification de signature du webhook sur le corps brut, synchronisation serveur et politiques RLS. Aucune migration n'a été exécutée sur le projet Supabase, aucune Edge Function n'a été déployée et aucun paiement de test ou réel n'a été effectué.
+
+
+## MUSEA Empreinte — maîtrise des données personnelles (étape 24 proposée)
+
+Le centre « Mon dossier MUSEA » permet à un membre connecté de télécharger un export JSON des données de son compte accessibles via sa session et les politiques Row Level Security : profil, publications, interactions envoyées, collections, commentaires, portfolio, brouillons Studio, notifications, préférences, messages envoyés, conversations accessibles, tâches liées, blocages et signalements envoyés.
+
+- Les lectures sont effectuées avec la session utilisateur, jamais avec une clé privilégiée.
+- Les catégories sont paginées et chaque erreur ou migration absente est signalée dans le fichier au lieu d'être masquée.
+- Les messages d'autres membres ne sont pas exportés ; seuls les messages envoyés par le compte le sont.
+- Les images et autres fichiers binaires ne sont pas intégrés au JSON ; les références disponibles sont conservées.
+- La suppression définitive du compte n'est pas activée : elle nécessitera un flux serveur dédié qui traite les sessions, les fichiers Storage et les dépendances sans exposer de clé secrète.
+
+Cette étape est une proposition cohérente pour la suite du projet ; aucun titre ni périmètre original confirmé des étapes 24 à 26 n'a été retrouvé dans les échanges précédents.
+
+**Validation effectuée :** vérification statique des catégories interrogées, de leurs filtres d'identité, de l'utilisation de la session Supabase côté client et de l'absence de clé privilégiée dans le code ajouté. L'export doit encore être essayé avec un compte de test sur le projet Supabase réel ; il ne peut inclure que les tables et politiques effectivement déployées.
