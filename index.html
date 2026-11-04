@@ -1234,11 +1234,12 @@ async function loadMessageWorkspace(){
         const others=allMembers.filter(x=>x.conversation_id===c.id&&x.user_id!==user.id);
         const name=c.kind==='project'?c.title:'@'+(names.get(others[0]?.user_id)?.username||'Conversation privée');
         const last=latest.get(c.id);
-        return '<button class="conversation-entry '+(activeConversationId===c.id?'active':'')+'" onclick="openConversation(\''+c.id+'\')"><strong>'+escapeHtml(name)+'</strong><div class="conversation-preview">'+(c.kind==='project'?'✳ Atelier collectif · ':'')+escapeHtml(last?.body||'La conversation est prête.')+'</div></button>';
+        const unread=!!(last&&last.sender_id!==user.id&&new Date(last.created_at)>new Date(m.last_read_at||0));
+        return '<button class="conversation-entry '+(activeConversationId===c.id?'active':'')+'" onclick="openConversation(\''+c.id+'\')"><strong>'+escapeHtml(name)+(unread?' <span class="chip">Nouveau</span>':'')+'</strong><div class="conversation-preview">'+(c.kind==='project'?'✳ Atelier collectif · ':'')+escapeHtml(last?.body||'La conversation est prête.')+'</div></button>';
       }).join('')||'<div class="notice">Aucune conversation active.</div>';
     }
     if(invitations){
-      invitations.innerHTML=pending.map(m=>{
+      invitations.innerHTML=(pending.length?'<div class="eyebrow" style="margin:10px 0 6px">INVITATIONS EN ATTENTE</div>':'')+pending.map(m=>{
         const c=convs.find(x=>x.id===m.conversation_id);if(!c)return '';
         const inviter=allMembers.find(x=>x.conversation_id===c.id&&x.role==='owner');
         const inviterName=names.get(inviter?.user_id)?.username||'Un créateur';
@@ -1313,6 +1314,7 @@ async function loadConversationMessages(){
   if(log)log.scrollTop=log.scrollHeight;
   await museaSupabase.from('conversation_members').update({last_read_at:new Date().toISOString()})
     .eq('conversation_id',activeConversationId).eq('user_id',userData.user.id);
+  await loadMessageWorkspace();
 }
 async function sendMessage(){
   if(!activeConversationId)return toast('Ouvre une conversation avant d’envoyer un message.');
