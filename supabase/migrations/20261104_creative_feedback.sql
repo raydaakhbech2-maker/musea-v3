@@ -91,8 +91,10 @@ using (
     from public.creative_feedback_requests r
     join public.posts p on p.id = r.post_id
     where r.id = request_id
-      and p.visibility = 'public'
-      and (r.status = 'open' or r.owner_id = (select auth.uid()))
+      and (
+        r.owner_id = (select auth.uid())
+        or (r.status = 'open' and p.visibility = 'public')
+      )
       and not exists (
         select 1 from public.direct_message_blocks b
         where (b.blocker_id = (select auth.uid()) and b.blocked_id = r.owner_id)
