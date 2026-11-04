@@ -474,6 +474,9 @@ async function openDirectConversation(conversationId,peerId){
   if(sessionError)throw sessionError;
   const myUserId=sessionData.user?.id;
   if(!myUserId)return;
+  const {data:myProfile,error:myProfileError}=await museaSupabase.from('profiles').select('allow_messages,show_online').eq('id',myUserId).maybeSingle();
+  if(myProfileError)throw myProfileError;
+  if(myProfile){state.prefs.dm=myProfile.allow_messages!==false;state.prefs.online=myProfile.show_online!==false;save()}
   activeMessageChannel=museaSupabase.channel('musea-dm-'+conversationId,{config:{private:true,presence:{key:myUserId}}})
     .on('presence',{event:'sync'},()=>updatePeerPresence())
     .on('postgres_changes',{event:'*',schema:'public',table:'direct_messages',filter:'conversation_id=eq.'+conversationId},payload=>{
