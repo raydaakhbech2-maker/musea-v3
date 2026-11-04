@@ -353,53 +353,26 @@ async function renderCreatorDirectory(){
  }catch(e){console.error(e);box.innerHTML='<p class="notice">Recherche indisponible. Vérifie la migration de l’étape 8.</p>'}
 }
 async function renderFeed(){
-  const feed = document.getElementById('feed');
-  feed.innerHTML = '<p class="muted small">Chargement des publications...</p>';
-
-  try {
-    const { data: rows, error } = await museaSupabase
-      .from('posts')
-      .select('id,user_id,caption,style,visibility,image_url,created_at')      .order('created_at', { ascending: false })
-      .limit(50);
-
-    if (error) throw error;
-
-    const userIds = [...new Set((rows || []).map(p => p.user_id))];
-    let profiles = [];
-
-    if (userIds.length) {
-      const result = await museaSupabase
-        .from('profiles')
-        .select('id,username')
-        .in('id', userIds);
-
-      if (!result.error) profiles = result.data || [];
-    }
-
-    const realPosts = (rows || []).map(row => {
-      const profile = profiles.find(p => p.id === row.user_id);
-      const username = profile?.username || 'Utilisateur';
-
-      return {id:row.id,remote:true,user:username,avatar:username[0]?.toUpperCase()||'M',title:(row.caption||'Publication').slice(0,60),desc:row.caption||'',image_url:row.image_url,style:row.style||'Création',kind:'art',art:'a4',tag:'#MaCreation'};
-    });
-
-    const allPosts = [...realPosts, ...defaultPosts];
-    const filtered = allPosts.filter(p => feedKind === 'all' || p.kind === feedKind);
-    try{const enriched=await attachPostInteractions(filtered);feed.innerHTML=enriched.map(postMarkup).join('')}
-    catch(interactionError){console.warn('Interactions Supabase indisponibles',interactionError);feed.innerHTML=filtered.map(postMarkup).join('')+'<p class="notice">Les interactions sociales nécessitent l’activation du schéma Supabase fourni dans le dépôt.</p>'}
-  } catch (error) {
-    console.error(error);
-    const filtered = defaultPosts.filter(p =>
-      feedKind === 'all' || p.kind === feedKind
-    );
-    feed.innerHTML = filtered.map(postMarkup).join('');
-    toast('Impossible de charger les publications enregistrées.');
-  }
-
-  renderStories();
+ const feed=document.getElementById('feed');if(!feed)return;feed.innerHTML='<p class="muted small">MUSEA compose ton fil…</p>';const explanation=document.getElementById('feedExplanation');
+ try{
+  await loadRelationshipContext();
+  const {data:rows,error}=await museaSupabase.from('posts').select('id,user_id,caption,style,visibility,image_url,created_at').eq('visibility','public').order('created_at',{ascending:false}).limit(120);if(error)throw error;
+  const ids=[...new Set((rows||[]).map(p=>p.user_id))];let profiles=[],interestRows=[];
+  if(ids.length){const [p,i]=await Promise.all([museaSupabase.from('profiles').select('id,username').in('id',ids),museaSupabase.from('profile_interests').select('user_id,interest').in('user_id',ids)]);if(p.error)throw p.error;if(i.error)throw i.error;profiles=p.data||[];interestRows=i.data||[]}
+  let blocked=new Set();if(myUserId){const {data,error}=await museaSupabase.from('direct_message_blocks').select('blocker_id,blocked_id').or('blocker_id.eq.'+myUserId+',blocked_id.eq.'+myUserId);if(error)throw error;blocked=new Set((data||[]).flatMap(x=>[x.blocker_id,x.blocked_id]).filter(x=>x!==myUserId))}
+  const posts=(rows||[]).filter(x=>!blocked.has(x.user_id)).map(row=>{
+   const username=profiles.find(p=>p.id===row.user_id)?.username||'Utilisateur',creatorInterests=interestRows.filter(x=>x.user_id===row.user_id).map(x=>x.interest),shared=myInterests.filter(x=>creatorInterests.includes(x)),followed=myFollowIds.has(row.user_id);
+   const bridge=!followed&&shared.length>0&&!shared.some(x=>(row.style||'').toLowerCase().includes(x.toLowerCase()));
+   return {id:row.id,author_id:row.user_id,remote:true,user:username,avatar:username[0]?.toUpperCase()||'M',title:(row.caption||'Publication').slice(0,60),desc:row.caption||'',image_url:row.image_url,style:row.style||'Création',kind:'art',art:'a4',tag:'#MaCreation',feed_score:(followed?6:0)+(shared.length?3:0),bridge_label:bridge?'Passerelle via '+shared[0]:null};
+  });
+  let selected=posts;if(feedKind==='circle')selected=posts.filter(p=>myFollowIds.has(p.author_id)||p.author_id===myUserId);if(feedKind==='bridges')selected=posts.filter(p=>p.bridge_label);selected.sort((a,b)=>b.feed_score-a.feed_score);
+  if(!selected.length)feed.innerHTML=feedKind==='circle'?'<div class="card"><strong>Ton cercle commence ici.</strong><p class="small muted">Recherche des créateurs dans Explorer et suis ceux dont les univers te parlent.</p><button class="btn primary" onclick="navigate(\\'discover\\')">Découvrir des créateurs</button></div>':feedKind==='bridges'?'<div class="card"><strong>Pas encore de passerelle à te proposer.</strong><p class="small muted">Choisis quelques univers dans Explorer. MUSEA cherchera des créateurs qui partagent tes centres d’intérêt mais explorent d’autres styles.</p><button class="btn primary" onclick="navigate(\\'discover\\')">Choisir mes univers</button></div>':'<div class="card muted">Aucune publication publique pour le moment. Les premières créations feront vivre ton fil.</div>';
+  else{const enriched=await attachPostInteractions(selected);feed.innerHTML=enriched.map(p=>(p.bridge_label?'<div class="small muted" style="margin:0 0 7px 5px">✦ '+escapeHtml(p.bridge_label)+' · un univers commun, une autre approche</div>':'')+postMarkup(p)).join('')}
+  if(explanation)explanation.textContent=feedKind==='circle'?'Les créations des personnes que tu suis, dans ton cercle.':feedKind==='bridges'?'Des créateurs que tu ne suis pas encore, reliés à tes intérêts mais actifs dans d’autres styles.':'Un mélange pondéré entre ton cercle et des découvertes reliées à tes intérêts.';
+ }catch(e){console.error('Fil MUSEA:',e);feed.innerHTML='<div class="notice">Impossible de composer le fil. Vérifie la connexion et la migration de l’étape 8.</div>'}
+ renderStories();
 }
 function setFeed(k,b){feedKind=k;document.querySelectorAll('#screen-home .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderFeed()}
-
 function toggleSave(id){if(state.saved.includes(id)){state.saved=state.saved.filter(x=>x!==id)}else{state.saved.push(id)}save();renderFeed();renderProfile();toast(state.saved.includes(id)?'Ajouté à tes collections.':'Retiré de tes collections.')}
 
 function translatePost(id){let p=defaultPosts.find(x=>x.id===id);let lang=document.getElementById('language')?.value||'Français';toast('Traduction IA simulée vers '+lang+' : la connexion au service de traduction reste à faire.');}
