@@ -163,7 +163,7 @@ begin
   from public.user_reports ur
   left join public.profiles pr on pr.id=ur.target_user_id
 
-  order by created_at desc;
+  order by 7 desc;
 end;
 $$;
 revoke all on function public.musea_moderation_queue() from public,anon;
