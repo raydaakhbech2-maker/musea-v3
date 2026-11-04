@@ -970,6 +970,7 @@ function postDateLabel(value){
 }
 function postMarkup(p){
   const id=String(p.id), liked=!!p.isLiked, saved=!!p.isSaved, reposted=!!p.isReposted;
+  const isOwn=!!museaCurrentUserId&&String(p.user_id||'')===String(museaCurrentUserId);
   const likes=Number(p.likesCount)||0,comments=Number(p.commentsCount)||0,reposts=Number(p.repostsCount)||0;
   return `<article class="card" id="post-${escapeHtml(id)}" data-post-id="${escapeHtml(id)}" aria-label="Publication de ${escapeHtml(p.user||'un membre')}">
     <div class="post-head">
@@ -979,7 +980,7 @@ function postMarkup(p){
         <div class="small muted">${escapeHtml(p.style||'Création')} · ${escapeHtml(p.tag||'#MaCreation')}</div>
         <time class="small muted" datetime="${escapeHtml(p.created_at||'')}">${escapeHtml(postDateLabel(p.created_at))}</time>
       </div>
-      <button class="iconbtn" aria-label="Signaler cette création" title="Signaler cette création" onclick="openContentReport('${escapeHtml(id)}')">•••</button>
+      ${isOwn?'<button class="iconbtn danger" aria-label="Supprimer ma création" title="Gérer ma création" onclick="deleteOwnPost(\''+escapeHtml(id)+'\')">Supprimer</button>':'<button class="iconbtn" aria-label="Signaler cette création" title="Signaler cette création" onclick="openContentReport(\''+escapeHtml(id)+'\')">•••</button>'}
     </div>
     ${artMarkup(p)}
     <div class="post-title">${escapeHtml(p.title||'Création')}</div>
@@ -1191,6 +1192,38 @@ function setFeed(k,b){
   feedKind=k;
   document.querySelectorAll('#homeCategories .chip').forEach(x=>x.classList.toggle('selected',x===b));
   renderHomeFeedFromCache();
+}
+
+
+async function deleteOwnPost(postId){
+  const id=String(postId||'');
+  if(!id||deletingMuseaPosts.has(id))return;
+  const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+  if(userError||!userData?.user){toast('Connecte-toi pour gérer tes créations.');return;}
+  if(!confirm('Supprimer définitivement cette création ? Elle disparaîtra du fil, du profil et du portfolio. Cette action ne peut pas être annulée.'))return;
+  deletingMuseaPosts.add(id);
+  try{
+    const {data:ownedPost,error:readError}=await museaSupabase.from('posts')
+      .select('id,user_id,image_path').eq('id',id).eq('user_id',userData.user.id).maybeSingle();
+    if(readError)throw readError;
+    if(!ownedPost)throw new Error('Cette création ne t’appartient pas ou n’est plus disponible.');
+    const {data:deletedRows,error:deleteError}=await museaSupabase.from('posts')
+      .delete().eq('id',id).eq('user_id',userData.user.id).select('id');
+    if(deleteError)throw deleteError;
+    if(!deletedRows?.length)throw new Error('La suppression a été refusée par les règles de sécurité.');
+    let storageWarning=false;
+    if(ownedPost.image_path){
+      const {error:storageError}=await museaSupabase.storage.from('musea-posts').remove([ownedPost.image_path]);
+      if(storageError){storageWarning=true;console.warn('Publication supprimée, fichier Storage à nettoyer :',storageError);}
+    }
+    if(window.openCommentPostId===id)window.openCommentPostId=null;
+    await renderProfile();
+    await refreshSocialViews();
+    toast(storageWarning?'Création supprimée. Le fichier image nécessite un nettoyage côté stockage.':'Création supprimée de MUSEA.');
+  }catch(error){
+    console.error('Suppression de création impossible :',error);
+    toast('La création n’a pas été supprimée : '+(error?.message||'erreur inconnue'));
+  }finally{deletingMuseaPosts.delete(id);}
 }
 
 async function requireSocialUser(){
@@ -2371,7 +2404,7 @@ async function renderProfile(){
     const [likeRowsResult,saveRowsResult,postsResult,portfolioResult]=await Promise.all([
       museaSupabase.from('post_likes').select('post_id').eq('user_id',user.id),
       museaSupabase.from('saved_posts').select('post_id').eq('user_id',user.id),
-      museaSupabase.from('posts').select('id,user_id,caption,style,image_url,created_at,visibility').eq('user_id',user.id).order('created_at',{ascending:false}),
+      museaSupabase.from('posts').select('id,user_id,caption,style,image_url,image_path,created_at,visibility').eq('user_id',user.id).order('created_at',{ascending:false}),
       museaSupabase.from('creator_portfolio_items').select('*').eq('user_id',user.id).order('sort_order',{ascending:true}).order('created_at',{ascending:false})
     ]);
     if(likeRowsResult.error)throw likeRowsResult.error;
@@ -2411,7 +2444,7 @@ async function renderProfile(){
     if(container){
       const mapped=posts.map(p=>({
         id:p.id,user_id:p.user_id,user:state.username,avatar:(state.username||'M')[0].toUpperCase(),
-        title:(p.caption||'Publication').slice(0,60),desc:p.caption||'',image_url:p.image_url,
+        title:(p.caption||'Publication').slice(0,60),desc:p.caption||'',image_url:p.image_url,image_path:p.image_path,
         style:p.style||'Création',kind:'art',art:'a4',tag:'#MaCreation',created_at:p.created_at
       }));
       container.innerHTML=mapped.length?mapped.map(postMarkup).join(''):'<div class="notice">Tu n’as pas encore publié de création. Ton premier projet peut commencer ici.</div>';
