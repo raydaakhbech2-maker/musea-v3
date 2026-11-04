@@ -185,3 +185,12 @@ Une publication peut être reliée à une œuvre publique MUSEA comme « Inspir�
 Cette étape est une proposition de continuité produit, les intitulés originaux des étapes 25–26 n'ayant pas été retrouvés.
 
 **Validation statique :** présence du formulaire de filiation, du chargement des relations, de l'affichage du crédit, de l'insertion liée à la publication, de la migration RLS et du déplacement du code d'export. Pas de test en direct Supabase ni de migration exécutée à distance.
+
+
+## Étape 26 — MUSEA Signal : fiabilité, transparence et continuité
+
+MUSEA Signal ajoute dans les paramètres un diagnostic local lisible : état réseau déclaré par le navigateur, contexte HTTPS, chargement du client Supabase, présence d'une session locale, disponibilité du stockage, état du service worker et préférence de réduction des mouvements. Le rapport peut être copié par l'utilisateur, mais il n'est envoyé à aucun serveur.
+
+Une bannière hors ligne prévient lorsque le navigateur déclare une absence de réseau et rappelle que publication, messagerie et synchronisation nécessitent une reconnexion. Le service worker conserve uniquement la structure de l'application ; il ne met pas en cache les données privées ou les réponses authentifiées.
+
+Limites explicites : le diagnostic ne réalise pas de test de disponibilité du serveur Supabase, ne certifie pas la sécurité globale du compte et ne remplace ni les tests sur appareils réels, ni l'audit des politiques RLS et des migrations. Les fonctions dépendantes du réseau peuvent rester indisponibles même si le navigateur indique être en ligne.
