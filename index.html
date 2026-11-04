@@ -450,7 +450,7 @@ window.museaSupabase = window.supabase.createClient(
         <div class="eyebrow">03 / SIGNATURE</div><h3 class="h3">Préparer la publication</h3>
         <label class="label" for="prompt">Texte qui accompagnera ta création</label>
         <textarea class="field" id="prompt" rows="4" maxlength="500" placeholder="Raconte ce que tu souhaites partager…"></textarea>
-        <script type="application/x-musea-studio-counter">document.getElementById('prompt')?.addEventListener('input',()=>{const el=document.getElementById('studioCaptionCount');if(el)el.textContent=document.getElementById('prompt').value.length+' / 500';});</script>
+
         <div class="row between small muted"><span>Visible avec la publication</span><span id="studioCaptionCount">0 / 500</span></div>
         <label class="label" for="artStyle">Univers créatif</label>
         <select class="field" id="artStyle"><option>Digital art</option><option>Anime</option><option>Fantasy</option><option>Photorealistic</option><option>3D</option><option>Peinture</option><option>Minimaliste</option><option>Architecture</option><option>Mode</option><option>Illustration</option></select>
@@ -2140,7 +2140,7 @@ function studioRenderImage(){
 }
 function studioLoadImage(url){
   return new Promise((resolve,reject)=>{
-    const img=new Image();img.onload=()=>{studioImage=img;studioRenderImage();resolve(true);};
+    const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{studioImage=img;studioRenderImage();resolve(true);};
     img.onerror=()=>reject(new Error('Impossible de charger cette image.'));
     img.src=url;
   });
@@ -2402,7 +2402,7 @@ async function publishDemo() {
     const draft=studioDraftRows.find(x=>x.id===draftId);
     const {error:draftDeleteError}=await museaSupabase.from('creator_drafts').delete().eq('id',draftId).eq('user_id',userData.user.id);
     if(draftDeleteError)console.warn('Publication réussie, mais le brouillon reste à supprimer :',draftDeleteError);
-    if(studioExistingImagePath)await museaSupabase.storage.from('musea-drafts').remove([studioExistingImagePath]);
+    else if(studioExistingImagePath)await museaSupabase.storage.from('musea-drafts').remove([studioExistingImagePath]);
   }
   studioClear();
   navigate('home');
@@ -2558,7 +2558,7 @@ async function submitModerationAppeal(type,id){
   toast('Ton recours a été transmis. La mesure reste active pendant son examen, sauf décision contraire.');
   await loadMyModerationCases();
 }
-function init(){load();applyTheme();updatePlan();const dailyPrompt=document.getElementById('dailyPromptText');if(dailyPrompt)dailyPrompt.textContent=getDailyCreativePrompt();renderFeed();renderDiscover();renderLeaderboard();renderMessages();renderNotifications();renderProfile();renderBookmarks();if(!state.plan)showPlans();if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(state.theme==='system')applyTheme()})}
+function init(){load();applyTheme();updatePlan();document.getElementById('prompt')?.addEventListener('input',()=>{const el=document.getElementById('studioCaptionCount');if(el)el.textContent=document.getElementById('prompt').value.length+' / 500';});const dailyPrompt=document.getElementById('dailyPromptText');if(dailyPrompt)dailyPrompt.textContent=getDailyCreativePrompt();renderFeed();renderDiscover();renderLeaderboard();renderMessages();renderNotifications();renderProfile();renderBookmarks();if(!state.plan)showPlans();if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(state.theme==='system')applyTheme()})}
 async function museaMessage(text) {
   document.getElementById('authMessage').textContent = text;
 }
