@@ -1,4 +1,4 @@
-const CACHE = 'musea-encaissement-v10';
+const CACHE = 'musea-empreinte-v11';
 const FILES = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', event => {
