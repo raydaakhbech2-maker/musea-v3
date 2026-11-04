@@ -569,6 +569,7 @@ function postMarkup(p){
       <button class="iconbtn" aria-label="Afficher ${comments} commentaires" aria-expanded="${window.openCommentPostId===id}" onclick="commentPost('${escapeHtml(id)}')">▢ ${comments}</button>
       <button class="iconbtn ${saved?'on':''}" aria-label="${saved?'Retirer des collections':'Enregistrer dans les collections'}" aria-pressed="${saved}" onclick="toggleSave('${escapeHtml(id)}')">☆ ${saved?'Enregistré':'Enregistrer'}</button>
       <button class="iconbtn ${reposted?'on':''}" aria-label="${reposted?'Annuler le repost':'Reposter'} cette création, ${reposts} reposts" aria-pressed="${reposted}" onclick="toggleRepost('${escapeHtml(id)}')">⟳ ${reposts}</button>
+      <button class="iconbtn" aria-label="Partager cette création en message" onclick="prepareSharePost('${escapeHtml(id)}')">↗ Envoyer</button>
     </div>
     <div id="comments-${escapeHtml(id)}" class="social-comments" ${window.openCommentPostId===id?'':'hidden'}></div>
   </article>`;
@@ -1382,15 +1383,18 @@ function notificationDescription(n){
     like:actor+" a aimé l’une de tes créations.",
     comment:actor+" a commenté ta création.",
     reply:actor+" a répondu à ton commentaire.",
-    repost:actor+" a repartagé ta création."
+    repost:actor+" a repartagé ta création.",
+    message:actor+" t’a envoyé un message.",
+    message_request:actor+" souhaite démarrer une conversation privée.",
+    project_invite:actor+" t’invite à rejoindre un atelier collectif."
   };
   return messages[n.type]||"Une nouvelle activité concerne ton univers.";
 }
 function notificationSymbol(type){
-  return ({like:'♡',comment:'▢',reply:'↳',repost:'⟳'})[type]||'✦';
+  return ({like:'♡',comment:'▢',reply:'↳',repost:'⟳',message:'✉',message_request:'✉',project_invite:'✳'})[type]||'✦';
 }
 function notificationLabel(type){
-  return ({like:'Like',comment:'Commentaire',reply:'Réponse',repost:'Repost'})[type]||'Activité';
+  return ({like:'Like',comment:'Commentaire',reply:'Réponse',repost:'Repost',message:'Message',message_request:'Demande de message',project_invite:'Invitation à un atelier'})[type]||'Activité';
 }
 function notificationDate(value){
   const date=new Date(value);
@@ -1488,6 +1492,7 @@ function renderNotifications(errorMessage=''){
         <div class="small muted">${notificationDate(n.created_at)}</div>
         <div class="notification-actions">
           ${n.post_id?`<button class="chip" onclick="openNotificationPost('${n.post_id}')">Voir la création ↗</button>`:''}
+          ${['message','message_request','project_invite'].includes(n.type)?'<button class="chip" onclick="navigate(\\'messages\\')">Ouvrir les messages ↗</button>':''}
           ${n.read_at?'':'<button class="chip" onclick="markNotificationRead(\''+n.id+'\')">Marquer comme lue</button>'}
         </div>
       </div>
@@ -1578,7 +1583,7 @@ async function renderProfile(){
   if(activity)activity.innerHTML=state.prefs.private?'<div class="notice">Ton profil est privé. Ton activité n’est pas affichée publiquement.</div>':'<p class="muted small">Chargement de ton activité…</p>';
   const prefs={
     prefLikes:state.prefs.likes,prefCollections:state.prefs.collections,
-    prefOnline:state.prefs.online,prefDM:state.prefs.dm,prefPrivate:state.prefs.private
+    prefOnline:state.prefs.online,prefDM:state.prefs.dm,prefProjectInvites:state.prefs.projectInvites!==false,prefPrivate:state.prefs.private
   };
   Object.entries(prefs).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.checked=!!value;});
   updatePlan();
@@ -1604,7 +1609,7 @@ async function renderProfile(){
     }
 
     const {data:profile,error:profileError}=await museaSupabase.from('profiles')
-      .select('username,display_name,bio,headline,creative_signature,specialties,is_private')
+      .select('username,display_name,bio,headline,creative_signature,specialties,is_private,allow_messages_from_non_followers,allow_project_invites')
       .eq('id',user.id).maybeSingle();
     if(profileError)throw profileError;
     if(profile){
@@ -1615,6 +1620,8 @@ async function renderProfile(){
       state.creativeSignature=profile.creative_signature||'';
       state.specialties=profile.specialties||[];
       state.prefs.private=!!profile.is_private;
+      state.prefs.dm=!!profile.allow_messages_from_non_followers;
+      state.prefs.projectInvites=profile.allow_project_invites!==false;
       save();
       set('profileName','@'+state.username);
       set('profileBio',state.bio);
@@ -1841,11 +1848,15 @@ async function openCreatorProfile(userId){
   }
 }
 async function savePrefs(){
-  const next={likes:document.getElementById('prefLikes').checked,collections:document.getElementById('prefCollections').checked,online:document.getElementById('prefOnline').checked,dm:document.getElementById('prefDM').checked,private:document.getElementById('prefPrivate').checked};
+  const next={likes:document.getElementById('prefLikes').checked,collections:document.getElementById('prefCollections').checked,online:document.getElementById('prefOnline').checked,dm:document.getElementById('prefDM').checked,projectInvites:document.getElementById('prefProjectInvites')?.checked!==false,private:document.getElementById('prefPrivate').checked};
   const {data:userData}=await museaSupabase.auth.getUser();
   if(userData?.user){
-    const {error}=await museaSupabase.from('profiles').update({is_private:next.private}).eq('id',userData.user.id);
-    if(error){toast('Confidentialité non synchronisée : '+error.message);document.getElementById('prefPrivate').checked=state.prefs.private;return;}
+    const {error}=await museaSupabase.from('profiles').update({
+      is_private:next.private,
+      allow_messages_from_non_followers:next.dm,
+      allow_project_invites:next.projectInvites
+    }).eq('id',userData.user.id);
+    if(error){toast('Préférences non synchronisées : '+error.message);renderProfile();return;}
   }
   state.prefs=next;save();renderProfile();renderMessages();toast('Préférences mises à jour.');
 }
@@ -2043,6 +2054,8 @@ async function museaRefreshAccount() {
     .classList.toggle('hidden', !user);
 
   if (!user) {
+    await stopMessageRealtime();
+    activeConversationId=null;
     await stopNotificationRealtime();
     notificationRows=[];
     notificationPrefs={likes:true,comments:true,replies:true,reposts:true,new_followers:true,mentions:true,messages:true,recommendations:true};
@@ -2070,6 +2083,8 @@ async function museaRefreshAccount() {
     state.creativeSignature = profile.creative_signature || '';
     state.specialties = profile.specialties || [];
     state.prefs.private = !!profile.is_private;
+    state.prefs.dm = !!profile.allow_messages_from_non_followers;
+    state.prefs.projectInvites = profile.allow_project_invites !== false;
     save();
     renderProfile();
     document.getElementById('profileName').textContent = '@' + state.username;
