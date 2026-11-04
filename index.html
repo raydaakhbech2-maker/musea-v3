@@ -1706,19 +1706,20 @@ function discoveryRank(posts){
   const scored=posts.filter(p=>!hidden.has(p.id)).map(p=>{
     const style=p.style||'Création';
     const preferenceMatch=creativeStyles.some(x=>style.toLowerCase().includes(x.toLowerCase()));
+    const interestMatch=myInterests.some(x=>(style+' '+(p.tag||'')).toLocaleLowerCase('fr-FR').includes(x.toLocaleLowerCase('fr-FR')));
     const historyAffinity=styleWeights[style]||0;
     const interactions=(p.likesCount||0)+(p.commentsCount||0)*0.7+(p.repostsCount||0)*1.2;
     const ageDays=Math.max(0,(now-new Date(p.created_at||now).getTime())/86400000);
     const freshness=Math.max(0,1-ageDays/45);
     const emerging=1/(1+Math.log1p(interactions));
-    const relevance=(preferenceMatch?4.5:0)+historyAffinity*1.25;
+    const relevance=(preferenceMatch?4.5:0)+(interestMatch?2.2:0)+historyAffinity*1.25;
     const mutedPenalty=mutedStyles.has(style)?3.5:0;
     const popularity=discoveryControls.personalization?Math.log1p(interactions):0;
     const emergingWeight=(discoveryControls.emerging||discoverMode==='emerging')?balanceWeights.emerging:0;
     let score=0,reason='Une nouvelle piste à explorer';
     if(discoverMode==='affinity'){
       score=relevance*balanceWeights.relevance+freshness*balanceWeights.freshness+emerging*emergingWeight+popularity*0.15-mutedPenalty;
-      reason=preferenceMatch?'Un univers que tu as choisi':historyAffinity?'Proche de tes interactions':'Une affinité à découvrir';
+      reason=preferenceMatch?'Un univers que tu as choisi':interestMatch?'Un centre d’intérêt de ton profil':historyAffinity?'Proche de tes interactions':'Une affinité à découvrir';
     }else if(discoverMode==='detour'){
       score=(preferenceMatch?-2.5:2.2)*balanceWeights.relevance+freshness*balanceWeights.freshness+emerging*emergingWeight+stableDiscoveryNoise(p.id)*0.7-mutedPenalty;
       reason=preferenceMatch?'Un détour dans un univers connu':'Un autre regard créatif';
@@ -1728,6 +1729,7 @@ function discoveryRank(posts){
     }
     const signals=[];
     if(preferenceMatch)signals.push('Le style « '+style+' » fait partie des univers que tu as sélectionnés.');
+    if(interestMatch)signals.push('Cette création correspond à l’un de tes centres d’intérêt publics.');
     if(historyAffinity>0&&discoveryControls.personalization)signals.push('Tes interactions avec des créations de ce style ont contribué au classement.');
     if(ageDays<=7)signals.push('Cette publication est récente.');
     if(interactions<5&&(discoveryControls.emerging||discoverMode==='emerging'))signals.push('Cette création a encore peu d’interactions publiques ; le réglage de diversité lui donne davantage de place.');
