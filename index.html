@@ -63,6 +63,25 @@
 .trends-empty{padding:26px 18px}
 .trends-empty-mark{font-size:30px;color:var(--accent);margin-bottom:8px}
 @media(max-width:390px){.trends-summary{padding:10px 7px}.trends-summary span,.trends-summary small{font-size:9px}.trend-current{gap:7px;padding:10px}}
+.creator-path-teaser{background:linear-gradient(135deg,var(--card),var(--accent2));border:1px solid var(--line)}
+.creator-path-intro{position:relative;overflow:hidden;background:radial-gradient(circle at 90% 10%,rgba(224,171,146,.25),transparent 32%),linear-gradient(130deg,#211b32,#433568 65%,#7760c4);color:#fff}
+.creator-path-intro p{color:#eee8fb;max-width:58ch}
+.creator-path-symbol{font-size:28px;color:#e7d8ff}
+.creator-path-total{display:flex;align-items:baseline;gap:8px;margin-top:18px}
+.creator-path-total strong{font-size:28px}
+.creator-path-total span{font-size:12px;color:#e8e0f6}
+.creator-path-track{height:9px;background:#ffffff35;border-radius:99px;overflow:hidden;margin-top:10px}
+.creator-path-track span{display:block;height:100%;width:0;background:#fff;border-radius:99px;transition:width .3s ease}
+.creator-path-list{display:grid;gap:10px;margin:14px 0}
+.creator-path-item{display:flex;gap:13px;padding:15px;border:1px solid var(--line);border-radius:17px;background:var(--card)}
+.creator-path-item.is-earned{border-color:var(--accent);background:var(--accent2)}
+.creator-path-item.is-locked{opacity:.82}
+.creator-path-icon{flex:0 0 42px;height:42px;border-radius:14px;display:grid;place-items:center;background:var(--surface);font-size:21px;color:var(--accent)}
+.creator-path-copy{flex:1;min-width:0}
+.creator-path-copy p{margin:5px 0}
+.creator-path-detail{font-size:11px;color:var(--muted);margin-top:8px}
+.creator-path-principles li{margin:6px 0}
+@media(prefers-reduced-motion:reduce){.creator-path-track span{transition:none}}
 .creator-pulse-card{overflow:hidden}
 .creator-pulse-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}
 .creator-pulse-stat{min-width:0;padding:13px;border:1px solid var(--line);border-radius:15px;background:var(--surface)}
@@ -635,7 +654,7 @@ window.museaSupabase = window.supabase.createClient(
     <p class="creator-signature" id="profileSignatureView">Ta signature créative apparaîtra ici.</p>
     <div class="creator-specialty-list" id="profileSpecialtiesView"></div>
     <div class="creator-stats">
-      <div class="stat"><strong id="pointsStat">120</strong><span class="muted small">Points</span></div>
+      <div class="stat"><strong id="milestonesStat">0</strong><span class="muted small">Repères créatifs</span></div>
       <div class="stat"><strong id="followersStat">—</strong><span class="muted small">Abonnés</span></div>
       <div class="stat"><strong id="likesStat">0</strong><span class="muted small">Likes donnés</span></div>
     </div>
@@ -682,7 +701,7 @@ window.museaSupabase = window.supabase.createClient(
   <div id="myPosts"></div>
 
   <div class="card"><div class="row between"><h3 class="h3">Mon activité</h3><span class="chip" id="activityPrivacyTag">Selon mes réglages</span></div><p class="muted small">Les publications aimées et les collections apparaissent ici si tes préférences les rendent publiques.</p><div id="profileActivity"></div></div>
-  <div class="card"><h3 class="h3">Points et avantages</h3><div class="premium-wall"><div class="eyebrow" style="color:#e1d9ff">Boutique de récompenses</div><h2 class="h2">Échange tes points.</h2><p class="small">Les points donnent accès à des éléments cosmétiques et à des options de personnalisation, jamais à une certification automatique.</p><button class="btn primary" onclick="navigate('rewards')">Voir les récompenses</button></div></div>
+  <div class="card creator-path-teaser"><div class="eyebrow">MUSEA / TON PARCOURS</div><h2 class="h2">Chaque création laisse une trace.</h2><p class="small muted">Retrouve les étapes que tu as réellement franchies : publications, diversité créative, portfolio et curiosité. Pas de compétition ni de série quotidienne.</p><button class="btn primary full" onclick="navigate('rewards')">Voir mes repères créatifs</button></div>
   <div class="card"><h3 class="h3">Abonnement</h3><p id="profilePlan">Offre gratuite</p><button class="btn primary full" onclick="showPlans()">Comparer les offres</button></div>
 </section>
 <section class="screen" id="screen-creator">
@@ -706,12 +725,10 @@ window.museaSupabase = window.supabase.createClient(
   <div class="card"><h3 class="h3">Sécurité</h3><div class="switchrow"><span>Filtrage de contenu sensible (concept)</span><input type="checkbox" checked></div><div class="switchrow"><span>Masquer les contenus signalés</span><input type="checkbox" checked></div><p class="small muted">La vraie version nécessitera signalement, blocage, modération humaine et automatisée, export/suppression des données et protections anti-abus.</p><button class="btn danger full" onclick="if(confirm('Réinitialiser les données locales du prototype ?')){localStorage.removeItem('museaState');location.reload()}">Réinitialiser la démo</button></div>
 </section>
 <section class="screen" id="screen-rewards">
-  <div class="row between"><h2 class="h1">Récompenses</h2><button class="btn" onclick="navigate('profile')">Retour</button></div>
-  <div class="card"><div class="eyebrow">Ton solde</div><h2 class="h1"><span id="rewardPoints">120</span> points</h2><p class="muted small">Les coûts ci-dessous sont des propositions à tester, pas des achats réels.</p></div>
-  <div class="card"><div class="row between"><div><h3 class="h3">Fond d'accueil exclusif</h3><p class="muted small">Thème Aurora pour ton espace MUSEA.</p></div><span class="chip">500 pts</span></div><button class="btn primary full" id="wallpaperBtn" onclick="redeemWallpaper()">Débloquer (Premium)</button></div>
-  <div class="card"><div class="row between"><div><h3 class="h3">Badge créateur</h3><p class="muted small">Badge cosmétique, sans vérification d'identité.</p></div><span class="chip">250 pts</span></div><button class="btn full" onclick="redeemBadge()">Échanger les points</button></div>
-  <div class="card"><div class="row between"><div><h3 class="h3">Badge certifié</h3><p class="muted small">Vérification réelle, rare et soumise à examen.</p></div><span class="chip">5 000 pts + Premium</span></div><p class="small">Conditions proposées : compte ancien et complet, identité ou statut à vérifier, absence de fraude/violations, examen manuel. Les points ne garantissent jamais l'obtention.</p><button class="btn full" onclick="requestVerification()">Vérifier mon éligibilité</button></div>
-  <div id="rewardStatus" class="notice hidden"></div>
+  <div class="row between wrap"><div><div class="eyebrow">MUSEA / CHEMIN CRÉATIF</div><h1 class="h1">Mes repères.</h1></div><button class="btn" onclick="navigate('profile')">Retour au profil</button></div>
+  <div class="card creator-path-intro"><div class="creator-path-symbol" aria-hidden="true">✳</div><h2 class="h2">Une progression qui raconte ton univers.</h2><p class="muted">Ces repères reconnaissent des étapes concrètes de ton parcours. Ils ne se dépensent pas, ne donnent aucun avantage artificiel et ne servent pas à classer les membres.</p><div class="creator-path-total"><strong id="pathProgressCount">0 / 5</strong><span>repères obtenus</span></div><div class="creator-path-track" role="progressbar" aria-label="Progression des repères créatifs" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" id="pathProgressBar"><span id="pathProgressFill"></span></div></div>
+  <div id="creativePathList" class="creator-path-list" aria-live="polite"><div class="notice">Connexion nécessaire pour lire ton parcours.</div></div>
+  <div class="card creator-path-principles"><h3 class="h3">Les règles MUSEA</h3><ul class="small"><li>Aucune série quotidienne : faire une pause ne fait rien perdre.</li><li>Aucun classement public : ton parcours t'appartient.</li><li>Les critères sont visibles et basés sur des actions réelles.</li><li>Aucun achat, abonnement ou paiement ne permet de débloquer ces repères.</li></ul></div>
 </section>
 <section class="screen" id="screen-browserinfo"><div class="card"><h2 class="h1">À propos du navigateur</h2><p>Un vrai navigateur intégré exige une application native. Cette maquette ouvre les pages dans le navigateur de l'appareil.</p></div></section>
 </main>
@@ -2087,7 +2104,7 @@ async function renderProfile(){
   updateCreatorSpecialtyCount();
   const specialtyView=document.getElementById('profileSpecialtiesView');
   if(specialtyView)specialtyView.innerHTML=specialties.map(x=>'<span class="chip">'+escapeHtml(x)+'</span>').join('')||'<span class="small muted">Tes territoires créatifs apparaîtront ici.</span>';
-  set('pointsStat',state.points);
+  set('milestonesStat','0');
   set('likesStat',state.liked.length);
   set('followersStat','—');
   set('privacyTag',state.prefs.private?'Privé':'Public');
@@ -2119,6 +2136,8 @@ async function renderProfile(){
       if(postSelect)postSelect.innerHTML='<option value="">Connexion nécessaire</option>';
       if(activity)activity.innerHTML='<p class="muted small">Connecte-toi pour retrouver tes likes et tes collections.</p>';
       if(pulse){pulse.setAttribute('aria-busy','false');pulse.innerHTML='<div class="notice">Connecte-toi pour consulter tes statistiques de création.</div>';}
+      const pathHost=document.getElementById('creativePathList');if(pathHost)pathHost.innerHTML='<div class="notice">Connecte-toi pour consulter tes repères créatifs.</div>';
+      const pathCount=document.getElementById('pathProgressCount');if(pathCount)pathCount.textContent='— / 5';
       set('likesStat','—');
       return;
     }
@@ -2208,6 +2227,7 @@ async function renderProfile(){
       if(!publicPosts.length)postSelect.innerHTML='<option value="">Publie une création publique avant de l’ajouter.</option>';
     }
     const portfolioItems=portfolioResult.data||[];
+    renderCreativePath({publicPosts,portfolioItems,likedIds,savedIds,profile:profile||{}});
     const portfolioPostIds=portfolioItems.map(x=>x.post_id);
     let portfolioPosts=[];
     if(portfolioPostIds.length){
@@ -2441,10 +2461,41 @@ async function savePrefs(){
   }
   state.prefs=next;save();renderProfile();renderMessages();toast('Préférences mises à jour.');
 }
-function renderRewards(){document.getElementById('rewardPoints').textContent=state.points;document.getElementById('wallpaperBtn').textContent=state.wallpaper?'Fond Aurora débloqué ✓':`Débloquer (Premium · 500 pts)`;document.getElementById('wallpaperBtn').disabled=state.wallpaper}
-function redeemWallpaper(){if(state.plan!=='premium')return toast('Le fond exclusif est réservé à Premium. Compare les offres dans ton profil.');if(state.points<500)return toast('Il te faut 500 points. Continue à participer à la communauté.');state.points-=500;state.wallpaper=true;save();renderRewards();renderProfile();toast('Fond Aurora débloqué dans la démo.')}
-function redeemBadge(){if(state.badge)return toast('Tu possèdes déjà ce badge de démonstration.');if(state.points<250)return toast('Il te faut 250 points.');state.points-=250;state.badge=true;save();renderRewards();renderProfile();document.getElementById('rewardStatus').classList.remove('hidden');document.getElementById('rewardStatus').textContent='Badge créateur débloqué. Il ne s’agit pas d’une certification.';toast('Badge cosmétique débloqué.')}
-function requestVerification(){if(state.plan!=='premium')return toast('La demande de certification est réservée aux comptes Premium éligibles.');if(state.points<5000)return toast('Éligibilité non atteinte : 5 000 points minimum, puis vérification indépendante.');toast('Tu peux soumettre une demande. L’approbation reste soumise à une vérification humaine et à des critères d’authenticité.')}
+function renderRewards(){
+  const host=document.getElementById('creativePathList');
+  if(host)host.innerHTML='<div class="notice">Ton parcours sera actualisé depuis tes données de profil.</div>';
+  const progress=document.getElementById('pathProgressCount');
+  if(progress)progress.textContent='— / 5';
+}
+function renderCreativePath({publicPosts=[],portfolioItems=[],likedIds=[],savedIds=[],profile={}}={}){
+  const host=document.getElementById('creativePathList');
+  if(!host)return;
+  const styles=new Set(publicPosts.map(post=>(post.style||'').trim().toLocaleLowerCase('fr-FR')).filter(Boolean));
+  const identityComplete=!!(profile.display_name?.trim()&&profile.bio?.trim()&&profile.creative_signature?.trim()&&Array.isArray(profile.specialties)&&profile.specialties.length>0);
+  const milestones=[
+    {id:'first',icon:'✦',title:'Première étincelle',description:'Publier une première création publique.',detail:'1 publication publique',earned:publicPosts.length>=1,progress:Math.min(publicPosts.length,1),goal:1},
+    {id:'three',icon:'✧',title:'Un début de galerie',description:'Rassembler trois créations publiques.',detail:'3 publications publiques',earned:publicPosts.length>=3,progress:Math.min(publicPosts.length,3),goal:3},
+    {id:'variety',icon:'◈',title:'Changer de perspective',description:'Explorer au moins trois univers créatifs différents.',detail:'3 styles distincts',earned:styles.size>=3,progress:Math.min(styles.size,3),goal:3},
+    {id:'portfolio',icon:'▧',title:'Pièce signature',description:'Présenter une création dans ton portfolio.',detail:'1 pièce dans le portfolio',earned:portfolioItems.length>=1,progress:Math.min(portfolioItems.length,1),goal:1},
+    {id:'identity',icon:'◎',title:'Univers affirmé',description:'Compléter ton nom affiché, ta bio, ta signature et au moins un territoire créatif.',detail:'4 éléments de profil renseignés',earned:identityComplete,progress:[profile.display_name?.trim(),profile.bio?.trim(),profile.creative_signature?.trim(),Array.isArray(profile.specialties)&&profile.specialties.length>0].filter(Boolean).length,goal:4},
+  ];
+  const earned=milestones.filter(item=>item.earned).length;
+  const count=document.getElementById('pathProgressCount');
+  if(count)count.textContent=earned+' / '+milestones.length;
+  const bar=document.getElementById('pathProgressBar');
+  if(bar){bar.setAttribute('aria-valuemax',String(milestones.length));bar.setAttribute('aria-valuenow',String(earned));}
+  const fill=document.getElementById('pathProgressFill');
+  if(fill)fill.style.width=(earned/milestones.length*100)+'%';
+  const stat=document.getElementById('milestonesStat');
+  if(stat)stat.textContent=String(earned);
+  host.innerHTML=milestones.map(item=>`<article class="creator-path-item ${item.earned?'is-earned':'is-locked'}">
+    <div class="creator-path-icon" aria-hidden="true">${item.icon}</div>
+    <div class="creator-path-copy"><div class="row between wrap"><strong>${escapeHtml(item.title)}</strong><span class="chip">${item.earned?'Obtenu':'À découvrir'}</span></div>
+      <p class="small muted">${escapeHtml(item.description)}</p>
+      <div class="creator-path-detail">${escapeHtml(item.detail)} · ${item.earned?'objectif atteint':item.progress+' / '+item.goal}</div>
+    </div>
+  </article>`).join('');
+}
 
 function studioCurrentSettings(){
   return {
@@ -2745,9 +2796,6 @@ async function publishDemo() {
     toast('Erreur lors de la publication : ' + error.message);
     return;
   }
-
-  state.points += 10;
-  save();
 
   toast('Publication enregistrée sur Supabase !');
   if(studioActiveDraftId){
