@@ -372,6 +372,11 @@ async function attachRemixMetadata(posts){
 }
 async function startRemix(postId){
   try{
+    if(museaActiveDraftId){
+      const leave=confirm('Tu as une Piste ouverte. Enregistre tes changements avant de passer à un Écho. Quitter sans enregistrer les dernières modifications ?');
+      if(!leave)return;
+      museaActiveDraftId=null;museaActiveDraftImagePath=null;museaDraftImageUnchanged=false;museaDraftRemoveImage=false;
+    }
     const user=await requireSocialUser();
     if(!user)return;
     const source=museaPostCache.get(String(postId));
