@@ -974,7 +974,7 @@ function renderStories(){
   const drafts=Array.isArray(state.ownStories)?state.ownStories:[];
   const hasLocalStory=drafts.length>0;
   const draftLabel=hasLocalStory?escapeHtml(String(drafts[0]).slice(0,30)):'Communauté bientôt';
-  const html='<button class="story story-own" onclick="navigate(\'stories\')"><span class="story-ring"><span>＋</span></span><span>Ton instant</span></button>'+
+  const html='<button class="story story-own" onclick="navigate(&quot;stories&quot;)"><span class="story-ring"><span>＋</span></span><span>Ton instant</span></button>'+
     (hasLocalStory?'<div class="story story-local"><span class="story-ring"><span>✳</span></span><span>'+draftLabel+'</span></div>':'<div class="story story-empty"><span class="story-ring"><span>…</span></span><span>'+draftLabel+'</span></div>');
   const row=document.getElementById('storyRow');if(row)row.innerHTML=html;
   const all=document.getElementById('allStories');if(all)all.innerHTML=html;
