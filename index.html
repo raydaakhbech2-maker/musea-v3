@@ -480,7 +480,7 @@ window.museaSupabase = window.supabase.createClient(
 <div id="planModal" class="modal hidden"><div class="modalbox"><div class="row between"><div><div class="eyebrow">Bienvenue sur MUSEA</div><h2 class="h1">Choisis ton expérience.</h2></div><button class="iconbtn" onclick="closePlans()">✕</button></div><p class="muted">Tu pourras modifier ton choix ensuite. Aucun paiement ne sera prélevé dans ce prototype.</p><div class="grid"><div class="card" style="margin:0"><span class="chip">GRATUIT</span><h3 class="h3" style="margin-top:12px">Découvrir</h3><div class="price">0 €</div><p class="small muted">Pour commencer et tester la communauté.</p><ul class="small"><li>Fil et profil</li><li>Crédits IA limités</li><li>Likes, commentaires, collections</li><li>Stories et messages de base</li></ul><button class="btn full" onclick="choosePlan('free')">Choisir Gratuit</button></div><div class="card" style="margin:0;border:2px solid var(--accent)"><span class="chip selected">PREMIUM</span><h3 class="h3" style="margin-top:12px">Créer plus</h3><div class="price">5,99 €<span style="font-size:13px;font-weight:600">/mois</span></div><p class="small muted">Prix cible à tester, pas un paiement réel.</p><ul class="small"><li>Plus de crédits IA, avec plafond</li><li>Thèmes exclusifs et options de profil</li><li>Collections avancées</li><li>Outils créatifs supplémentaires</li><li>Éligibilité possible à la vérification</li></ul><button class="btn primary full" onclick="choosePlan('premium')">Choisir Premium</button></div></div><p class="small muted" style="margin-top:14px">Le prix devra être validé avec les coûts d'IA, les commissions des stores, la TVA, l'hébergement et les tests utilisateurs. Aucun abonnement n'est encore vendu.</p></div></div>
 <script>
 const defaultPosts = [];
-let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:[],ownStories:[],messages:[{who:'Luna Creative',text:'Salut ! J’aime beaucoup tes idées créatives ✨',mine:false}],groups:[],
+let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:[],ownStories:[],displayName:'',headline:'',creativeSignature:'',specialties:[],messages:[{who:'Luna Creative',text:'Salut ! J’aime beaucoup tes idées créatives ✨',mine:false}],groups:[],
 prefs:{likes:true,collections:true,online:true,dm:false,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
 let feedKind='all',homeFeedMode='affinity',discoverKind='Tout',currentChat='Luna Creative',customStories=[];
 let discoverMode='affinity';
@@ -596,7 +596,7 @@ async function loadCommunityPosts(){
       ...c,username:commentProfiles.find(p=>p.id===c.user_id)?.username||'Utilisateur'
     }));
     return {
-      id:row.id,user:username,avatar:username[0]?.toUpperCase()||'M',
+      id:row.id,user_id:row.user_id,user:username,avatar:username[0]?.toUpperCase()||'M',
       title:(row.caption||'Publication').slice(0,60),desc:row.caption||'',
       image_url:row.image_url,style,kind,art:'a4',tag:'#MaCreation',
       created_at:row.created_at,likesCount:likes.filter(x=>x.post_id===row.id).length,
@@ -1178,63 +1178,104 @@ async function openNotificationPost(postId){
   else toast('Cette création n’est plus disponible dans le fil public.');
 }
 async function renderProfile(){
-  document.getElementById('profileName').textContent='@'+state.username;
-  document.getElementById('profileBio').textContent=state.bio;
-  document.getElementById('username').value=state.username;
-  document.getElementById('bio').value=state.bio;
-  document.getElementById('pointsStat').textContent=state.points;
-  document.getElementById('likesStat').textContent=state.liked.length;
-  document.getElementById('privacyTag').textContent=state.prefs.private?'Privé':'Visible';
-
+  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value??'';};
+  set('profileName','@'+state.username);
+  set('profileBio',state.bio||'');
+  set('profileDisplayName',state.displayName||state.username||'Mon univers, mes règles.');
+  set('profileHeadlineView',state.headline||'Un espace pour présenter ce que tu imagines.');
+  set('profileSignatureView',state.creativeSignature||'Ta signature créative apparaîtra ici.');
+  set('username',state.username||'monprofil');
+  const displayInput=document.getElementById('displayName');if(displayInput)displayInput.value=state.displayName||'';
+  const headlineInput=document.getElementById('profileHeadline');if(headlineInput)headlineInput.value=state.headline||'';
+  const bioInput=document.getElementById('bio');if(bioInput)bioInput.value=state.bio||'';
+  const signatureInput=document.getElementById('profileSignature');if(signatureInput)signatureInput.value=state.creativeSignature||'';
+  const specialties=Array.isArray(state.specialties)?state.specialties:[];
+  document.querySelectorAll('[data-creator-specialty]').forEach(input=>input.checked=specialties.includes(input.value));
+  updateCreatorSpecialtyCount();
+  const specialtyView=document.getElementById('profileSpecialtiesView');
+  if(specialtyView)specialtyView.innerHTML=specialties.map(x=>'<span class="chip">'+escapeHtml(x)+'</span>').join('')||'<span class="small muted">Tes territoires créatifs apparaîtront ici.</span>';
+  set('pointsStat',state.points);
+  set('likesStat',state.liked.length);
+  set('followersStat','—');
+  set('privacyTag',state.prefs.private?'Privé':'Public');
+  set('activityPrivacyTag',state.prefs.private?'Masquée':'Selon mes réglages');
   const activity=document.getElementById('profileActivity');
-  if(state.prefs.private){
-    activity.innerHTML='<div class="notice">Ton profil est privé. Ton activité n’est pas affichée publiquement.</div>';
-  }else{
-    activity.innerHTML='<p class="muted small">Chargement de ton activité...</p>';
-  }
-
-  document.getElementById('followersStat').textContent=24+state.following.length;
-  document.getElementById('prefLikes').checked=state.prefs.likes;
-  document.getElementById('prefCollections').checked=state.prefs.collections;
-  document.getElementById('prefOnline').checked=state.prefs.online;
-  document.getElementById('prefDM').checked=state.prefs.dm;
-  document.getElementById('prefPrivate').checked=state.prefs.private;
-
+  if(activity)activity.innerHTML=state.prefs.private?'<div class="notice">Ton profil est privé. Ton activité n’est pas affichée publiquement.</div>':'<p class="muted small">Chargement de ton activité…</p>';
+  const prefs={
+    prefLikes:state.prefs.likes,prefCollections:state.prefs.collections,
+    prefOnline:state.prefs.online,prefDM:state.prefs.dm,prefPrivate:state.prefs.private
+  };
+  Object.entries(prefs).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.checked=!!value;});
   updatePlan();
 
   const container=document.getElementById('myPosts');
-  if(!container) return;
+  const portfolio=document.getElementById('myPortfolio');
+  const postSelect=document.getElementById('portfolioPostSelect');
+  if(container)container.innerHTML='<p class="muted small">Chargement de tes publications…</p>';
+  if(portfolio)portfolio.innerHTML='<p class="muted small">Chargement du portfolio…</p>';
+  if(postSelect)postSelect.innerHTML='<option value="">Chargement de tes publications…</option>';
 
-  container.innerHTML='<p class="muted small">Chargement de tes publications...</p>';
-
-  try {
+  try{
     const {data:userData,error:userError}=await museaSupabase.auth.getUser();
-    if(userError) throw userError;
-
-    if(!userData.user){
-      container.innerHTML='<p class="muted small">Connecte-toi pour voir tes publications et ton activité.</p>';
-      activity.innerHTML='<p class="muted small">Connecte-toi pour retrouver tes likes et tes collections.</p>';
-      document.getElementById('likesStat').textContent='—';
+    if(userError)throw userError;
+    const user=userData.user;
+    if(!user){
+      if(container)container.innerHTML='<div class="notice">Connecte-toi pour retrouver tes publications.</div>';
+      if(portfolio)portfolio.innerHTML='<div class="notice">Connecte-toi pour construire un portfolio synchronisé.</div>';
+      if(postSelect)postSelect.innerHTML='<option value="">Connexion nécessaire</option>';
+      if(activity)activity.innerHTML='<p class="muted small">Connecte-toi pour retrouver tes likes et tes collections.</p>';
+      set('likesStat','—');
       return;
     }
 
-    const [likeRowsResult,saveRowsResult]=await Promise.all([
-      museaSupabase.from('post_likes').select('post_id').eq('user_id',userData.user.id),
-      museaSupabase.from('saved_posts').select('post_id').eq('user_id',userData.user.id)
+    const {data:profile,error:profileError}=await museaSupabase.from('profiles')
+      .select('username,display_name,bio,headline,creative_signature,specialties,is_private')
+      .eq('id',user.id).maybeSingle();
+    if(profileError)throw profileError;
+    if(profile){
+      state.username=profile.username||state.username;
+      state.displayName=profile.display_name||'';
+      state.bio=profile.bio||'';
+      state.headline=profile.headline||'';
+      state.creativeSignature=profile.creative_signature||'';
+      state.specialties=profile.specialties||[];
+      state.prefs.private=!!profile.is_private;
+      save();
+      set('profileName','@'+state.username);
+      set('profileBio',state.bio);
+      set('profileDisplayName',state.displayName||state.username);
+      set('profileHeadlineView',state.headline||'Un espace pour présenter ce que tu imagines.');
+      set('profileSignatureView',state.creativeSignature||'Ta signature créative apparaîtra ici.');
+      if(displayInput)displayInput.value=state.displayName;
+      if(headlineInput)headlineInput.value=state.headline;
+      if(bioInput)bioInput.value=state.bio;
+      if(signatureInput)signatureInput.value=state.creativeSignature;
+      document.querySelectorAll('[data-creator-specialty]').forEach(input=>input.checked=state.specialties.includes(input.value));
+      updateCreatorSpecialtyCount();
+      if(specialtyView)specialtyView.innerHTML=state.specialties.map(x=>'<span class="chip">'+escapeHtml(x)+'</span>').join('')||'<span class="small muted">Tes territoires créatifs apparaîtront ici.</span>';
+      set('privacyTag',state.prefs.private?'Privé':'Public');
+      const privateToggle=document.getElementById('prefPrivate');if(privateToggle)privateToggle.checked=state.prefs.private;
+    }
+
+    const [likeRowsResult,saveRowsResult,postsResult,portfolioResult]=await Promise.all([
+      museaSupabase.from('post_likes').select('post_id').eq('user_id',user.id),
+      museaSupabase.from('saved_posts').select('post_id').eq('user_id',user.id),
+      museaSupabase.from('posts').select('id,user_id,caption,style,image_url,created_at,visibility').eq('user_id',user.id).order('created_at',{ascending:false}),
+      museaSupabase.from('creator_portfolio_items').select('*').eq('user_id',user.id).order('sort_order',{ascending:true}).order('created_at',{ascending:false})
     ]);
-    if(likeRowsResult.error) throw likeRowsResult.error;
-    if(saveRowsResult.error) throw saveRowsResult.error;
+    if(likeRowsResult.error)throw likeRowsResult.error;
+    if(saveRowsResult.error)throw saveRowsResult.error;
+    if(postsResult.error)throw postsResult.error;
+    if(portfolioResult.error)throw portfolioResult.error;
     const likedIds=(likeRowsResult.data||[]).map(x=>x.post_id);
     const savedIds=(saveRowsResult.data||[]).map(x=>x.post_id);
-    state.liked=likedIds; state.saved=savedIds;
-    document.getElementById('likesStat').textContent=likedIds.length;
+    state.liked=likedIds;state.saved=savedIds;set('likesStat',likedIds.length);
     const activityIds=[...new Set([...likedIds,...savedIds])];
     let activityPosts=[];
     if(activityIds.length){
-      const {data:activityRows,error:activityError}=await museaSupabase.from('posts')
-        .select('id,user_id,caption,style,visibility').in('id',activityIds);
-      if(activityError) console.warn('Activité partiellement indisponible :',activityError);
-      activityPosts=activityRows||[];
+      const {data,error}=await museaSupabase.from('posts').select('id,user_id,caption,style').in('id',activityIds);
+      if(error)console.warn('Activité partiellement indisponible :',error);
+      activityPosts=data||[];
     }
     const activityUserIds=[...new Set(activityPosts.map(p=>p.user_id))];
     let activityProfiles=[];
@@ -1243,51 +1284,168 @@ async function renderProfile(){
       activityProfiles=data||[];
     }
     const activityItems=activityPosts.map(p=>{
-      const liked=likedIds.includes(p.id), saved=savedIds.includes(p.id);
+      const liked=likedIds.includes(p.id),saved=savedIds.includes(p.id);
       const owner=activityProfiles.find(x=>x.id===p.user_id)?.username||'Utilisateur';
-      return `<div class="row" style="margin:9px 0"><span>${liked?'♡':'☆'}</span><div><strong>${escapeHtml((p.caption||'Publication').slice(0,70))}</strong><div class="small muted">${liked?'Aimé':'Enregistré'} · @${escapeHtml(owner)}${saved?' · Dans tes collections':''}</div></div></div>`;
+      return '<div class="row" style="margin:9px 0"><span>'+(liked?'♡':'☆')+'</span><div><strong>'+escapeHtml((p.caption||'Publication').slice(0,70))+'</strong><div class="small muted">'+(liked?'Aimé':'Enregistré')+' · @'+escapeHtml(owner)+(saved?' · Dans tes collections':'')+'</div></div></div>';
     });
-    activity.innerHTML=state.prefs.private
-      ? '<div class="notice">Ton profil est privé. Ton activité n’est pas affichée publiquement.</div>'
-      : (state.prefs.likes||state.prefs.collections)
-        ? (activityItems.join('')||'<p class="muted small">Tes likes et collections apparaîtront ici.</p>')
-        : '<p class="muted small">Ton activité est masquée selon tes préférences.</p>';
+    if(activity)activity.innerHTML=state.prefs.private
+      ?'<div class="notice">Ton profil est privé. Ton activité n’est pas affichée publiquement.</div>'
+      :(state.prefs.likes||state.prefs.collections)
+        ?(activityItems.join('')||'<p class="muted small">Tes likes et collections apparaîtront ici.</p>')
+        :'<p class="muted small">Ton activité est masquée selon tes préférences.</p>';
 
-    const {data:posts,error}=await museaSupabase
-      .from('posts')
-      .select('id,user_id,caption,style,image_url,created_at')      .eq('user_id',userData.user.id)
-      .order('created_at',{ascending:false});
-
-    if(error) throw error;
-
-    if(!posts || posts.length===0){
-      container.innerHTML='<p class="muted small">Tu n’as pas encore publié de création.</p>';
-      return;
+    const posts=postsResult.data||[];
+    const publicPosts=posts.filter(p=>p.visibility==='public');
+    if(container){
+      const mapped=posts.map(p=>({
+        id:p.id,user_id:p.user_id,user:state.username,avatar:(state.username||'M')[0].toUpperCase(),
+        title:(p.caption||'Publication').slice(0,60),desc:p.caption||'',image_url:p.image_url,
+        style:p.style||'Création',kind:'art',art:'a4',tag:'#MaCreation',created_at:p.created_at
+      }));
+      container.innerHTML=mapped.length?mapped.map(postMarkup).join(''):'<div class="notice">Tu n’as pas encore publié de création. Ton premier projet peut commencer ici.</div>';
     }
-
-    const myPublications=posts.map(p=>({
-      id:p.id,
-      user:state.username,
-      avatar:state.username[0]?.toUpperCase()||'M',
-      title:(p.caption||'Publication').slice(0,60),
-      desc:p.caption||'',
-      image_url: p.image_url,
-      style:p.style||'Création',
-      kind:'art',
-      art:'a4',
-      likes:0,
-      tag:'#MaCreation'
-    }));
-
-    container.innerHTML=myPublications.map(postMarkup).join('');
-
-} catch(error) {
-  console.error('Erreur chargement profil :', error);
-  container.innerHTML =
-    '<p class="muted small">Erreur Supabase : '+escapeHtml(error.message||'Erreur inconnue')+'</p>';
+    if(postSelect){
+      postSelect.innerHTML='<option value="">Choisis une publication publique…</option>'+
+        publicPosts.map(p=>'<option value="'+escapeHtml(p.id)+'">'+escapeHtml((p.caption||'Création sans titre').slice(0,65))+'</option>').join('');
+      if(!publicPosts.length)postSelect.innerHTML='<option value="">Publie une création publique avant de l’ajouter.</option>';
+    }
+    const portfolioItems=portfolioResult.data||[];
+    const portfolioPostIds=portfolioItems.map(x=>x.post_id);
+    let portfolioPosts=[];
+    if(portfolioPostIds.length){
+      const {data,error}=await museaSupabase.from('posts').select('id,image_url,caption,style').in('id',portfolioPostIds);
+      if(error)throw error;
+      portfolioPosts=data||[];
+    }
+    if(portfolio)portfolio.innerHTML=renderPortfolioCards(portfolioItems,portfolioPosts,true);
+  }catch(error){
+    console.error('Erreur chargement profil :',error);
+    if(container)container.innerHTML='<div class="notice">Impossible de charger tes publications : '+escapeHtml(error.message||'Erreur inconnue')+'</div>';
+    if(portfolio)portfolio.innerHTML='<div class="notice">Impossible de charger ton portfolio. Vérifie que la migration Profils créateurs a été exécutée.</div>';
+    if(postSelect)postSelect.innerHTML='<option value="">Portfolio indisponible</option>';
   }
-}function saveProfile(){state.username=document.getElementById('username').value.trim().replace(/^@/,'')||'monprofil';state.bio=document.getElementById('bio').value.trim();save();renderProfile();toast('Profil enregistré localement.')}
-function savePrefs(){state.prefs={likes:document.getElementById('prefLikes').checked,collections:document.getElementById('prefCollections').checked,online:document.getElementById('prefOnline').checked,dm:document.getElementById('prefDM').checked,private:document.getElementById('prefPrivate').checked};save();renderProfile();renderMessages();toast('Préférences mises à jour.')}
+}
+function updateCreatorSpecialtyCount(){
+  const chosen=[...document.querySelectorAll('[data-creator-specialty]:checked')];
+  if(chosen.length>5){
+    chosen[chosen.length-1].checked=false;
+    toast('Choisis au maximum 5 territoires créatifs.');
+  }
+  const count=document.querySelectorAll('[data-creator-specialty]:checked').length;
+  const label=document.getElementById('creatorSpecialtyCount');
+  if(label)label.textContent=count+' / 5 sélectionnés';
+}
+async function saveProfile(){
+  const username=document.getElementById('username').value.trim().replace(/^@/,'').toLowerCase();
+  const displayName=document.getElementById('displayName').value.trim();
+  const headline=document.getElementById('profileHeadline').value.trim();
+  const bio=document.getElementById('bio').value.trim();
+  const signature=document.getElementById('profileSignature').value.trim();
+  const specialties=[...document.querySelectorAll('[data-creator-specialty]:checked')].map(x=>x.value);
+  if(username.length<3||username.length>30||! /^[a-z0-9_]+$/.test(username))return toast('Le pseudo doit contenir 3 à 30 caractères : lettres, chiffres ou _.');
+  if(specialties.length>5)return toast('Choisis au maximum 5 territoires créatifs.');
+  const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+  if(userError||!userData.user){
+    Object.assign(state,{username,displayName,headline,bio,creativeSignature:signature,specialties});save();
+    renderProfile();return toast('Profil enregistré sur cet appareil. Connecte-toi pour le synchroniser.');
+  }
+  const payload={username,display_name:displayName,bio,headline,creative_signature:signature,specialties};
+  let {data,error}=await museaSupabase.from('profiles').update(payload).eq('id',userData.user.id).select('id').maybeSingle();
+  if(!error&&!data){
+    const result=await museaSupabase.from('profiles').upsert({id:userData.user.id,...payload},{onConflict:'id'}).select('id').maybeSingle();
+    data=result.data;error=result.error;
+  }
+  if(error){console.error(error);return toast('Profil non enregistré : '+error.message);}
+  Object.assign(state,{username,displayName,headline,bio,creativeSignature:signature,specialties});save();
+  renderProfile();toast('Ton identité créative est synchronisée.');
+}
+function renderPortfolioCards(items,posts,isOwner){
+  const byId=new Map(posts.map(p=>[p.id,p]));
+  if(!items.length)return '<div class="notice">Ton portfolio est encore vide. Sélectionne une création publiée et raconte son histoire.</div>';
+  return '<div class="'+(isOwner?'creator-portfolio-grid':'public-creator-grid')+'">'+items.map(item=>{
+    const post=byId.get(item.post_id);
+    const media=post?.image_url?'<img class="creator-project-image" loading="lazy" src="'+escapeHtml(post.image_url)+'" alt="'+escapeHtml('Visuel du projet '+item.title)+'">':'<div class="creator-project-image art a4" role="img" aria-label="'+escapeHtml('Aperçu du projet '+item.title)+'"></div>';
+    return '<article class="card creator-project-card">'+media+'<div class="creator-project-body"><h3>'+escapeHtml(item.title)+'</h3><p>'+escapeHtml(item.context||'Une création de mon univers.')+'</p>'+(item.contribution?'<div class="creator-project-meta">Contribution · '+escapeHtml(item.contribution)+'</div>':'')+(item.process_note?'<p>'+escapeHtml(item.process_note)+'</p>':'')+(isOwner?'<div class="creator-project-actions"><button class="btn danger" onclick="removePortfolioItem(\''+escapeHtml(item.id)+'\')">Retirer du portfolio</button></div>':'')+'</div></article>';
+  }).join('')+'</div>';
+}
+async function addPortfolioItem(){
+  const postId=document.getElementById('portfolioPostSelect').value;
+  const title=document.getElementById('portfolioTitle').value.trim();
+  const context=document.getElementById('portfolioContext').value.trim();
+  const contribution=document.getElementById('portfolioContribution').value.trim();
+  const processNote=document.getElementById('portfolioProcess').value.trim();
+  const message=document.getElementById('portfolioEditorMessage');
+  if(!postId||!title){if(message)message.textContent='Choisis une création publique et donne-lui un titre.';return;}
+  const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+  if(userError||!userData.user){if(message)message.textContent='Connecte-toi pour créer un portfolio synchronisé.';return;}
+  const {data:existing,error:existingError}=await museaSupabase.from('creator_portfolio_items').select('id').eq('user_id',userData.user.id);
+  if(existingError){if(message)message.textContent='Portfolio indisponible : '+existingError.message;return;}
+  if((existing||[]).length>=6){if(message)message.textContent='Ton portfolio contient déjà 6 pièces. Retire-en une avant d’en ajouter une autre.';return;}
+  const {error}=await museaSupabase.from('creator_portfolio_items').insert({
+    user_id:userData.user.id,post_id:postId,title,context,contribution,process_note:processNote,
+    sort_order:existing?.length||0
+  });
+  if(error){if(message)message.textContent='Ajout impossible : '+error.message;return;}
+  ['portfolioTitle','portfolioContext','portfolioContribution','portfolioProcess'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  if(message)message.textContent='Pièce ajoutée à ton portfolio.';
+  await renderProfile();
+}
+async function removePortfolioItem(itemId){
+  if(!confirm('Retirer cette pièce de ton portfolio ? La publication originale restera en ligne.'))return;
+  const {data:userData}=await museaSupabase.auth.getUser();
+  if(!userData.user)return toast('Connecte-toi pour modifier ton portfolio.');
+  const {error}=await museaSupabase.from('creator_portfolio_items').delete().eq('id',itemId).eq('user_id',userData.user.id);
+  if(error)return toast('Suppression impossible : '+error.message);
+  toast('Pièce retirée du portfolio.');await renderProfile();
+}
+async function openCreatorProfile(userId){
+  if(!userId)return toast('Ce profil créateur est indisponible.');
+  const {data:authData}=await museaSupabase.auth.getUser();
+  if(authData?.user?.id===userId){navigate('profile');return;}
+  navigate('creator');
+  const target=document.getElementById('publicCreatorContent');
+  target.innerHTML='<div class="notice">Ouverture de cet univers créatif…</div>';
+  try{
+    const {data:profile,error:profileError}=await museaSupabase.from('profiles')
+      .select('id,username,display_name,bio,headline,creative_signature,specialties,is_private')
+      .eq('id',userId).maybeSingle();
+    if(profileError)throw profileError;
+    if(!profile){target.innerHTML='<div class="notice">Ce profil n’est pas accessible. Il a peut-être été supprimé ou rendu privé.</div>';return;}
+    const {data:portfolio,error:portfolioError}=await museaSupabase.from('creator_portfolio_items')
+      .select('*').eq('user_id',userId).order('sort_order',{ascending:true}).order('created_at',{ascending:false});
+    if(portfolioError)throw portfolioError;
+    const items=portfolio||[];
+    let portfolioPosts=[];
+    if(items.length){
+      const {data,error}=await museaSupabase.from('posts').select('id,image_url,caption,style').in('id',items.map(x=>x.post_id));
+      if(error)throw error;portfolioPosts=data||[];
+    }
+    const {data:posts,error:postsError}=await museaSupabase.from('posts')
+      .select('id,user_id,caption,style,image_url,created_at').eq('user_id',userId).eq('visibility','public')
+      .order('created_at',{ascending:false}).limit(12);
+    if(postsError)throw postsError;
+    const name=profile.display_name||profile.username||'Créateur MUSEA';
+    target.innerHTML='<header class="public-creator-hero"><div class="eyebrow">UNIVERS CRÉATIF / MUSEA</div><h1 class="h1">'+escapeHtml(name)+'</h1><p>@'+escapeHtml(profile.username||'createur')+'</p><h2 class="h3">'+escapeHtml(profile.headline||'Un univers à découvrir.')+'</h2><p>'+escapeHtml(profile.bio||'')+'</p><div class="creator-signature">'+escapeHtml(profile.creative_signature||'')+'</div><div class="creator-specialty-list">'+(profile.specialties||[]).map(x=>'<span class="chip">'+escapeHtml(x)+'</span>').join('')+'</div></header>'+
+      '<section class="public-creator-section"><div class="eyebrow">SÉLECTION SIGNATURE</div><h2 class="h2">Portfolio</h2>'+renderPortfolioCards(items,portfolioPosts,false)+'</section>'+
+      '<section class="public-creator-section"><div class="eyebrow">JOURNAL PUBLIC</div><h2 class="h2">Autres créations</h2><div class="creator-public-posts">'+((posts||[]).length?posts.map(p=>postMarkup({
+        id:p.id,user_id:p.user_id,user:profile.username||'Créateur',avatar:(profile.username||'M')[0].toUpperCase(),
+        title:(p.caption||'Publication').slice(0,60),desc:p.caption||'',image_url:p.image_url,
+        style:p.style||'Création',kind:'art',art:'a4',tag:'#MaCreation',created_at:p.created_at
+      })).join(''):'<div class="notice">Aucune autre publication publique pour le moment.</div>')+'</div></section>';
+  }catch(error){
+    console.error('Ouverture du profil public impossible :',error);
+    target.innerHTML='<div class="notice">Impossible de charger ce profil. Vérifie les autorisations de lecture et la migration Creator Portfolio.</div>';
+  }
+}
+async function savePrefs(){
+  const next={likes:document.getElementById('prefLikes').checked,collections:document.getElementById('prefCollections').checked,online:document.getElementById('prefOnline').checked,dm:document.getElementById('prefDM').checked,private:document.getElementById('prefPrivate').checked};
+  const {data:userData}=await museaSupabase.auth.getUser();
+  if(userData?.user){
+    const {error}=await museaSupabase.from('profiles').update({is_private:next.private}).eq('id',userData.user.id);
+    if(error){toast('Confidentialité non synchronisée : '+error.message);document.getElementById('prefPrivate').checked=state.prefs.private;return;}
+  }
+  state.prefs=next;save();renderProfile();renderMessages();toast('Préférences mises à jour.');
+}
 function renderRewards(){document.getElementById('rewardPoints').textContent=state.points;document.getElementById('wallpaperBtn').textContent=state.wallpaper?'Fond Aurora débloqué ✓':`Débloquer (Premium · 500 pts)`;document.getElementById('wallpaperBtn').disabled=state.wallpaper}
 function redeemWallpaper(){if(state.plan!=='premium')return toast('Le fond exclusif est réservé à Premium. Compare les offres dans ton profil.');if(state.points<500)return toast('Il te faut 500 points. Continue à participer à la communauté.');state.points-=500;state.wallpaper=true;save();renderRewards();renderProfile();toast('Fond Aurora débloqué dans la démo.')}
 function redeemBadge(){if(state.badge)return toast('Tu possèdes déjà ce badge de démonstration.');if(state.points<250)return toast('Il te faut 250 points.');state.points-=250;state.badge=true;save();renderRewards();renderProfile();document.getElementById('rewardStatus').classList.remove('hidden');document.getElementById('rewardStatus').textContent='Badge créateur débloqué. Il ne s’agit pas d’une certification.';toast('Badge cosmétique débloqué.')}
@@ -1502,12 +1660,16 @@ async function museaRefreshAccount() {
   if (error) return museaMessage(error.message);
 
   if (profile) {
-    state.username = profile.username;
+    state.username = profile.username || state.username;
+    state.displayName = profile.display_name || '';
     state.bio = profile.bio || '';
+    state.headline = profile.headline || '';
+    state.creativeSignature = profile.creative_signature || '';
+    state.specialties = profile.specialties || [];
+    state.prefs.private = !!profile.is_private;
     save();
     renderProfile();
-    document.getElementById('profileName').textContent =
-      '@' + profile.username;
+    document.getElementById('profileName').textContent = '@' + state.username;
   }
 
   museaMessage("Connecté : " + user.email);
