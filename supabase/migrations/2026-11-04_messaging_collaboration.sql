@@ -62,7 +62,6 @@ create index if not exists conversation_tasks_board_idx
 
 create or replace function public.musea_is_conversation_member(
   p_conversation_id uuid,
-  p_user_id uuid,
   p_allowed_statuses text[]
 )
 returns boolean
@@ -70,16 +69,16 @@ language sql
 stable
 security definer
 set search_path=public,pg_temp
-as $
+as $function$
   select exists(
     select 1 from public.conversation_members cm
     where cm.conversation_id=p_conversation_id
-      and cm.user_id=p_user_id
+      and cm.user_id=auth.uid()
       and cm.status=any(p_allowed_statuses)
   );
-$;
-revoke all on function public.musea_is_conversation_member(uuid,uuid,text[]) from public,anon;
-grant execute on function public.musea_is_conversation_member(uuid,uuid,text[]) to authenticated;
+$function$;
+revoke all on function public.musea_is_conversation_member(uuid,text[]) from public,anon;
+grant execute on function public.musea_is_conversation_member(uuid,text[]) to authenticated;
 
 alter table public.conversations enable row level security;
 alter table public.conversation_members enable row level security;
@@ -95,7 +94,7 @@ grant insert,update on public.conversation_tasks to authenticated;
 drop policy if exists "Members can read their conversations" on public.conversations;
 create policy "Members can read their conversations"
 on public.conversations for select to authenticated
-using (public.musea_is_conversation_member(conversations.id,auth.uid(),array['invited','accepted']));
+using (public.musea_is_conversation_member(conversations.id,array['invited','accepted']));
 
 drop policy if exists "Members can read conversation membership" on public.conversation_members;
 create policy "Members can read conversation membership"
@@ -118,7 +117,7 @@ create policy "Accepted members read conversation messages"
 on public.messages for select to authenticated
 using (
   sender_id=auth.uid()
-  or public.musea_is_conversation_member(messages.conversation_id,auth.uid(),array['accepted'])
+  or public.musea_is_conversation_member(messages.conversation_id,array['accepted'])
 );
 
 drop policy if exists "Accepted members send messages" on public.messages;
@@ -141,7 +140,7 @@ create policy "Accepted project members read tasks"
 on public.conversation_tasks for select to authenticated
 using (
   exists (select 1 from public.conversations c where c.id=conversation_tasks.conversation_id and c.kind='project')
-  and public.musea_is_conversation_member(conversation_tasks.conversation_id,auth.uid(),array['accepted'])
+  and public.musea_is_conversation_member(conversation_tasks.conversation_id,array['accepted'])
 );
 
 drop policy if exists "Accepted project members create tasks" on public.conversation_tasks;
@@ -222,7 +221,7 @@ begin
   if v_user is null then raise exception 'Connexion nécessaire.'; end if;
   if p_kind not in ('dm','project') then raise exception 'Type de conversation invalide.'; end if;
   if p_participant_ids is null then raise exception 'Choisis au moins un participant.'; end if;
-  select count(distinct x) into v_count from unnest(p_participant_ids) x where x is not null and x<>v_user;
+  select count(distinct participant_id) into v_count from unnest(p_participant_ids) as u(participant_id) where participant_id is not null and participant_id<>v_user;
   if v_count<1 or v_count>8 then raise exception 'Choisis entre 1 et 8 autres participants.'; end if;
   if p_kind='dm' and v_count<>1 then raise exception 'Une conversation privée nécessite exactement un destinataire.'; end if;
   if p_kind='project' and (char_length(trim(coalesce(p_title,'')))<2 or char_length(p_title)>70) then
@@ -230,7 +229,7 @@ begin
   end if;
   if char_length(coalesce(p_description,''))>500 then raise exception 'La description est trop longue.'; end if;
 
-  for v_target in select distinct x from unnest(p_participant_ids) x where x is not null and x<>v_user loop
+  for v_target in select distinct participant_id from unnest(p_participant_ids) as u(participant_id) where participant_id is not null and participant_id<>v_user loop
     select allow_messages_from_non_followers,allow_project_invites
       into v_profile from public.profiles where id=v_target;
     if not found then raise exception 'Un profil sélectionné est introuvable.'; end if;
