@@ -60,6 +60,61 @@ create table if not exists public.conversation_tasks (
 create index if not exists conversation_tasks_board_idx
   on public.conversation_tasks(conversation_id,status,created_at);
 
+create table if not exists public.user_blocks (
+  blocker_id uuid not null references auth.users(id) on delete cascade,
+  blocked_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key(blocker_id,blocked_id),
+  check(blocker_id<>blocked_id)
+);
+
+create table if not exists public.user_reports (
+  id uuid primary key default gen_random_uuid(),
+  reporter_id uuid not null references auth.users(id) on delete cascade,
+  target_user_id uuid not null references auth.users(id) on delete cascade,
+  conversation_id uuid not null references public.conversations(id) on delete cascade,
+  reason text not null check (reason in ('harassment','spam','inappropriate','impersonation','other')),
+  details text not null default '' check (char_length(details)<=500),
+  status text not null default 'received' check (status in ('received','reviewing','resolved')),
+  created_at timestamptz not null default now(),
+  check(reporter_id<>target_user_id),
+  unique(reporter_id,target_user_id,conversation_id)
+);
+
+create index if not exists user_reports_created_idx on public.user_reports(created_at desc);
+alter table public.user_blocks enable row level security;
+alter table public.user_reports enable row level security;
+revoke all on public.user_blocks,public.user_reports from anon,authenticated;
+grant select,insert,delete on public.user_blocks to authenticated;
+grant select,insert on public.user_reports to authenticated;
+
+drop policy if exists "Users read their own blocks" on public.user_blocks;
+create policy "Users read their own blocks" on public.user_blocks for select to authenticated
+using(blocker_id=auth.uid());
+drop policy if exists "Users block other accounts" on public.user_blocks;
+create policy "Users block other accounts" on public.user_blocks for insert to authenticated
+with check(blocker_id=auth.uid() and blocker_id<>blocked_id);
+drop policy if exists "Users unblock their own blocks" on public.user_blocks;
+create policy "Users unblock their own blocks" on public.user_blocks for delete to authenticated
+using(blocker_id=auth.uid());
+
+drop policy if exists "Users read reports they submitted" on public.user_reports;
+create policy "Users read reports they submitted" on public.user_reports for select to authenticated
+using(reporter_id=auth.uid());
+drop policy if exists "Users submit a report about a conversation participant" on public.user_reports;
+create policy "Users submit a report about a conversation participant" on public.user_reports for insert to authenticated
+with check(
+  reporter_id=auth.uid()
+  and reporter_id<>target_user_id
+  and public.musea_is_conversation_member(conversation_id,array['accepted'])
+  and exists(
+    select 1 from public.conversation_members target
+    where target.conversation_id=user_reports.conversation_id
+      and target.user_id=user_reports.target_user_id
+      and target.status='accepted'
+  )
+);
+
 create or replace function public.musea_is_conversation_member(
   p_conversation_id uuid,
   p_allowed_statuses text[]
@@ -80,6 +135,62 @@ $function$;
 revoke all on function public.musea_is_conversation_member(uuid,text[]) from public,anon;
 grant execute on function public.musea_is_conversation_member(uuid,text[]) to authenticated;
 
+create or replace function public.musea_conversation_has_block(p_conversation_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path=public,pg_temp
+as $block$
+  select exists(
+    select 1
+    from public.conversation_members cm
+    join public.user_blocks ub
+      on (ub.blocker_id=auth.uid() and ub.blocked_id=cm.user_id)
+      or (ub.blocker_id=cm.user_id and ub.blocked_id=auth.uid())
+    where cm.conversation_id=p_conversation_id
+      and cm.user_id<>auth.uid()
+      and cm.status in ('invited','accepted')
+      and exists(
+        select 1 from public.conversation_members own
+        where own.conversation_id=p_conversation_id and own.user_id=auth.uid()
+      )
+  );
+$block$;
+revoke all on function public.musea_conversation_has_block(uuid) from public,anon;
+grant execute on function public.musea_conversation_has_block(uuid) to authenticated;
+
+create or replace function public.musea_block_user(p_blocked_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $block$
+begin
+  if auth.uid() is null then raise exception 'Connexion nécessaire.'; end if;
+  if p_blocked_user_id is null or p_blocked_user_id=auth.uid() then raise exception 'Compte à bloquer invalide.'; end if;
+  if not exists(select 1 from public.profiles where id=p_blocked_user_id) then raise exception 'Ce compte est introuvable.'; end if;
+  insert into public.user_blocks(blocker_id,blocked_id)
+  values(auth.uid(),p_blocked_user_id)
+  on conflict(blocker_id,blocked_id) do nothing;
+end;
+$block$;
+
+create or replace function public.musea_unblock_user(p_blocked_user_id uuid)
+returns void
+language sql
+security definer
+set search_path=public,pg_temp
+as $block$
+  delete from public.user_blocks
+  where blocker_id=auth.uid() and blocked_id=p_blocked_user_id;
+$block$;
+
+revoke all on function public.musea_block_user(uuid) from public,anon;
+revoke all on function public.musea_unblock_user(uuid) from public,anon;
+grant execute on function public.musea_block_user(uuid) to authenticated;
+grant execute on function public.musea_unblock_user(uuid) to authenticated;
+
 alter table public.conversations enable row level security;
 alter table public.conversation_members enable row level security;
 alter table public.messages enable row level security;
@@ -95,12 +206,12 @@ grant update(title,details,status,assigned_to) on public.conversation_tasks to a
 drop policy if exists "Members can read their conversations" on public.conversations;
 create policy "Members can read their conversations"
 on public.conversations for select to authenticated
-using (public.musea_is_conversation_member(conversations.id,array['invited','accepted']));
+using (public.musea_is_conversation_member(conversations.id,array['invited','accepted']) and not public.musea_conversation_has_block(conversations.id));
 
 drop policy if exists "Members can read conversation membership" on public.conversation_members;
 create policy "Members can read conversation membership"
 on public.conversation_members for select to authenticated
-using (public.musea_is_conversation_member(conversation_members.conversation_id,array['invited','accepted']));
+using (public.musea_is_conversation_member(conversation_members.conversation_id,array['invited','accepted']) and not public.musea_conversation_has_block(conversation_members.conversation_id));
 
 drop policy if exists "Users update their own conversation read marker" on public.conversation_members;
 create policy "Users update their own conversation read marker"
@@ -113,7 +224,7 @@ create policy "Accepted members read conversation messages"
 on public.messages for select to authenticated
 using (
   sender_id=auth.uid()
-  or public.musea_is_conversation_member(messages.conversation_id,array['accepted'])
+  or (public.musea_is_conversation_member(messages.conversation_id,array['accepted']) and not public.musea_conversation_has_block(messages.conversation_id))
 );
 
 drop policy if exists "Accepted members send messages" on public.messages;
@@ -137,6 +248,7 @@ on public.conversation_tasks for select to authenticated
 using (
   exists (select 1 from public.conversations c where c.id=conversation_tasks.conversation_id and c.kind='project')
   and public.musea_is_conversation_member(conversation_tasks.conversation_id,array['accepted'])
+  and not public.musea_conversation_has_block(conversation_tasks.conversation_id)
 );
 
 drop policy if exists "Accepted project members create tasks" on public.conversation_tasks;
