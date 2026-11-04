@@ -505,6 +505,7 @@ window.museaSupabase = window.supabase.createClient(
   <div class="switchrow"><span>Profil privé</span><input type="checkbox" id="prefPrivate" onchange="savePrefs()"></div>
   </div>
   <div class="card" id="moderationAccessCard" hidden><div class="eyebrow">ESPACE CONFIDENTIEL</div><h3 class="h3">Modération MUSEA</h3><p class="small muted">Accès réservé aux comptes auxquels un rôle de modération a été attribué côté serveur.</p><button class="btn primary" onclick="navigate('moderation')">Ouvrir la file de confiance</button></div>
+  <div class="card"><div class="eyebrow">TRANSPARENCE</div><h3 class="h3">Mes mesures et mes recours</h3><p class="small muted">Si une mesure est prise à ton encontre, tu peux en consulter la raison et demander un nouvel examen. Un recours est lu par l’équipe de modération.</p><div id="myModerationCases"><div class="small muted">Chargement…</div></div></div>
   <div class="card"><h3 class="h3">Langue</h3><select class="field" id="language"><option>Français</option><option>English</option><option>Español</option><option>العربية</option><option>中文</option><option>日本語</option><option>Deutsch</option><option>Português</option></select><p class="muted small">L'interface complète et la traduction IA seront intégrées dans une future version.</p><button class="btn" onclick="translateDemo()">Traduire un texte de démonstration</button><div id="translationResult" class="notice hidden" style="margin-top:10px"></div></div>
   <div class="card"><h3 class="h3">Sécurité</h3><div class="switchrow"><span>Filtrage de contenu sensible (concept)</span><input type="checkbox" checked></div><div class="switchrow"><span>Masquer les contenus signalés</span><input type="checkbox" checked></div><p class="small muted">La vraie version nécessitera signalement, blocage, modération humaine et automatisée, export/suppression des données et protections anti-abus.</p><button class="btn danger full" onclick="if(confirm('Réinitialiser les données locales du prototype ?')){localStorage.removeItem('museaState');location.reload()}">Réinitialiser la démo</button></div>
 </section>
@@ -1675,6 +1676,7 @@ async function renderProfile(){
   };
   Object.entries(prefs).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.checked=!!value;});
   updatePlan();
+  loadMyModerationCases();
 
   const container=document.getElementById('myPosts');
   const portfolio=document.getElementById('myPortfolio');
@@ -2138,10 +2140,55 @@ async function loadModerationQueue(){
   if(summary)summary.innerHTML='<div class="stat"><strong>'+rows.length+'</strong><span class="small muted">Signalements visibles</span></div><div class="stat"><strong>'+open+'</strong><span class="small muted">À traiter</span></div><div class="stat"><strong>'+rows.filter(r=>r.status==='resolved'||r.status==='dismissed').length+'</strong><span class="small muted">Clôturés</span></div>';
   if(!rows.length){host.innerHTML='<div class="card"><h3 class="h3">La file est calme.</h3><p class="muted">Aucun signalement ne nécessite actuellement ton attention.</p></div>';return;}
   host.innerHTML=rows.map(r=>{
-    const statusLabel={received:'Reçu',reviewing:'En examen',resolved:'Résolu',dismissed:'Non retenu'}[r.status]||r.status;
-    const typeLabel=r.report_kind==='conversation'?'Comportement en conversation':'Contenu publié';
-    return '<article class="card"><div class="row between wrap"><span class="chip">'+escapeHtml(typeLabel)+'</span><span class="chip">'+escapeHtml(statusLabel)+'</span></div><h3 class="h3" style="margin-top:10px">'+escapeHtml(r.reason_label||r.reason||'Signalement')+'</h3><p class="small muted">'+escapeHtml(r.target_label||'Élément signalé')+' · '+escapeHtml(r.created_at?new Date(r.created_at).toLocaleString('fr-FR'):'Date inconnue')+'</p><p>'+escapeHtml(r.details||'Aucun détail fourni.')+'</p>'+(r.context_excerpt?'<div class="notice">'+escapeHtml(r.context_excerpt)+'</div>':'')+'<div class="row wrap" style="margin-top:12px">'+(r.status!=='reviewing'?'<button class="btn" onclick="reviewModerationReport(\''+escapeHtml(r.report_kind)+'\',\''+escapeHtml(r.report_id)+'\',\'reviewing\')">Prendre en charge</button>':'')+(r.status!=='resolved'?'<button class="btn primary" onclick="reviewModerationReport(\''+escapeHtml(r.report_kind)+'\',\''+escapeHtml(r.report_id)+'\',\'resolved\')">Résolu</button>':'')+(r.status!=='dismissed'?'<button class="btn" onclick="reviewModerationReport(\''+escapeHtml(r.report_kind)+'\',\''+escapeHtml(r.report_id)+'\',\'dismissed\')">Non retenu</button>':'')+'</div></article>';
+    const appeal=r.report_kind==='appeal';
+    const statusLabel=appeal?({received:'Recours reçu',reviewing:'Recours en examen',accepted:'Accepté',rejected:'Rejeté'}[r.status]||r.status):({received:'Reçu',reviewing:'En examen',resolved:'Résolu',dismissed:'Non retenu'}[r.status]||r.status);
+    const typeLabel=appeal?'Droit de réponse':(r.report_kind==='conversation'?'Comportement en conversation':'Contenu publié');
+    const controls=appeal
+      ? '<button class="btn primary" onclick="reviewModerationAppeal(\''+escapeHtml(r.report_id)+'\',\'accepted\')">Accepter le recours</button><button class="btn" onclick="reviewModerationAppeal(\''+escapeHtml(r.report_id)+'\',\'rejected\')">Rejeter avec motif</button>'
+      : '<button class="btn" onclick="reviewModerationReport(\''+escapeHtml(r.report_kind)+'\',\''+escapeHtml(r.report_id)+'\',\'reviewing\')">Prendre en charge</button><button class="btn" onclick="reviewModerationReport(\''+escapeHtml(r.report_kind)+'\',\''+escapeHtml(r.report_id)+'\',\'resolved\')">Résolu</button><button class="btn" onclick="reviewModerationReport(\''+escapeHtml(r.report_kind)+'\',\''+escapeHtml(r.report_id)+'\',\'dismissed\')">Non retenu</button>';
+    const actions=!appeal&&r.report_kind==='content'&&r.target_type!=='user'
+      ? '<button class="btn primary" onclick="applyModerationContentAction(\''+escapeHtml(r.target_type)+'\',\''+escapeHtml(r.target_id)+'\',true)">Masquer le contenu</button><button class="btn" onclick="applyModerationContentAction(\''+escapeHtml(r.target_type)+'\',\''+escapeHtml(r.target_id)+'\',false)">Rétablir le contenu</button>':'';
+    const sanctions=!appeal&&r.target_user_id
+      ? '<button class="btn" onclick="applyModerationSanction(\''+escapeHtml(r.target_user_id)+'\',\'warning\')">Avertissement</button><button class="btn" onclick="applyModerationSanction(\''+escapeHtml(r.target_user_id)+'\',\'messaging_pause\')">Pause messages</button><button class="btn" onclick="applyModerationSanction(\''+escapeHtml(r.target_user_id)+'\',\'publishing_pause\')">Pause publications</button><button class="btn danger" onclick="applyModerationSanction(\''+escapeHtml(r.target_user_id)+'\',\'account_pause\')">Pause compte</button>':'';
+    return '<article class="card"><div class="row between wrap"><span class="chip">'+escapeHtml(typeLabel)+'</span><span class="chip">'+escapeHtml(statusLabel)+'</span></div><h3 class="h3" style="margin-top:10px">'+escapeHtml(r.reason_label||r.reason||'Dossier')+'</h3><p class="small muted">'+escapeHtml(r.target_label||'Élément signalé')+' · '+escapeHtml(r.created_at?new Date(r.created_at).toLocaleString('fr-FR'):'Date inconnue')+'</p><p>'+escapeHtml(r.details||'Aucun détail fourni.')+'</p>'+(r.context_excerpt?'<div class="notice">'+escapeHtml(r.context_excerpt)+'</div>':'')+'<div class="row wrap" style="margin-top:12px">'+controls+actions+sanctions+'</div></article>';
   }).join('');
+}
+async function moderationDecisionNote(){
+  const value=prompt('Justification obligatoire (visible dans le dossier de modération) :','');
+  if(value===null)return null;
+  if(value.trim().length<5)return toast('Ajoute une justification d’au moins 5 caractères.'),null;
+  return value.trim();
+}
+async function applyModerationContentAction(type,id,hide){
+  const reason=moderationDecisionNote();if(!reason)return;
+  const {error}=await museaSupabase.rpc('musea_apply_content_action',{p_target_type:type,p_target_id:id,p_hide:hide,p_reason:reason});
+  if(error)return toast('Action refusée : '+error.message);
+  toast(hide?'Contenu masqué pour les autres membres.':'Contenu rétabli.');
+  await loadModerationQueue();
+}
+async function applyModerationSanction(userId,type){
+  if(!userId)return toast('Compte cible indisponible.');
+  const reason=moderationDecisionNote();if(!reason)return;
+  let hours=24;
+  if(type!=='warning'){
+    const raw=prompt('Durée en heures (1 à 720, soit 30 jours maximum) :','24');
+    if(raw===null)return;
+    hours=Number(raw);
+    if(!Number.isInteger(hours)||hours<1||hours>720)return toast('Durée invalide.');
+  }
+  const {error}=await museaSupabase.rpc('musea_issue_sanction',{p_user_id:userId,p_sanction_type:type,p_reason:reason,p_duration_hours:hours});
+  if(error)return toast('Mesure refusée : '+error.message);
+  toast('Mesure enregistrée et journalisée.');
+  await loadModerationQueue();
+}
+async function reviewModerationAppeal(id,status){
+  const note=prompt('Décision motivée (note interne, 5 caractères minimum) :','');
+  if(note===null)return;
+  if(note.trim().length<5)return toast('Ajoute une justification.');
+  const {error}=await museaSupabase.rpc('musea_review_appeal',{p_appeal_id:id,p_status:status,p_note:note.trim()});
+  if(error)return toast('Décision impossible : '+error.message);
+  toast(status==='accepted'?'Recours accepté : la mesure concernée est levée.':'Recours rejeté après examen.');
+  await loadModerationQueue();
 }
 async function reviewModerationReport(kind,id,status){
   const note=prompt('Note interne facultative (non visible par le membre) :','');
@@ -2150,6 +2197,29 @@ async function reviewModerationReport(kind,id,status){
   if(error)return toast('Mise à jour refusée : '+error.message);
   toast('Dossier mis à jour.');
   await loadModerationQueue();
+}
+async function loadMyModerationCases(){
+  const host=document.getElementById('myModerationCases');if(!host)return;
+  const {data:userData}=await museaSupabase.auth.getUser();
+  if(!userData?.user){host.innerHTML='<p class="small muted">Connecte-toi pour consulter tes éventuelles mesures.</p>';return;}
+  const {data,error}=await museaSupabase.rpc('musea_my_moderation_cases');
+  if(error){host.innerHTML='<p class="small muted">Les informations de modération seront disponibles après activation de la migration dédiée.</p>';return;}
+  const rows=data||[];
+  if(!rows.length){host.innerHTML='<div class="notice">Aucune mesure active sur ton compte ou tes créations.</div>';return;}
+  host.innerHTML=rows.map(r=>{
+    const appealed=!!r.appeal_id;
+    const status={received:'Recours reçu',reviewing:'Recours en examen',accepted:'Recours accepté',rejected:'Recours rejeté'}[r.appeal_status]||'';
+    return '<article class="notice" style="margin-top:9px"><strong>'+escapeHtml(r.title)+'</strong><p>'+escapeHtml(r.reason)+'</p><p class="small muted">'+(r.expires_at?'Fin prévue : '+escapeHtml(new Date(r.expires_at).toLocaleString('fr-FR')):'Mesure sans échéance automatique')+'</p>'+(appealed?'<span class="chip">'+escapeHtml(status)+'</span>':'<button class="btn" style="margin-top:8px" onclick="submitModerationAppeal(\''+escapeHtml(r.case_type)+'\',\''+escapeHtml(r.case_id)+'\')">Contester cette mesure</button>')+'</article>';
+  }).join('');
+}
+async function submitModerationAppeal(type,id){
+  const explanation=prompt('Explique calmement pourquoi tu contestes cette mesure (20 à 1 500 caractères) :','');
+  if(explanation===null)return;
+  if(explanation.trim().length<20||explanation.length>1500)return toast('Le recours doit contenir entre 20 et 1 500 caractères.');
+  const {error}=await museaSupabase.rpc('musea_submit_appeal',{p_target_type:type,p_target_id:id,p_explanation:explanation.trim()});
+  if(error)return toast('Recours non envoyé : '+error.message);
+  toast('Ton recours a été transmis. La mesure reste active pendant son examen, sauf décision contraire.');
+  await loadMyModerationCases();
 }
 function init(){load();applyTheme();updatePlan();const dailyPrompt=document.getElementById('dailyPromptText');if(dailyPrompt)dailyPrompt.textContent=getDailyCreativePrompt();renderFeed();renderDiscover();renderLeaderboard();renderMessages();renderNotifications();renderProfile();renderBookmarks();if(!state.plan)showPlans();if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(state.theme==='system')applyTheme()})}
 async function museaMessage(text) {
