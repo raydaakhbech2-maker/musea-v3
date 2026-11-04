@@ -24,7 +24,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public, pg_temp
-as $
+as $musea$
 begin
   if not exists (
     select 1 from public.profile_interests
@@ -37,7 +37,7 @@ begin
   end if;
   return new;
 end;
-$;
+$musea$;
 
 drop trigger if exists musea_profile_interests_limit on public.profile_interests;
 create trigger musea_profile_interests_limit
