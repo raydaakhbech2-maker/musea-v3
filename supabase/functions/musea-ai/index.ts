@@ -54,6 +54,8 @@ function buildTextInput(action: Exclude<AIAction, "generate_image">, text: strin
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Méthode non autorisée." }, 405);
+  const contentLength = Number(req.headers.get("Content-Length") || 0);
+  if (contentLength > 12_500_000) return json({ error: "La requête dépasse la taille autorisée." }, 413);
   if (req.headers.get("Origin") !== APP_ORIGIN) return json({ error: "Origine non autorisée." }, 403);
 
   const authorization = req.headers.get("Authorization");
@@ -77,6 +79,7 @@ Deno.serve(async (req) => {
   });
   const { data: { user }, error: authError } = await userClient.auth.getUser();
   if (authError || !user) return json({ error: "Session invalide." }, 401);
+  if (!user.email_confirmed_at) return json({ error: "Une adresse e-mail vérifiée est nécessaire pour utiliser l'assistant." }, 403);
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "Requête JSON invalide." }, 400); }
@@ -119,10 +122,13 @@ Deno.serve(async (req) => {
   const dailyLimit = isImage
     ? (isSignature ? 5 : 1)
     : (isSignature ? 80 : 8);
+  const configuredGlobalLimit = Number(Deno.env.get(isImage ? "MUSEA_AI_DAILY_IMAGE_LIMIT" : "MUSEA_AI_DAILY_TEXT_LIMIT") || (isImage ? 20 : 1000));
+  const globalLimit = Number.isFinite(configuredGlobalLimit) ? Math.max(1, Math.min(100000, Math.floor(configuredGlobalLimit))) : (isImage ? 20 : 1000);
   const { data: claimed, error: quotaError } = await admin.rpc("musea_claim_ai_usage", {
     p_user_id: user.id,
     p_kind: isImage ? "image" : "text",
     p_daily_limit: dailyLimit,
+    p_global_limit: globalLimit,
   });
   if (quotaError) return json({ error: "Le contrôle de quota IA est indisponible. Réessaie plus tard." }, 503);
   if (claimed !== true) {
