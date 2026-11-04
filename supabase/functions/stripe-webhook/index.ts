@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
     const firstItem = subscription.items.data[0];
     // Stripe a déplacé les périodes de facturation vers les Subscription Items
     // dans les versions d'API récentes ; les deux formes sont lues pour rester robuste.
-    const subscriptionRecord = subscription as Record<string, any>;
+    const subscriptionRecord = subscription as unknown as Record<string, any>;
     const periodStart = subscriptionRecord.current_period_start ?? firstItem?.current_period_start ?? null;
     const periodEnd = subscriptionRecord.current_period_end ?? firstItem?.current_period_end ?? null;
     const { error } = await admin.from("billing_subscriptions").upsert({
@@ -100,7 +100,6 @@ Deno.serve(async (req) => {
         }
       }
       if (userId) {
-        const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id ?? "";
         const { error } = await admin.from("billing_invoices").upsert({
           stripe_invoice_id: invoice.id,
           user_id: userId,
