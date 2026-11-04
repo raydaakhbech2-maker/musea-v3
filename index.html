@@ -258,6 +258,38 @@ body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibi
 }
 @media(hover:none){.card:hover,.btn:hover{box-shadow:var(--shadow)}.btn:hover{border-color:var(--line)}}
 @media(prefers-reduced-motion:reduce){.screen.active{animation:none!important}}
+
+/* MUSEA STUDIO — atelier de création, recadrage réel et projets privés */
+.studio-hero{padding:22px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(135deg,var(--card),color-mix(in srgb,var(--accent) 9%,var(--card)));margin-bottom:14px}
+.studio-mark{font-size:42px;color:var(--accent);line-height:1}
+.studio-principles{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.studio-principles span{font-size:11px;padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted)}
+.studio-layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(250px,.85fr);gap:14px;align-items:start}
+.studio-workspace,.studio-side{min-width:0}
+.studio-side{position:sticky;top:14px}
+.studio-canvas-wrap{position:relative;display:grid;place-items:center;min-height:210px;margin:12px 0;background:var(--surface);border:1px dashed var(--line);border-radius:16px;overflow:hidden}
+#studioCanvas{display:block;width:100%;max-height:560px;object-fit:contain;background:#171522}
+.studio-canvas-empty{padding:28px 18px;text-align:center;max-width:320px}
+.studio-canvas-empty span,.studio-empty span{display:block;font-size:32px;color:var(--accent);margin-bottom:8px}
+.studio-canvas-empty p{font-size:12px;color:var(--muted)}
+.studio-adjust{display:grid;gap:12px;margin-top:14px}
+.studio-adjust .label{display:flex;justify-content:space-between;gap:10px}
+.studio-adjust output{color:var(--muted);font-weight:700}
+.studio-range{padding:0;accent-color:var(--accent)}
+.studio-actions{margin-top:12px}
+.studio-publish-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.studio-publish-row .btn{flex:1;min-width:130px}
+.studio-draft{padding:12px 0;border-bottom:1px solid var(--line)}
+.studio-draft:last-child{border-bottom:0}
+.studio-draft .row{align-items:center}
+.studio-draft strong{overflow-wrap:anywhere}
+.studio-draft .btn{font-size:12px;padding:7px 10px}
+.studio-empty{text-align:center;padding:20px 10px}
+.studio-value{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
+.studio-value>span{font-size:12px;font-weight:800;color:var(--accent)}
+.studio-value p{margin:4px 0 0}
+@media(max-width:820px){.studio-layout{grid-template-columns:1fr}.studio-side{position:static}.studio-publish-row .btn{min-width:100%}}
+@media(max-width:560px){.studio-hero{padding:17px}.studio-mark{font-size:32px}.studio-canvas-wrap{min-height:180px}.studio-actions .btn{flex:1}.studio-draft .row{align-items:flex-start}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -380,26 +412,59 @@ window.museaSupabase = window.supabase.createClient(
   <div id="discoverResults"></div>
 </section>
 <section class="screen" id="screen-create">
-  <div class="card"><div class="eyebrow">Studio IA</div><h2 class="h1">Donne forme à ton idée.</h2><p class="muted">Ce prototype simule la création. Une vraie génération nécessitera une API IA et un budget contrôlé.</p>
-  <label class="label" for="prompt">Décris ton idée</label><textarea class="field" id="prompt" placeholder="Ex. : une cité flottante au-dessus des nuages, au coucher du soleil…">Une cité flottante au-dessus des nuages, au coucher du soleil</textarea>
-    <div class="line"></div>
-
-<label class="label" for="postImage">Ajouter une image</label>
-<input
-  class="field"
-  type="file"
-  id="postImage"
-  accept="image/*"
-  onchange="previewPostImage(event)"
->
-
-<div id="imagePreview" style="margin-top:12px"></div>
-  <label class="label">Style</label><select class="field" id="artStyle"><option>Digital art</option><option>Anime</option><option>Fantasy</option><option>Photorealistic</option><option>3D</option><option>Peinture</option><option>Minimaliste</option></select>
-  <label class="label">Format</label><select class="field" id="artFormat"><option>Carré</option><option>Portrait</option><option>Paysage</option><option>Story 9:16</option></select>
-  <div class="row between" style="margin:14px 0"><span class="muted small">Crédits disponibles</span><strong id="credits">5 / jour</strong></div>
-  <button class="btn primary full" onclick="generateArt()">✦ Générer un aperçu (simulation)</button><div id="generated" class="hidden" style="margin-top:14px"></div>
+  <div class="studio-hero">
+    <div class="eyebrow">MUSEA / STUDIO</div>
+    <div class="row between wrap"><div><h2 class="h1">Ton atelier de création.</h2><p class="muted">Du premier cadrage à la publication, garde la main sur chaque détail.</p></div><span class="studio-mark" aria-hidden="true">✳</span></div>
+    <div class="studio-principles"><span>✦ Création libre</span><span>◈ Brouillons privés</span><span>↗ Publication choisie</span></div>
   </div>
-  <div class="card"><h3 class="h3">Outils de création à venir</h3><div class="row wrap"><span class="chip">Image → style IA</span><span class="chip">Variations</span><span class="chip">Retouche</span><span class="chip">Vidéo IA</span><span class="chip">Suppression d'arrière-plan</span></div></div>
+  <div class="studio-layout">
+    <div class="studio-workspace">
+      <div class="card">
+        <div class="row between wrap"><div><div class="eyebrow">01 / INTENTION</div><h3 class="h3">Le point de départ</h3></div><span class="small muted" id="studioSaveState" aria-live="polite">Non enregistré</span></div>
+        <label class="label" for="studioTitle">Nom de ton projet</label>
+        <input class="field" id="studioTitle" maxlength="80" placeholder="Ex. : Les villes suspendues">
+        <label class="label" for="studioBrief">Ton intention créative</label>
+        <textarea class="field" id="studioBrief" rows="3" maxlength="1000" placeholder="Qu'est-ce que tu veux exprimer, explorer ou faire ressentir ?"></textarea>
+        <p class="small muted">Ce brief reste privé. Il ne sera pas publié avec ta création.</p>
+      </div>
+      <div class="card">
+        <div class="row between wrap"><div><div class="eyebrow">02 / MATIÈRE</div><h3 class="h3">Ton visuel</h3></div><span class="small muted">Jusqu'à 5 Mo</span></div>
+        <label class="label" for="postImage">Importer une image</label>
+        <input class="field" type="file" id="postImage" accept="image/jpeg,image/png,image/webp" onchange="studioHandleImage(event)">
+        <div class="studio-canvas-wrap" id="studioCanvasWrap">
+          <canvas id="studioCanvas" width="1080" height="1080" aria-label="Aperçu de ton image recadrée et retouchée"></canvas>
+          <div id="studioCanvasEmpty" class="studio-canvas-empty"><span aria-hidden="true">✧</span><strong>Ton espace visuel t'attend</strong><p>Ajoute une image pour commencer le travail de cadrage et de rendu.</p></div>
+        </div>
+        <div class="row between wrap"><label class="label" for="artFormat">Format de sortie</label><span class="small muted">Recadrage centré automatique</span></div>
+        <select class="field" id="artFormat" onchange="studioRenderImage()"><option>Carré</option><option>Portrait</option><option>Paysage</option><option>Story 9:16</option></select>
+        <label class="label" for="studioPreset">Ambiance</label>
+        <select class="field" id="studioPreset" onchange="studioRenderImage()"><option value="natural">Naturel</option><option value="warm">Chaleureux</option><option value="cinema">Cinéma</option><option value="mono">Noir & blanc</option><option value="soft">Doux</option></select>
+        <div class="studio-adjust">
+          <div><label class="label" for="studioBrightness">Luminosité <output id="studioBrightnessValue">100%</output></label><input class="field studio-range" type="range" id="studioBrightness" min="60" max="150" value="100" oninput="studioRenderImage()"></div>
+          <div><label class="label" for="studioContrast">Contraste <output id="studioContrastValue">100%</output></label><input class="field studio-range" type="range" id="studioContrast" min="60" max="150" value="100" oninput="studioRenderImage()"></div>
+          <div><label class="label" for="studioSaturation">Saturation <output id="studioSaturationValue">100%</output></label><input class="field studio-range" type="range" id="studioSaturation" min="0" max="160" value="100" oninput="studioRenderImage()"></div>
+        </div>
+        <div class="row wrap studio-actions"><button class="btn" onclick="studioResetAdjustments()">Réinitialiser les réglages</button><button class="btn" onclick="studioExportImage()">Exporter le visuel</button></div>
+      </div>
+      <div class="card">
+        <div class="eyebrow">03 / SIGNATURE</div><h3 class="h3">Préparer la publication</h3>
+        <label class="label" for="prompt">Texte qui accompagnera ta création</label>
+        <textarea class="field" id="prompt" rows="4" maxlength="500" placeholder="Raconte ce que tu souhaites partager…"></textarea>
+        <script type="application/x-musea-studio-counter">document.getElementById('prompt')?.addEventListener('input',()=>{const el=document.getElementById('studioCaptionCount');if(el)el.textContent=document.getElementById('prompt').value.length+' / 500';});</script>
+        <div class="row between small muted"><span>Visible avec la publication</span><span id="studioCaptionCount">0 / 500</span></div>
+        <label class="label" for="artStyle">Univers créatif</label>
+        <select class="field" id="artStyle"><option>Digital art</option><option>Anime</option><option>Fantasy</option><option>Photorealistic</option><option>3D</option><option>Peinture</option><option>Minimaliste</option><option>Architecture</option><option>Mode</option><option>Illustration</option></select>
+        <label class="label" for="studioNotes">Notes personnelles</label>
+        <textarea class="field" id="studioNotes" rows="2" maxlength="2000" placeholder="Sources, étapes à reprendre, idées pour une prochaine version…"></textarea>
+        <p class="small muted">Tes notes et ton brief ne sont jamais ajoutés au post public.</p>
+        <div class="studio-publish-row"><button class="btn primary" onclick="studioSaveDraft('in_progress')">Enregistrer le projet</button><button class="btn" onclick="studioSaveDraft('ready')">Marquer prêt</button><button class="btn" onclick="studioPublish()">Publier</button></div>
+      </div>
+    </div>
+    <aside class="studio-side">
+      <div class="card studio-side-card"><div class="eyebrow">ATELIER / PROJETS</div><div class="row between"><h3 class="h3">Mes projets</h3><button class="chip" onclick="studioLoadDrafts()">Actualiser</button></div><p class="small muted">Tes travaux sont privés et synchronisés à ton compte. Un projet n'apparaît jamais dans le fil sans publication volontaire.</p><div id="studioDraftList"><div class="small muted">Connecte-toi pour retrouver tes projets.</div></div></div>
+      <div class="card studio-side-card"><div class="eyebrow">ESPRIT MUSEA</div><h3 class="h3">L'atelier, pas l'usine à contenus.</h3><p class="small muted">Le Studio privilégie l'intention, le processus et le contrôle du créateur. Les outils d'IA ne sont pas simulés : aucune génération automatique n'est annoncée tant qu'un service réel n'est pas connecté.</p><div class="studio-value"><span>01</span><div><strong>Tu décides</strong><p class="small muted">Aucune publication automatique.</p></div></div><div class="studio-value"><span>02</span><div><strong>Tu peux reprendre</strong><p class="small muted">Les projets enregistrés restent privés.</p></div></div><div class="studio-value"><span>03</span><div><strong>Tu gardes l'original</strong><p class="small muted">Les retouches sont exportées dans un nouveau fichier.</p></div></div></div>
+    </aside>
+  </div>
 </section>
 <section class="screen" id="screen-trends">
   <div class="card hero"><div class="eyebrow">Tous les 7 jours</div><h2 class="h1">Le classement créatif.</h2><p>Les points récompensent la contribution. Ils ne sont pas de l'argent et ne peuvent pas être achetés.</p></div>
@@ -584,6 +649,7 @@ const defaultPosts = [];
 let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:[],ownStories:[],displayName:'',headline:'',creativeSignature:'',specialties:[],messages:[],groups:[],
 prefs:{likes:true,collections:true,online:true,dm:false,projectInvites:true,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
 let feedKind='all',homeFeedMode='affinity',discoverKind='Tout',customStories=[];
+let studioImage=null,studioImageObjectUrl=null,studioExistingImagePath=null,studioActiveDraftId=null,studioDraftRows=[];
 let discoverMode='affinity';
 let creativeStyles=['Digital art','Fantasy'];
 let discoveryFeedback=[];
@@ -621,6 +687,7 @@ function navigate(name){
   if(name==='settings')loadMyModerationCases();
   if(name==='stories')renderStories();
   if(name==='rewards')renderRewards();
+  if(name==='create')studioLoadDrafts();
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   window.scrollTo({top:0,behavior:reduceMotion?'auto':'smooth'});
 }
@@ -2026,7 +2093,196 @@ function renderRewards(){document.getElementById('rewardPoints').textContent=sta
 function redeemWallpaper(){if(state.plan!=='premium')return toast('Le fond exclusif est réservé à Premium. Compare les offres dans ton profil.');if(state.points<500)return toast('Il te faut 500 points. Continue à participer à la communauté.');state.points-=500;state.wallpaper=true;save();renderRewards();renderProfile();toast('Fond Aurora débloqué dans la démo.')}
 function redeemBadge(){if(state.badge)return toast('Tu possèdes déjà ce badge de démonstration.');if(state.points<250)return toast('Il te faut 250 points.');state.points-=250;state.badge=true;save();renderRewards();renderProfile();document.getElementById('rewardStatus').classList.remove('hidden');document.getElementById('rewardStatus').textContent='Badge créateur débloqué. Il ne s’agit pas d’une certification.';toast('Badge cosmétique débloqué.')}
 function requestVerification(){if(state.plan!=='premium')return toast('La demande de certification est réservée aux comptes Premium éligibles.');if(state.points<5000)return toast('Éligibilité non atteinte : 5 000 points minimum, puis vérification indépendante.');toast('Tu peux soumettre une demande. L’approbation reste soumise à une vérification humaine et à des critères d’authenticité.')}
-function generateArt(){let p=document.getElementById('prompt').value.trim();if(!p)return toast('Décris ton idée avant de générer.');if(state.plan==='premium'&&state.points<0)return;document.getElementById('generated').classList.remove('hidden');document.getElementById('generated').innerHTML=`${artMarkup({title:p.slice(0,60),art:'a3'})}<p><strong>${escapeHtml(document.getElementById('artStyle').value)}</strong> · ${escapeHtml(document.getElementById('artFormat').value)}</p><div class="notice">Aperçu décoratif simulé : aucune image n'a été générée par une IA.</div><button class="btn primary full" style="margin-top:10px" onclick="publishDemo()">Publier dans le fil (démo)</button>`}
+
+function studioCurrentSettings(){
+  return {
+    preset:document.getElementById('studioPreset')?.value||'natural',
+    brightness:Number(document.getElementById('studioBrightness')?.value||100),
+    contrast:Number(document.getElementById('studioContrast')?.value||100),
+    saturation:Number(document.getElementById('studioSaturation')?.value||100)
+  };
+}
+function studioDimensions(){
+  const format=document.getElementById('artFormat')?.value||'Carré';
+  if(format==='Portrait')return [1080,1350];
+  if(format==='Paysage')return [1920,1080];
+  if(format==='Story 9:16')return [1080,1920];
+  return [1080,1080];
+}
+function studioRenderImage(){
+  const canvas=document.getElementById('studioCanvas');
+  const empty=document.getElementById('studioCanvasEmpty');
+  if(!canvas)return;
+  const settings=studioCurrentSettings();
+  const [width,height]=studioDimensions();
+  canvas.width=width;canvas.height=height;
+  const values={natural:[1,1,1,0],warm:[1.06,1.04,1.08,0],cinema:[0.96,1.22,0.86,0],mono:[1.02,1.12,0,1],soft:[1.08,0.88,0.88,0]};
+  const preset=values[settings.preset]||values.natural;
+  const brightness=Math.round(settings.brightness*preset[0]);
+  const contrast=Math.round(settings.contrast*preset[1]);
+  const saturation=Math.round(settings.saturation*preset[2]);
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,width,height);
+  if(!studioImage){
+    canvas.classList.add('hidden');if(empty)empty.classList.remove('hidden');return;
+  }
+  const scale=Math.max(width/studioImage.naturalWidth,height/studioImage.naturalHeight);
+  const sourceWidth=width/scale,sourceHeight=height/scale;
+  const sourceX=(studioImage.naturalWidth-sourceWidth)/2;
+  const sourceY=(studioImage.naturalHeight-sourceHeight)/2;
+  ctx.filter='brightness('+brightness+'%) contrast('+contrast+'%) saturate('+saturation+'%)'+(preset[3]?' grayscale(1)':'');
+  ctx.drawImage(studioImage,sourceX,sourceY,sourceWidth,sourceHeight,0,0,width,height);
+  ctx.filter='none';
+  canvas.classList.remove('hidden');if(empty)empty.classList.add('hidden');
+  const b=document.getElementById('studioBrightnessValue');if(b)b.textContent=settings.brightness+'%';
+  const c=document.getElementById('studioContrastValue');if(c)c.textContent=settings.contrast+'%';
+  const sat=document.getElementById('studioSaturationValue');if(sat)sat.textContent=settings.saturation+'%';
+}
+function studioLoadImage(url){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();img.onload=()=>{studioImage=img;studioRenderImage();resolve(true);};
+    img.onerror=()=>reject(new Error('Impossible de charger cette image.'));
+    img.src=url;
+  });
+}
+function studioHandleImage(event){
+  const file=event.target.files?.[0];
+  if(!file)return;
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type)){toast('Formats acceptés : JPG, PNG ou WebP.');event.target.value='';return;}
+  if(file.size>5*1024*1024){toast('Image trop volumineuse : 5 Mo maximum.');event.target.value='';return;}
+  if(studioImageObjectUrl)URL.revokeObjectURL(studioImageObjectUrl);
+  studioImageObjectUrl=URL.createObjectURL(file);
+  studioExistingImagePath=null;
+  studioLoadImage(studioImageObjectUrl).then(()=>{studioSetSaveState('Modifications non enregistrées');toast('Image ajoutée à ton atelier.');}).catch(error=>toast(error.message));
+}
+function studioSetSaveState(message){
+  const el=document.getElementById('studioSaveState');if(el)el.textContent=message;
+}
+function studioResetAdjustments(){
+  const defaults={studioPreset:'natural',studioBrightness:'100',studioContrast:'100',studioSaturation:'100'};
+  Object.entries(defaults).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.value=value;});
+  studioRenderImage();studioSetSaveState('Réglages réinitialisés');
+}
+function studioExportBlob(){
+  return new Promise((resolve,reject)=>{
+    const canvas=document.getElementById('studioCanvas');
+    if(!studioImage||!canvas)return resolve(null);
+    canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Export du visuel impossible.')),'image/webp',0.9);
+  });
+}
+async function studioExportImage(){
+  try{
+    const blob=await studioExportBlob();if(!blob)return toast('Ajoute une image avant de l’exporter.');
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='musea-creation.webp';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);toast('Visuel exporté sur ton appareil.');
+  }catch(error){toast(error.message||'Export impossible.');}
+}
+function studioClear(){
+  studioImage=null;studioExistingImagePath=null;studioActiveDraftId=null;
+  if(studioImageObjectUrl){URL.revokeObjectURL(studioImageObjectUrl);studioImageObjectUrl=null;}
+  ['studioTitle','studioBrief','prompt','studioNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const file=document.getElementById('postImage');if(file)file.value='';
+  const canvas=document.getElementById('studioCanvas');if(canvas){canvas.width=1080;canvas.height=1080;canvas.classList.add('hidden');}
+  document.getElementById('studioCanvasEmpty')?.classList.remove('hidden');
+  studioResetAdjustments();studioSetSaveState('Nouveau projet');
+  const count=document.getElementById('studioCaptionCount');if(count)count.textContent='0 / 500';
+}
+async function studioLoadDrafts(){
+  const host=document.getElementById('studioDraftList');if(!host)return;
+  const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+  if(userError||!userData?.user){host.innerHTML='<div class="notice">Connecte-toi pour enregistrer et retrouver tes projets.</div>';return;}
+  host.innerHTML='<p class="small muted">Chargement de tes projets…</p>';
+  const {data,error}=await museaSupabase.from('creator_drafts').select('id,title,style,format,status,image_path,updated_at').eq('user_id',userData.user.id).order('updated_at',{ascending:false}).limit(30);
+  if(error){console.error(error);host.innerHTML='<div class="notice">Les projets seront disponibles après activation de la migration MUSEA Studio.</div>';return;}
+  studioDraftRows=data||[];
+  if(!studioDraftRows.length){host.innerHTML='<div class="studio-empty"><span>✧</span><strong>Ton atelier est encore vide.</strong><p class="small muted">Enregistre ton premier projet pour pouvoir le reprendre plus tard.</p></div>';return;}
+  host.innerHTML=studioDraftRows.map(d=>{
+    const status={idea:'Graine',in_progress:'En création',ready:'Prêt à publier'}[d.status]||'Projet';
+    return '<article class="studio-draft"><div class="row between"><strong>'+escapeHtml(d.title)+'</strong><span class="chip">'+status+'</span></div><p class="small muted">'+escapeHtml(d.style||'Sans style')+' · '+escapeHtml(d.format||'Carré')+'</p><p class="small muted">Modifié le '+escapeHtml(new Date(d.updated_at).toLocaleDateString('fr-FR'))+'</p><div class="row wrap"><button class="btn" onclick="studioOpenDraft(\''+d.id+'\')">Ouvrir</button><button class="btn danger" onclick="studioDeleteDraft(\''+d.id+'\')">Supprimer</button></div></article>';
+  }).join('')+'<button class="btn full" style="margin-top:10px" onclick="studioClear()">＋ Nouveau projet</button>';
+}
+async function studioSaveDraft(status='in_progress'){
+  const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+  if(userError||!userData?.user)return toast('Connecte-toi pour sauvegarder tes projets.');
+  const user=userData.user;
+  const title=(document.getElementById('studioTitle')?.value||'').trim();
+  if(!title)return toast('Donne un nom à ton projet avant de l’enregistrer.');
+  const caption=(document.getElementById('prompt')?.value||'').trim();
+  const brief=(document.getElementById('studioBrief')?.value||'').trim();
+  const notes=(document.getElementById('studioNotes')?.value||'').trim();
+  const draftId=studioActiveDraftId||crypto.randomUUID();
+  let imagePath=studioExistingImagePath;
+  let newImagePath=null;
+  try{
+    const blob=await studioExportBlob();
+    if(blob){
+      newImagePath=user.id+'/'+draftId+'/'+Date.now()+'.webp';
+      const {error:uploadError}=await museaSupabase.storage.from('musea-drafts').upload(newImagePath,blob,{contentType:'image/webp',cacheControl:'3600',upsert:false});
+      if(uploadError)throw uploadError;
+      imagePath=newImagePath;
+    }
+    const payload={id:draftId,user_id:user.id,title,caption,creative_brief:brief,notes,style:document.getElementById('artStyle')?.value||'Digital art',format:document.getElementById('artFormat')?.value||'Carré',status,image_path:imagePath,edit_settings:studioCurrentSettings(),updated_at:new Date().toISOString()};
+    const result=studioActiveDraftId
+      ?await museaSupabase.from('creator_drafts').update(payload).eq('id',draftId).eq('user_id',user.id).select().single()
+      :await museaSupabase.from('creator_drafts').insert(payload).select().single();
+    if(result.error)throw result.error;
+    if(studioExistingImagePath&&newImagePath&&studioExistingImagePath!==newImagePath){
+      await museaSupabase.storage.from('musea-drafts').remove([studioExistingImagePath]);
+    }
+    studioActiveDraftId=draftId;studioExistingImagePath=imagePath;
+    studioSetSaveState('Enregistré à '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}));
+    await studioLoadDrafts();toast(status==='ready'?'Projet marqué prêt à publier.':'Projet enregistré en privé.');
+  }catch(error){
+    if(newImagePath)await museaSupabase.storage.from('musea-drafts').remove([newImagePath]);
+    console.error(error);toast('Sauvegarde impossible : '+(error.message||'vérifie la migration MUSEA Studio.'));
+  }
+}
+async function studioOpenDraft(id){
+  const {data:userData}=await museaSupabase.auth.getUser();if(!userData?.user)return toast('Connecte-toi pour ouvrir ce projet.');
+  const {data,error}=await museaSupabase.from('creator_drafts').select('*').eq('id',id).eq('user_id',userData.user.id).single();
+  if(error||!data)return toast('Ce projet est indisponible.');
+  studioActiveDraftId=data.id;studioExistingImagePath=data.image_path||null;
+  document.getElementById('studioTitle').value=data.title||'';
+  document.getElementById('studioBrief').value=data.creative_brief||'';
+  document.getElementById('prompt').value=data.caption||'';
+  document.getElementById('studioNotes').value=data.notes||'';
+  document.getElementById('artStyle').value=data.style||'Digital art';
+  document.getElementById('artFormat').value=data.format||'Carré';
+  const settings=data.edit_settings||{};
+  document.getElementById('studioPreset').value=settings.preset||'natural';
+  document.getElementById('studioBrightness').value=settings.brightness??100;
+  document.getElementById('studioContrast').value=settings.contrast??100;
+  document.getElementById('studioSaturation').value=settings.saturation??100;
+  const captionCount=document.getElementById('studioCaptionCount');if(captionCount)captionCount.textContent=(data.caption||'').length+' / 500';
+  const file=document.getElementById('postImage');if(file)file.value='';
+  if(studioImageObjectUrl){URL.revokeObjectURL(studioImageObjectUrl);studioImageObjectUrl=null;}
+  studioImage=null;
+  if(data.image_path){
+    const {data:signed,error:signedError}=await museaSupabase.storage.from('musea-drafts').createSignedUrl(data.image_path,3600);
+    if(signedError)toast('Projet chargé, mais aperçu image indisponible.');
+    else{
+      try{await studioLoadImage(signed.signedUrl);}catch(error){toast(error.message);}
+    }
+  }else studioRenderImage();
+  studioSetSaveState('Projet chargé · '+({idea:'Graine',in_progress:'En création',ready:'Prêt à publier'}[data.status]||'Projet'));
+  document.getElementById('screen-create')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function studioDeleteDraft(id){
+  if(!confirm('Supprimer définitivement ce projet privé ?'))return;
+  const {data:userData}=await museaSupabase.auth.getUser();if(!userData?.user)return toast('Connecte-toi pour supprimer ce projet.');
+  const draft=studioDraftRows.find(x=>x.id===id);
+  const {error}=await museaSupabase.from('creator_drafts').delete().eq('id',id).eq('user_id',userData.user.id);
+  if(error)return toast('Suppression impossible : '+error.message);
+  if(draft?.image_path)await museaSupabase.storage.from('musea-drafts').remove([draft.image_path]);
+  if(studioActiveDraftId===id)studioClear();
+  await studioLoadDrafts();toast('Projet supprimé.');
+}
+async function studioPublish(){
+  const title=(document.getElementById('studioTitle')?.value||'').trim();
+  if(!title)return toast('Donne un nom à ton projet avant de publier.');
+  const caption=document.getElementById('prompt');if(caption&&!caption.value.trim())caption.value=title;
+  await publishDemo();
+}
+
 function previewPostImage(event) {
   const file = event.target.files[0];
   const preview = document.getElementById('imagePreview');
@@ -2059,7 +2315,10 @@ async function publishDemo() {
   const prompt = document.getElementById('prompt').value.trim();
   const style = document.getElementById('artStyle').value;
   const imageInput = document.getElementById('postImage');
-  const file = imageInput?.files[0];
+  let file = imageInput?.files[0] || null;
+  if(studioImage){
+    try{file=await studioExportBlob();}catch(error){toast(error.message||'Export image impossible.');return;}
+  }
 
   if (!prompt) {
     toast('Ajoute une description avant de publier.');
@@ -2088,13 +2347,15 @@ async function publishDemo() {
       return;
     }
 
-    const extension = file.name.split('.').pop().toLowerCase();
+    const mimeType = file.type || 'image/webp';
+    const extension = mimeType === 'image/png' ? 'png' : mimeType === 'image/jpeg' ? 'jpg' : 'webp';
     imagePath = userData.user.id + '/' + Date.now() + '.' + extension;
 
     const { error: uploadError } = await museaSupabase
       .storage
       .from('musea-posts')
       .upload(imagePath, file, {
+        contentType: mimeType,
         cacheControl: '3600',
         upsert: false
       });
@@ -2136,10 +2397,14 @@ async function publishDemo() {
   save();
 
   toast('Publication enregistrée sur Supabase !');
-  document.getElementById('prompt').value = '';
-  if (imageInput) imageInput.value = '';
-  document.getElementById('imagePreview').innerHTML = '';
-
+  if(studioActiveDraftId){
+    const draftId=studioActiveDraftId;
+    const draft=studioDraftRows.find(x=>x.id===draftId);
+    const {error:draftDeleteError}=await museaSupabase.from('creator_drafts').delete().eq('id',draftId).eq('user_id',userData.user.id);
+    if(draftDeleteError)console.warn('Publication réussie, mais le brouillon reste à supprimer :',draftDeleteError);
+    if(studioExistingImagePath)await museaSupabase.storage.from('musea-drafts').remove([studioExistingImagePath]);
+  }
+  studioClear();
   navigate('home');
 }
 function quickWeb(url){document.getElementById('urlInput').value=url;openWeb()}
