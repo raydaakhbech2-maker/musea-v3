@@ -52,6 +52,17 @@ Deno.serve(async (req) => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
+  const lockToken = crypto.randomUUID();
+  const { data: lockClaimed, error: lockError } = await admin.rpc("musea_claim_billing_checkout", {
+    p_user_id: user.id,
+    p_lock_token: lockToken,
+  });
+  if (lockError) return json({ error: "Impossible de réserver la préparation du paiement." }, 503);
+  if (lockClaimed !== true) {
+    return json({ error: "Une préparation de paiement est déjà en cours pour ce compte. Réessaie après son expiration." }, 409);
+  }
+
+  let checkoutCreated = false;
   try {
     const stripe = new Stripe(stripeKey);
     const configuredPrice = await stripe.prices.retrieve(priceId);
@@ -110,10 +121,21 @@ Deno.serve(async (req) => {
       cancel_url: APP_URL + "?billing=cancelled",
       billing_address_collection: "required",
       allow_promotion_codes: false,
-    });
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+    }, { idempotencyKey: "musea-checkout-" + user.id + "-" + lockToken });
     if (!session.url) return json({ error: "Le prestataire n'a pas fourni de page de paiement." }, 502);
+    checkoutCreated = true;
     return json({ checkout_url: session.url });
   } catch (_error) {
     return json({ error: "La préparation du paiement a échoué. Aucun accès Signature n'a été accordé." }, 502);
+  } finally {
+    // En cas d'échec, libère immédiatement le verrou. En cas de succès, il reste
+    // réservé jusqu'à l'expiration de la session Checkout (30 minutes).
+    if (!checkoutCreated) {
+      await admin.rpc("musea_release_billing_checkout", {
+        p_user_id: user.id,
+        p_lock_token: lockToken,
+      });
+    }
   }
 });
