@@ -212,7 +212,7 @@ button:active{transform:scale(.98)}
 .shared-post-preview{margin-top:8px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}.shared-post-preview img{display:block;width:100%;max-height:170px;object-fit:cover}.shared-post-preview strong{display:block;padding:8px 10px;font-size:12px}
 .message-composer{border-top:1px solid var(--line);padding:14px}.message-composer .label{display:block;margin:0 0 6px}.message-compose-row{align-items:flex-end;margin-top:9px}.message-compose-row textarea{flex:1;min-width:0;resize:vertical}
 .project-brief{margin:12px 14px 0;padding:13px 14px;border:1px solid var(--line);border-radius:14px;background:var(--accent2)}.project-brief p{margin:5px 0 0;font-size:13px;line-height:1.45}.project-board{margin:12px 14px 0;padding:14px;border:1px solid var(--line);border-radius:16px}.project-board-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}.project-task-column{background:var(--bg);border-radius:12px;padding:9px;min-width:0}.project-task-column h4{font-size:12px;margin:0 0 8px}.project-task{padding:9px;background:var(--card);border:1px solid var(--line);border-radius:10px;margin:7px 0;overflow-wrap:anywhere}.project-task strong{font-size:12px;display:block}.project-task p{font-size:11px;color:var(--muted);margin:5px 0}.project-task-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.project-task-actions .btn{font-size:10px;padding:5px 7px}.project-task-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:7px;margin-top:10px}
-@media(max-width:780px){.message-workspace{grid-template-columns:1fr}.message-sidebar{order:1}.message-main{order:0}.project-board-grid{grid-template-columns:1fr}.project-task-form{grid-template-columns:1fr}.message-log{max-height:48vh}}
+.message-safety-panel{margin:12px 14px;padding:12px 14px;border:1px solid var(--line);border-radius:14px}.message-safety-panel summary{cursor:pointer;font-weight:750}.message-safety-panel .label{display:block;margin:10px 0 5px}.blocked-users-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}.blocked-users-card strong{display:block;margin:5px 0}.blocked-user-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}.blocked-user-row .btn{font-size:11px;padding:6px 9px}@media(max-width:780px){.message-workspace{grid-template-columns:1fr}.message-sidebar{order:1}.message-main{order:0}.project-board-grid{grid-template-columns:1fr}.project-task-form{grid-template-columns:1fr}.message-log{max-height:48vh}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -383,6 +383,7 @@ window.museaSupabase = window.supabase.createClient(
         <div id="projectFields" hidden><label class="label" for="projectTitle">Nom de l'atelier collectif</label><input class="field" id="projectTitle" maxlength="70" placeholder="Ex. : Univers flottants"><label class="label" for="projectDescription">Intention du projet</label><textarea class="field" id="projectDescription" rows="2" maxlength="500" placeholder="Que souhaitez-vous imaginer ensemble ?"></textarea></div>
         <div class="row wrap" style="margin-top:10px"><button class="btn primary" onclick="createMessageConversation('dm')">Message privé</button><button class="btn" onclick="toggleProjectFields()">Atelier collectif</button></div>
         <p class="small muted" id="messageInviteHint">Les messages privés sont envoyés sous forme de demande. Le destinataire doit l'accepter.</p>
+        <div class="blocked-users-card"><div class="eyebrow">TES CONTRÔLES</div><strong>Comptes bloqués</strong><div id="blockedUsersList" class="small muted">Chargement…</div></div>
       </div>
     </aside>
     <div class="message-main">
@@ -390,6 +391,14 @@ window.museaSupabase = window.supabase.createClient(
       <div id="chatCard" class="card message-chat" hidden>
         <header class="message-chat-header"><div><div class="eyebrow" id="chatKind">CONVERSATION</div><h2 class="h2" id="chatName">Discussion</h2><p class="small muted" id="chatStatus"></p></div><button class="btn" onclick="refreshMessageWorkspace()">Actualiser</button></header>
         <div id="projectBrief" class="project-brief" hidden></div><div id="projectBoard" class="project-board" hidden></div>
+        <details class="message-safety-panel"><summary>Confidentialité et sécurité</summary>
+          <p class="small muted">Tu peux bloquer un participant ou signaler un comportement. Un blocage coupe l'accès à la conversation pour les deux comptes.</p>
+          <label class="label" for="messageSafetyTarget">Participant concerné</label><select class="field" id="messageSafetyTarget"></select>
+          <div class="row wrap" style="margin-top:8px"><button class="btn danger" onclick="blockConversationParticipant()">Bloquer ce compte</button></div>
+          <label class="label" for="messageReportReason">Motif du signalement</label><select class="field" id="messageReportReason"><option value="harassment">Harcèlement ou intimidation</option><option value="spam">Spam ou sollicitation répétée</option><option value="inappropriate">Contenu inapproprié</option><option value="impersonation">Usurpation d'identité</option><option value="other">Autre</option></select>
+          <label class="label" for="messageReportDetails">Détails facultatifs</label><textarea class="field" id="messageReportDetails" rows="2" maxlength="500" placeholder="Décris brièvement le problème…"></textarea>
+          <button class="btn full" style="margin-top:8px" onclick="reportConversation()">Envoyer un signalement</button>
+        </details>
         <div id="chatLog" class="message-log" aria-live="polite"><div class="notice">Les messages apparaîtront ici.</div></div>
         <div class="message-composer"><label class="label" for="messagePostSelect">Joindre une création publique</label><select class="field" id="messagePostSelect"><option value="">Aucune création jointe</option></select><div class="row message-compose-row"><textarea class="field" id="messageInput" rows="2" maxlength="4000" placeholder="Écris quelque chose…"></textarea><button class="btn primary" onclick="sendMessage()">Envoyer ↗</button></div><p class="small muted">Les fichiers personnels et les appels ne sont pas activés dans cette version. Tu peux déjà partager les créations publiques de MUSEA.</p></div>
       </div>
@@ -1142,6 +1151,63 @@ async function stopMessageRealtime(){
   if(messageChannel)await museaSupabase.removeChannel(messageChannel);
   messageChannel=null;messageUserId=null;
 }
+async function loadBlockedUsers(){
+  const target=document.getElementById('blockedUsersList');
+  if(!target)return;
+  const {data:userData}=await museaSupabase.auth.getUser();
+  if(!userData?.user){target.textContent='Connecte-toi pour gérer cette liste.';return;}
+  const {data:blocks,error}=await museaSupabase.from('user_blocks').select('blocked_id,created_at').eq('blocker_id',userData.user.id).order('created_at',{ascending:false});
+  if(error){target.textContent='Liste indisponible : '+error.message;return;}
+  if(!blocks?.length){target.textContent='Aucun compte bloqué.';return;}
+  const ids=blocks.map(x=>x.blocked_id);
+  const {data:profiles}=await museaSupabase.from('profiles').select('id,username').in('id',ids);
+  const names=new Map((profiles||[]).map(p=>[p.id,p.username||'Compte']));
+  target.innerHTML=blocks.map(b=>'<div class="blocked-user-row"><span>@'+escapeHtml(names.get(b.blocked_id)||'Compte indisponible')+'</span><button class="btn" onclick="unblockUser(&quot;'+b.blocked_id+'&quot;)">Débloquer</button></div>').join('');
+}
+async function unblockUser(userId){
+  const {error}=await museaSupabase.rpc('musea_unblock_user',{p_blocked_user_id:userId});
+  if(error)return toast('Déblocage impossible : '+error.message);
+  toast('Compte débloqué.');
+  await loadBlockedUsers();
+}
+async function fillMessageSafetyTargets(){
+  const select=document.getElementById('messageSafetyTarget');
+  if(!select||!currentConversation)return;
+  const {data:userData}=await museaSupabase.auth.getUser();
+  const ownId=userData?.user?.id;
+  const ids=currentConversationMembers.filter(m=>m.status==='accepted'&&m.user_id!==ownId).map(m=>m.user_id);
+  let profiles=[];
+  if(ids.length){const {data}=await museaSupabase.from('profiles').select('id,username').in('id',ids);profiles=data||[];}
+  const names=new Map(profiles.map(p=>[p.id,p.username||'Créateur']));
+  select.innerHTML=ids.map(id=>'<option value="'+escapeHtml(id)+'">@'+escapeHtml(names.get(id)||'Créateur')+'</option>').join('');
+  if(!ids.length)select.innerHTML='<option value="">Aucun autre participant</option>';
+}
+async function blockConversationParticipant(){
+  const target=document.getElementById('messageSafetyTarget')?.value;
+  if(!target)return toast('Choisis un participant à bloquer.');
+  if(!confirm('Bloquer ce compte ? La conversation sera masquée et les échanges seront interrompus.'))return;
+  const {error}=await museaSupabase.rpc('musea_block_user',{p_blocked_user_id:target});
+  if(error)return toast('Blocage impossible : '+error.message);
+  activeConversationId=null;currentConversation=null;currentConversationMembers=[];
+  document.getElementById('chatCard').hidden=true;document.getElementById('chatEmpty').hidden=false;
+  toast('Compte bloqué. La conversation est désormais masquée.');
+  await loadMessageWorkspace();await loadBlockedUsers();
+}
+async function reportConversation(){
+  if(!activeConversationId)return toast('Ouvre une conversation à signaler.');
+  const target=document.getElementById('messageSafetyTarget')?.value;
+  const reason=document.getElementById('messageReportReason')?.value;
+  const details=document.getElementById('messageReportDetails')?.value.trim()||'';
+  if(!target)return toast('Choisis le participant concerné.');
+  const {data:userData}=await museaSupabase.auth.getUser();
+  if(!userData?.user)return toast('Connexion nécessaire.');
+  const {error}=await museaSupabase.from('user_reports').insert({
+    reporter_id:userData.user.id,target_user_id:target,conversation_id:activeConversationId,reason,details
+  });
+  if(error)return toast(error.code==='23505'?'Tu as déjà signalé ce participant dans cette conversation.':'Signalement non enregistré : '+error.message);
+  document.getElementById('messageReportDetails').value='';
+  toast('Signalement enregistré de façon privée. Une équipe de modération devra l’examiner.');
+}
 async function refreshMessageWorkspace(){
   await loadMessageWorkspace();
   if(activeConversationId)await loadConversationMessages();
@@ -1165,6 +1231,7 @@ async function renderMessages(){
   if(!communityPosts.length){try{await loadCommunityPosts();}catch(error){console.warn('Les créations à partager sont indisponibles :',error);}}
   fillMessagePostOptions();
   await loadMessageWorkspace();
+  await loadBlockedUsers();
   if(pendingSharePostId){
     const select=document.getElementById('messagePostSelect');
     if(select&&[...select.options].some(o=>o.value===pendingSharePostId))select.value=pendingSharePostId;
@@ -1285,6 +1352,7 @@ async function openConversation(id){
   document.getElementById('chatCard').hidden=false;
   await loadConversationMessages();
   if(conversation.kind==='project')await loadProjectTasks();
+  await fillMessageSafetyTargets();
   fillMessagePostOptions();
   document.getElementById('conversationList')?.querySelectorAll('.conversation-entry').forEach(x=>x.classList.toggle('active',x.getAttribute('onclick')?.includes(id)));
 }
