@@ -1,4 +1,4 @@
-const CACHE = 'musea-courants-v7';
+const CACHE = 'musea-parcours-v8';
 const FILES = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', event => {
