@@ -30,6 +30,13 @@
 .notification-empty{text-align:center;padding:28px 18px}
 .notification-pref{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
 .notification-pref:last-child{border-bottom:0}
+.discovery-hero{background:linear-gradient(135deg,var(--card),var(--accent2))}
+.discovery-modes .chip.selected{background:var(--accent);color:white;border-color:var(--accent)}
+#creativeStylePicker .chip.selected{background:var(--accent2);border-color:var(--accent);color:var(--ink)}
+.discovery-result{margin-bottom:14px}
+.discovery-reason{display:flex;align-items:center;gap:7px;margin:0 0 6px 3px;font-size:12px;color:var(--muted)}
+.discovery-feedback{display:flex;gap:8px;flex-wrap:wrap;margin:-4px 4px 12px}
+.discovery-feedback .chip{font-size:12px}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -91,11 +98,34 @@ window.museaSupabase = window.supabase.createClient(
   <div id="feed"></div>
 </section>
 <section class="screen" id="screen-discover">
-  <div class="card"><div class="eyebrow">Explorer</div><h2 class="h1">Trouve ton inspiration.</h2>
-  <input class="field" id="searchInput" placeholder="Rechercher des artistes, styles, mots-clés…" oninput="renderDiscover()">
-  <div class="row wrap" style="margin-top:10px"><button class="chip selected" onclick="setDiscover('Tout',this)">Tout</button><button class="chip" onclick="setDiscover('Digital art',this)">Digital art</button><button class="chip" onclick="setDiscover('Fantasy',this)">Fantasy</button><button class="chip" onclick="setDiscover('Photo',this)">Photo</button><button class="chip" onclick="setDiscover('3D',this)">3D</button></div></div>
+  <div class="card discovery-hero">
+    <div class="eyebrow">MUSEA / EXPLORATION</div>
+    <h2 class="h1">Ta créativité n'a pas de frontières.</h2>
+    <p class="muted">Découvre des univers proches du tien, puis laisse-toi surprendre. Ici, la popularité ne décide pas de tout.</p>
+    <input class="field" id="searchInput" placeholder="Rechercher une création, un style, un artiste…" oninput="renderDiscover()">
+    <div class="discovery-modes row wrap" style="margin-top:14px">
+      <button class="chip selected" data-mode="affinity" onclick="setDiscoveryMode('affinity',this)">✦ Mes affinités</button>
+      <button class="chip" data-mode="detour" onclick="setDiscoveryMode('detour',this)">↗ Détours créatifs</button>
+      <button class="chip" data-mode="emerging" onclick="setDiscoveryMode('emerging',this)">◈ Talents émergents</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="row between wrap"><div><div class="eyebrow">Ta boussole</div><h3 class="h3">Les univers qui t'inspirent</h3></div><span class="small muted" id="discoveryStyleCount">0 / 5</span></div>
+    <p class="small muted">Choisis jusqu'à 5 univers. Tu pourras les modifier quand tu veux.</p>
+    <div id="creativeStylePicker" class="row wrap"></div>
+  </div>
+  <div class="card">
+    <div class="row between wrap"><h3 class="h3">Affiner l'exploration</h3><button class="chip" onclick="resetDiscoveryFilters()">Réinitialiser</button></div>
+    <div class="row wrap" id="discoverCategoryFilters">
+      <button class="chip selected" onclick="setDiscover('Tout',this)">Tout</button>
+      <button class="chip" onclick="setDiscover('Digital art',this)">Digital art</button>
+      <button class="chip" onclick="setDiscover('Fantasy',this)">Fantasy</button>
+      <button class="chip" onclick="setDiscover('Photo',this)">Photo</button>
+      <button class="chip" onclick="setDiscover('3D',this)">3D</button>
+    </div>
+  </div>
+  <div id="discoverIntro" class="small muted" style="margin:8px 2px 12px">Des créations choisies selon tes affinités, avec une place pour l'inattendu.</div>
   <div id="discoverResults"></div>
-  <div class="card"><h3 class="h3">Collections thématiques</h3><div class="grid"><button class="btn" onclick="toast('Collection ouverte en mode démonstration.')">🌌 Univers futuristes</button><button class="btn" onclick="toast('Collection ouverte en mode démonstration.')">🌿 Nature & rêves</button><button class="btn" onclick="toast('Collection ouverte en mode démonstration.')">🎨 Art abstrait</button><button class="btn" onclick="toast('Collection ouverte en mode démonstration.')">📷 Photographie</button></div></div>
 </section>
 <section class="screen" id="screen-create">
   <div class="card"><div class="eyebrow">Studio IA</div><h2 class="h1">Donne forme à ton idée.</h2><p class="muted">Ce prototype simule la création. Une vraie génération nécessitera une API IA et un budget contrôlé.</p>
@@ -208,6 +238,11 @@ const defaultPosts = [];
 let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:['luna.creative','noah.visuals','aya.studio','kai.3d'],ownStories:[],messages:[{who:'Luna Creative',text:'Salut ! J’aime beaucoup tes idées créatives ✨',mine:false}],groups:[],
 prefs:{likes:true,collections:true,online:true,dm:false,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
 let feedKind='all',discoverKind='Tout',currentChat='Luna Creative',customStories=[];
+let discoverMode='affinity';
+let creativeStyles=['Digital art','Fantasy'];
+let discoveryFeedback=[];
+let discoveryUserId=null;
+const creativeStyleOptions=['Digital art','Fantasy','Photo','3D','Anime','Peinture','Minimaliste','Architecture','Mode','Illustration'];
 function load(){try{let s=JSON.parse(localStorage.getItem('museaState')||'null');if(s)state={...state,...s,prefs:{...state.prefs,...s.prefs}}}catch(e){}}
 function save(){try{localStorage.setItem('museaState',JSON.stringify(state))}catch(e){}}
 function toast(msg){let el=document.getElementById('toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.add('hidden'),2800)}
@@ -419,34 +454,187 @@ async function toggleRepost(id){
   }catch(error){console.error(error);toast('Impossible de modifier le repost. '+(error.message||''));}
 }
 function translatePost(id){let p=defaultPosts.find(x=>x.id===id);let lang=document.getElementById('language')?.value||'Français';toast('Traduction IA simulée vers '+lang+' : la connexion au service de traduction reste à faire.');}
+async function loadDiscoverySettings(){
+  const localStyles=(()=>{try{return JSON.parse(localStorage.getItem('museaCreativeStyles')||'null')}catch(e){return null}})();
+  if(Array.isArray(localStyles)) creativeStyles=localStyles.filter(x=>creativeStyleOptions.includes(x)).slice(0,5);
+  const {data,error}=await museaSupabase.auth.getUser();
+  if(error) console.warn('Session découverte indisponible :',error);
+  const user=data?.user||null;
+  discoveryUserId=user?.id||null;
+  discoveryFeedback=[];
+  if(!user){renderCreativeStylePicker();return;}
+  const [prefResult,feedbackResult]=await Promise.all([
+    museaSupabase.from('creative_preferences').select('styles').eq('user_id',user.id).maybeSingle(),
+    museaSupabase.from('discovery_feedback').select('post_id,action').eq('user_id',user.id)
+  ]);
+  if(prefResult.error) console.warn('Préférences créatives indisponibles :',prefResult.error);
+  else if(prefResult.data?.styles) creativeStyles=prefResult.data.styles.filter(x=>creativeStyleOptions.includes(x)).slice(0,5);
+  if(feedbackResult.error) console.warn('Retours de découverte indisponibles :',feedbackResult.error);
+  else discoveryFeedback=feedbackResult.data||[];
+  localStorage.setItem('museaCreativeStyles',JSON.stringify(creativeStyles));
+  renderCreativeStylePicker();
+}
+function renderCreativeStylePicker(){
+  const target=document.getElementById('creativeStylePicker');
+  if(!target)return;
+  target.innerHTML=creativeStyleOptions.map(style=>`<button class="chip ${creativeStyles.includes(style)?'selected':''}" onclick="toggleCreativeStyle('${style}')">${creativeStyles.includes(style)?'✓ ':''}${style}</button>`).join('');
+  const count=document.getElementById('discoveryStyleCount');
+  if(count)count.textContent=creativeStyles.length+' / 5';
+}
+async function toggleCreativeStyle(style){
+  if(!creativeStyleOptions.includes(style))return;
+  const exists=creativeStyles.includes(style);
+  if(!exists&&creativeStyles.length>=5)return toast('Choisis au maximum 5 univers.');
+  creativeStyles=exists?creativeStyles.filter(x=>x!==style):[...creativeStyles,style];
+  localStorage.setItem('museaCreativeStyles',JSON.stringify(creativeStyles));
+  renderCreativeStylePicker();
+  if(discoveryUserId){
+    const {error}=await museaSupabase.from('creative_preferences').upsert({
+      user_id:discoveryUserId,styles:creativeStyles,updated_at:new Date().toISOString()
+    },{onConflict:'user_id'});
+    if(error){console.error(error);toast('Préférences gardées sur cet appareil, synchronisation indisponible.');}
+    else toast('Ta boussole créative est mise à jour.');
+  }else toast('Préférences gardées sur cet appareil. Connecte-toi pour les synchroniser.');
+  renderDiscover();
+}
+function setDiscoveryMode(mode,button){
+  discoverMode=mode;
+  document.querySelectorAll('.discovery-modes .chip').forEach(x=>x.classList.remove('selected'));
+  if(button)button.classList.add('selected');
+  renderDiscover();
+}
+function resetDiscoveryFilters(){
+  discoverKind='Tout';
+  document.querySelectorAll('#discoverCategoryFilters .chip').forEach((x,i)=>x.classList.toggle('selected',i===0));
+  const input=document.getElementById('searchInput');if(input)input.value='';
+  renderDiscover();
+}
+function stableDiscoveryNoise(id){
+  let hash=0;for(let i=0;i<id.length;i++)hash=(hash*31+id.charCodeAt(i))|0;
+  return (Math.abs(hash)%1000)/1000;
+}
+function discoveryRank(posts){
+  const history=posts.filter(p=>p.isLiked||p.isSaved||p.isReposted);
+  const styleWeights={};
+  history.forEach(p=>{styleWeights[p.style]=(styleWeights[p.style]||0)+(p.isSaved?3:0)+(p.isLiked?2:0)+(p.isReposted?2:0);});
+  const mutedStyles=new Set(discoveryFeedback.filter(x=>x.action==='less_like_this').map(x=>{
+    const p=posts.find(post=>post.id===x.post_id);return p?.style;
+  }).filter(Boolean));
+  const hidden=new Set(discoveryFeedback.filter(x=>x.action==='hide').map(x=>x.post_id));
+  const now=Date.now();
+  const scored=posts.filter(p=>!hidden.has(p.id)).map(p=>{
+    const style=p.style||'Création';
+    const preferenceMatch=creativeStyles.some(x=>style.toLowerCase().includes(x.toLowerCase()));
+    const historyAffinity=styleWeights[style]||0;
+    const interactions=(p.likesCount||0)+(p.commentsCount||0)*0.7+(p.repostsCount||0)*1.2;
+    const ageDays=Math.max(0,(now-new Date(p.created_at||now).getTime())/86400000);
+    const freshness=Math.max(0,1-ageDays/45);
+    const emerging=1/(1+Math.log1p(interactions));
+    const relevance= (preferenceMatch?4.5:0)+historyAffinity*1.25;
+    const mutedPenalty=mutedStyles.has(style)?3.5:0;
+    const popularity=Math.log1p(interactions);
+    let score=0,reason='Une nouvelle piste à explorer';
+    if(discoverMode==='affinity'){
+      score=relevance+freshness*1.6+emerging*1.2+popularity*0.25-mutedPenalty;
+      reason=preferenceMatch||historyAffinity?'Dans ton univers':'Une affinité à découvrir';
+    }else if(discoverMode==='detour'){
+      score=(preferenceMatch?-2.5:2.2)+freshness*1.2+emerging*1.1+stableDiscoveryNoise(p.id)*0.7-mutedPenalty;
+      reason=preferenceMatch?'Un détour hors de tes habitudes':'Un autre regard créatif';
+    }else{
+      score=emerging*4+freshness*1.4+Math.min(interactions,3)*0.15+stableDiscoveryNoise(p.id)*0.25-mutedPenalty;
+      reason='Créateur à découvrir';
+    }
+    return {...p,_discoveryScore:score,_discoveryReason:reason};
+  }).sort((a,b)=>b._discoveryScore-a._discoveryScore);
+  const output=[],remaining=[...scored];
+  while(remaining.length){
+    let bestIndex=0,bestScore=-Infinity;
+    for(let i=0;i<Math.min(remaining.length,12);i++){
+      const candidate=remaining[i];
+      const last=output.slice(-2);
+      const repeatStyle=last.some(x=>x.style===candidate.style);
+      const repeatCreator=last.some(x=>x.user===candidate.user);
+      const adjusted=candidate._discoveryScore-(repeatStyle?2.2:0)-(repeatCreator?1.4:0);
+      if(adjusted>bestScore){bestScore=adjusted;bestIndex=i;}
+    }
+    output.push(remaining.splice(bestIndex,1)[0]);
+  }
+  return output;
+}
+function discoveryPostMarkup(post){
+  const reason=escapeHtml(post._discoveryReason||'À découvrir');
+  return `<div class="discovery-result">
+    <div class="discovery-reason"><span>✦</span><span>${reason}</span></div>
+    ${postMarkup(post)}
+    <div class="discovery-feedback">
+      <button class="chip" onclick="setDiscoveryFeedback('${post.id}','less_like_this')">Moins de créations comme celle-ci</button>
+      <button class="chip" onclick="setDiscoveryFeedback('${post.id}','hide')">Ne plus afficher</button>
+    </div>
+  </div>`;
+}
+async function setDiscoveryFeedback(postId,action){
+  const previous=discoveryFeedback.find(x=>x.post_id===postId);
+  discoveryFeedback=discoveryFeedback.filter(x=>x.post_id!==postId);
+  if(action==='less_like_this')discoveryFeedback.push({post_id:postId,action});
+  if(discoveryUserId){
+    try{
+      if(action==='hide'||action==='less_like_this'){
+        const {error}=await museaSupabase.from('discovery_feedback').upsert({
+          user_id:discoveryUserId,post_id:postId,action
+        },{onConflict:'user_id,post_id'});
+        if(error)throw error;
+      }
+    }catch(error){
+      console.error(error);
+      if(previous)discoveryFeedback.push(previous);
+      toast('Ton réglage n’a pas pu être synchronisé.');
+      return;
+    }
+  }else{
+    const local=(()=>{try{return JSON.parse(localStorage.getItem('museaDiscoveryFeedback')||'[]')}catch(e){return []}})();
+    const next=local.filter(x=>x.post_id!==postId);
+    next.push({post_id:postId,action});
+    localStorage.setItem('museaDiscoveryFeedback',JSON.stringify(next));
+    discoveryFeedback=next;
+  }
+  toast(action==='hide'?'Cette création ne sera plus proposée.':'Nous allons réduire les créations de ce style.');
+  renderDiscover();
+}
 async function renderDiscover(){
-  const container = document.getElementById('discoverResults');
-  if(!container) return;
-  const q = (document.getElementById('searchInput')?.value||'').trim().toLowerCase();
-  container.innerHTML = '<p class="muted small">Recherche dans les créations publiques...</p>';
-
+  const container=document.getElementById('discoverResults');
+  if(!container)return;
+  const q=(document.getElementById('searchInput')?.value||'').trim().toLowerCase();
+  container.innerHTML='<p class="muted small">La boussole explore les créations publiques…</p>';
   try{
     await loadCommunityPosts();
-    const list = communityPosts.filter(post=>{
-      const categoryMatch = discoverKind==='Tout'
-        || (discoverKind==='Digital art' && post.kind==='art')
-        || (discoverKind==='Fantasy' && post.kind==='fantasy')
-        || (discoverKind==='Photo' && post.kind==='photo')
-        || (discoverKind==='3D' && post.style.toLowerCase().includes('3d'));
-      const textMatch = !q || [post.user,post.title,post.desc,post.style,post.tag]
-        .join(' ').toLowerCase().includes(q);
-      return categoryMatch && textMatch;
+    await loadDiscoverySettings();
+    const categoryFiltered=communityPosts.filter(post=>{
+      const categoryMatch=discoverKind==='Tout'
+        ||(discoverKind==='Digital art'&&post.kind==='art')
+        ||(discoverKind==='Fantasy'&&post.kind==='fantasy')
+        ||(discoverKind==='Photo'&&post.kind==='photo')
+        ||(discoverKind==='3D'&&post.style.toLowerCase().includes('3d'));
+      const textMatch=!q||[post.user,post.title,post.desc,post.style,post.tag].join(' ').toLowerCase().includes(q);
+      return categoryMatch&&textMatch;
     });
-
-    container.innerHTML = list.length
-      ? list.map(postMarkup).join('')
-      : '<div class="card"><h3 class="h3">Pas encore de résultat.</h3><p class="muted small">Essaie un autre mot-clé ou une autre catégorie. Les nouvelles créations publiques apparaîtront ici automatiquement.</p></div>';
+    const localFeedback=(()=>{try{return JSON.parse(localStorage.getItem('museaDiscoveryFeedback')||'[]')}catch(e){return []}})();
+    if(!discoveryUserId)discoveryFeedback=localFeedback;
+    const ranked=discoveryRank(categoryFiltered);
+    const intro=document.getElementById('discoverIntro');
+    if(intro)intro.textContent=discoverMode==='affinity'
+      ?'Un mélange de créations proches de tes goûts et de nouvelles affinités. Les interactions comptent, mais la popularité reste secondaire.'
+      :discoverMode==='detour'
+      ?'Sors de tes habitudes : découvre des styles différents, sans partir complètement au hasard.'
+      :'Des créations récentes et moins exposées ont ici davantage de place pour émerger.';
+    container.innerHTML=ranked.length
+      ?ranked.map(discoveryPostMarkup).join('')
+      :'<div class="card"><h3 class="h3">Un espace encore à explorer.</h3><p class="muted small">Aucune création ne correspond à ces filtres. Essaie un autre univers ou réinitialise tes préférences.</p><button class="btn" onclick="resetDiscoveryFilters()">Réinitialiser les filtres</button></div>';
   }catch(error){
-    console.error('Recherche Explorer impossible :',error);
-    container.innerHTML = '<div class="card"><strong>La découverte est momentanément indisponible.</strong><p class="muted small">Vérifie ta connexion puis réessaie.</p><button class="btn" onclick="renderDiscover()">Réessayer</button></div>';
+    console.error('Découverte intelligente indisponible :',error);
+    container.innerHTML='<div class="card"><strong>La découverte est momentanément indisponible.</strong><p class="muted small">Vérifie ta connexion puis réessaie.</p><button class="btn" onclick="renderDiscover()">Réessayer</button></div>';
   }
 }
-function setDiscover(k,b){discoverKind=k;document.querySelectorAll('#screen-discover .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderDiscover()}
+function setDiscover(k,b){discoverKind=k;document.querySelectorAll('#discoverCategoryFilters .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderDiscover()}
 function renderStories(){let names=[...state.stories,...state.ownStories];let html=names.map((s,i)=>`<button class="story" style="border:0;background:transparent;color:var(--ink)" onclick="viewStory('${escapeHtml(s)}')"><div class="story-ring"><div>${s==='Ta story'?'＋':escapeHtml(s[0].toUpperCase())}</div></div>${escapeHtml(s)}</button>`).join('');document.getElementById('storyRow').innerHTML=html;let all=document.getElementById('allStories');if(all)all.innerHTML=html}
 function viewStory(s){toast('Story de '+s+' — contenu fictif dans cette démo.')}
 function addStory(){let s=document.getElementById('storyText').value.trim();if(!s)return toast('Ajoute un texte pour ta story.');state.ownStories.unshift('Ta story');state.points+=2;save();document.getElementById('storyText').value='';renderStories();toast('Story ajoutée localement. Pas de téléversement réel.')}
