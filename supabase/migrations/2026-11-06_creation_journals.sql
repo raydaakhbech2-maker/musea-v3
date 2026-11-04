@@ -74,3 +74,18 @@ $$;
 
 revoke all on function public.musea_save_creation_journal(uuid,text,text,text) from public,anon;
 grant execute on function public.musea_save_creation_journal(uuid,text,text,text) to authenticated;
+
+create or replace function public.musea_delete_creation_journal(p_post_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if (select auth.uid()) is null then raise exception 'Authentication required'; end if;
+  delete from public.post_creation_journals
+  where post_id=p_post_id and author_id=(select auth.uid());
+end;
+$$;
+revoke all on function public.musea_delete_creation_journal(uuid) from public,anon;
+grant execute on function public.musea_delete_creation_journal(uuid) to authenticated;
