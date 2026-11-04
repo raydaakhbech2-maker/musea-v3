@@ -1206,7 +1206,7 @@ async function reportConversation(){
   });
   if(error)return toast(error.code==='23505'?'Tu as déjà signalé ce participant dans cette conversation.':'Signalement non enregistré : '+error.message);
   document.getElementById('messageReportDetails').value='';
-  toast('Signalement enregistré de façon privée. Une équipe de modération devra l’examiner.');
+  toast('Signalement enregistré de façon privée. Une interface de modération devra être mise en place avant le lancement public.');
 }
 async function refreshMessageWorkspace(){
   await loadMessageWorkspace();
