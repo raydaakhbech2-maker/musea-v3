@@ -400,6 +400,7 @@ body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibi
 .studio-ai-translate{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:9px}
 .studio-ai-translate .label{grid-column:1/-1;margin-bottom:-4px}
 .studio-ai-result{margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
+.studio-ai-edit{margin:12px 0}.studio-ai-edit .btn{margin-top:8px}
 .studio-ai-result[hidden]{display:none}
 @media(max-width:430px){.studio-ai-translate{grid-template-columns:1fr}.studio-ai-actions{grid-template-columns:1fr}.studio-ai-actions button:last-child{grid-column:auto}}
 
@@ -587,6 +588,11 @@ window.museaSupabase = window.supabase.createClient(
           <button class="btn" type="button" data-ai-action onclick="museaStudioAI('caption')">Proposer une légende</button>
           <button class="btn primary" type="button" data-ai-action onclick="museaStudioAI('generate_image')">Générer un visuel</button>
         </div>
+        <div class="studio-ai-edit">
+          <label class="label" for="studioAiEditPrompt">Transformer mon visuel avec une consigne</label>
+          <textarea class="field" id="studioAiEditPrompt" rows="2" maxlength="500" placeholder="Ex. : remplace l’arrière-plan par un jardin futuriste au coucher du soleil…"></textarea>
+          <button class="btn" type="button" data-ai-action onclick="museaStudioAI('edit_image')">Transformer mon visuel</button>
+        </div>
         <div class="studio-ai-translate">
           <label class="label" for="studioAiLanguage">Traduire mon texte vers</label>
           <select class="field" id="studioAiLanguage"><option>English</option><option>Français</option><option>Español</option><option>العربية</option><option>中文</option><option>日本語</option><option>Deutsch</option><option>Português</option></select>
@@ -598,7 +604,7 @@ window.museaSupabase = window.supabase.createClient(
           <textarea class="field" id="studioAiTextResult" rows="5" maxlength="5000"></textarea>
           <div class="row wrap"><button class="btn" type="button" onclick="studioApplyAIText('brief')">Utiliser dans mon brief</button><button class="btn primary" type="button" onclick="studioApplyAIText('caption')">Utiliser comme légende</button></div>
         </div>
-        <p class="small muted">Les générations sont soumises à une limite quotidienne pour maîtriser les coûts. Rien n'est publié automatiquement.</p>
+        <p class="small muted">Les générations et retouches sont soumises à une limite quotidienne. Le visuel et la consigne sont transmis au fournisseur IA ; vérifie que tu peux partager cette image. Rien n'est publié automatiquement.</p>
       </section>
       <div class="card">
         <div class="row between wrap"><div><div class="eyebrow">02 / MATIÈRE</div><h3 class="h3">Ton visuel</h3></div><span class="small muted">Jusqu'à 5 Mo</span></div>
@@ -3146,11 +3152,15 @@ async function translateDemo(){
     if(output)output.textContent=error.message||'Traduction indisponible.';
   }finally{if(button)button.disabled=false;}
 }
-async function museaAIRequest(action,prompt,language='',style=''){
+async function museaAIRequest(action,prompt,language='',style='',imageDataUrl=''){
   const {data:userData,error:userError}=await museaSupabase.auth.getUser();
   if(userError||!userData?.user)throw new Error('Connecte-toi pour utiliser MUSEA IA.');
-  const {data,error}=await museaSupabase.functions.invoke('musea-ai',{body:{action,prompt,language,style}});
-  if(error)throw new Error(data?.error||error.message||'Service IA indisponible.');
+  const {data,error}=await museaSupabase.functions.invoke('musea-ai',{body:{action,prompt,language,style,image_data_url:imageDataUrl}});
+  if(error){
+    let message=data?.error;
+    if(!message&&error.context?.json){try{message=(await error.context.json())?.error;}catch(_){/* réponse déjà consommée */}}
+    throw new Error(message||error.message||'Service IA indisponible.');
+  }
   if(data?.error)throw new Error(data.error);
   return data;
 }
@@ -3160,11 +3170,15 @@ async function museaStudioAI(action){
   const title=(document.getElementById('studioTitle')?.value||'').trim();
   const style=document.getElementById('artStyle')?.value||'Digital art';
   const language=document.getElementById('studioAiLanguage')?.value||'English';
+  const editPrompt=(document.getElementById('studioAiEditPrompt')?.value||'').trim();
   const prompt=action==='caption'
     ?[brief,caption,title].filter(Boolean).join('\n\n')
-    :action==='translate'?(caption||brief):([brief,title].filter(Boolean).join('\n\n'));
-  if(prompt.length<3)return toast('Ajoute d’abord une intention ou un texte dans ton projet.');
-  if(action==='generate_image'&&studioImage&&!confirm('Remplacer le visuel actuel par une nouvelle création IA ?'))return;
+    :action==='translate'?(caption||brief)
+    :action==='edit_image'?editPrompt
+    :([brief,title].filter(Boolean).join('\n\n'));
+  if(prompt.length<3)return toast(action==='edit_image'?'Décris la transformation souhaitée.':'Ajoute d’abord une intention ou un texte dans ton projet.');
+  if(action==='edit_image'&&!studioImage)return toast('Ajoute d’abord une image à ton atelier.');
+  if((action==='generate_image'||action==='edit_image')&&studioImage&&!confirm('Remplacer le visuel actuel par le résultat IA ?'))return;
   const status=document.getElementById('studioAiStatus');
   const resultBox=document.getElementById('studioAiResult');
   const buttons=[...document.querySelectorAll('[data-ai-action]')];
@@ -3172,8 +3186,19 @@ async function museaStudioAI(action){
   if(status)status.textContent=action==='generate_image'?'MUSEA imagine ton visuel…':'MUSEA prépare sa proposition…';
   if(resultBox)resultBox.hidden=true;
   try{
-    const data=await museaAIRequest(action,prompt,language,style);
-    if(action==='generate_image'){
+    let imageDataUrl='';
+    if(action==='edit_image'){
+      const sourceBlob=await studioExportBlob();
+      if(!sourceBlob)throw new Error('Impossible de préparer le visuel à transformer.');
+      imageDataUrl=await new Promise((resolve,reject)=>{
+        const reader=new FileReader();
+        reader.onload=()=>resolve(String(reader.result||''));
+        reader.onerror=()=>reject(new Error('Lecture du visuel impossible.'));
+        reader.readAsDataURL(sourceBlob);
+      });
+    }
+    const data=await museaAIRequest(action,prompt,language,style,imageDataUrl);
+    if(action==='generate_image'||action==='edit_image'){
       const binary=atob(data.image_base64||'');
       const bytes=new Uint8Array(binary.length);
       for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
