@@ -405,6 +405,12 @@ window.museaSupabase = window.supabase.createClient(
     </div>
   </div>
 </section>
+<section class="screen" id="screen-moderation">
+  <div class="row between wrap"><div><div class="eyebrow">MUSEA / CONFIANCE</div><h1 class="h1">File de modération</h1></div><button class="btn" onclick="loadModerationQueue()">Actualiser</button></div>
+  <div class="notice" style="margin-bottom:14px">Les signalements sont confidentiels. Leur présence dans cette file ne signifie pas qu'une infraction est établie : chaque cas doit être examiné avec son contexte.</div>
+  <div id="moderationSummary" class="row wrap" style="margin-bottom:12px"></div>
+  <div id="moderationQueue"><div class="card muted">Chargement de la file…</div></div>
+</section>
 <section class="screen" id="screen-notifications">
   <div class="row between"><div><div class="eyebrow">Ton espace personnel</div><h2 class="h1">Notifications</h2></div><button class="btn" onclick="markRead()">Tout lire</button></div>
   <div class="row wrap notification-filters">
@@ -498,6 +504,7 @@ window.museaSupabase = window.supabase.createClient(
   <div class="switchrow"><span>Autoriser les invitations aux ateliers collectifs</span><input type="checkbox" id="prefProjectInvites" checked onchange="savePrefs()"></div>
   <div class="switchrow"><span>Profil privé</span><input type="checkbox" id="prefPrivate" onchange="savePrefs()"></div>
   </div>
+  <div class="card" id="moderationAccessCard" hidden><div class="eyebrow">ESPACE CONFIDENTIEL</div><h3 class="h3">Modération MUSEA</h3><p class="small muted">Accès réservé aux comptes auxquels un rôle de modération a été attribué côté serveur.</p><button class="btn primary" onclick="navigate('moderation')">Ouvrir la file de confiance</button></div>
   <div class="card"><h3 class="h3">Langue</h3><select class="field" id="language"><option>Français</option><option>English</option><option>Español</option><option>العربية</option><option>中文</option><option>日本語</option><option>Deutsch</option><option>Português</option></select><p class="muted small">L'interface complète et la traduction IA seront intégrées dans une future version.</p><button class="btn" onclick="translateDemo()">Traduire un texte de démonstration</button><div id="translationResult" class="notice hidden" style="margin-top:10px"></div></div>
   <div class="card"><h3 class="h3">Sécurité</h3><div class="switchrow"><span>Filtrage de contenu sensible (concept)</span><input type="checkbox" checked></div><div class="switchrow"><span>Masquer les contenus signalés</span><input type="checkbox" checked></div><p class="small muted">La vraie version nécessitera signalement, blocage, modération humaine et automatisée, export/suppression des données et protections anti-abus.</p><button class="btn danger full" onclick="if(confirm('Réinitialiser les données locales du prototype ?')){localStorage.removeItem('museaState');location.reload()}">Réinitialiser la démo</button></div>
 </section>
@@ -519,6 +526,14 @@ window.museaSupabase = window.supabase.createClient(
 <button data-go="messages" onclick="navigate('messages')"><b aria-hidden="true">▤</b><span>Messages</span></button>
 </nav>
 <div id="toast" class="toast hidden" role="status"></div>
+<div id="contentReportModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="contentReportTitle">
+  <div class="modalbox"><div class="row between"><div><div class="eyebrow">PROTÉGER LA COMMUNAUTÉ</div><h2 class="h2" id="contentReportTitle">Signaler une création</h2></div><button class="iconbtn" onclick="closeContentReport()" aria-label="Fermer">✕</button></div>
+  <p class="small muted">Ton signalement reste privé. Il sera examiné par l'équipe de modération si celle-ci est opérationnelle.</p>
+  <label class="label" for="contentReportReason">Motif</label><select class="field" id="contentReportReason"><option value="harassment">Harcèlement ou intimidation</option><option value="hate">Propos haineux</option><option value="sexual">Contenu sexuel inapproprié</option><option value="violence">Contenu violent</option><option value="spam">Spam ou arnaque</option><option value="copyright">Droits d'auteur</option><option value="privacy">Atteinte à la vie privée</option><option value="other">Autre</option></select>
+  <label class="label" for="contentReportDetails">Contexte utile (facultatif)</label><textarea class="field" id="contentReportDetails" rows="3" maxlength="500" placeholder="Explique brièvement ce qui te semble problématique."></textarea>
+  <div class="row wrap" style="justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeContentReport()">Annuler</button><button class="btn primary" onclick="submitContentReport()">Envoyer le signalement</button></div>
+  </div>
+</div>
 <div id="planModal" class="modal hidden"><div class="modalbox"><div class="row between"><div><div class="eyebrow">Bienvenue sur MUSEA</div><h2 class="h1">Choisis ton expérience.</h2></div><button class="iconbtn" onclick="closePlans()">✕</button></div><p class="muted">Tu pourras modifier ton choix ensuite. Aucun paiement ne sera prélevé dans ce prototype.</p><div class="grid"><div class="card" style="margin:0"><span class="chip">GRATUIT</span><h3 class="h3" style="margin-top:12px">Découvrir</h3><div class="price">0 €</div><p class="small muted">Pour commencer et tester la communauté.</p><ul class="small"><li>Fil et profil</li><li>Crédits IA limités</li><li>Likes, commentaires, collections</li><li>Stories et messages de base</li></ul><button class="btn full" onclick="choosePlan('free')">Choisir Gratuit</button></div><div class="card" style="margin:0;border:2px solid var(--accent)"><span class="chip selected">PREMIUM</span><h3 class="h3" style="margin-top:12px">Créer plus</h3><div class="price">5,99 €<span style="font-size:13px;font-weight:600">/mois</span></div><p class="small muted">Prix cible à tester, pas un paiement réel.</p><ul class="small"><li>Plus de crédits IA, avec plafond</li><li>Thèmes exclusifs et options de profil</li><li>Collections avancées</li><li>Outils créatifs supplémentaires</li><li>Éligibilité possible à la vérification</li></ul><button class="btn primary full" onclick="choosePlan('premium')">Choisir Premium</button></div></div><p class="small muted" style="margin-top:14px">Le prix devra être validé avec les coûts d'IA, les commissions des stores, la TVA, l'hébergement et les tests utilisateurs. Aucun abonnement n'est encore vendu.</p></div></div>
 <script>
 const defaultPosts = [];
@@ -535,7 +550,7 @@ function save(){try{localStorage.setItem('museaState',JSON.stringify(state))}cat
 function toast(msg){let el=document.getElementById('toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.add('hidden'),2800)}
 function setTheme(t){state.theme=t;save();applyTheme();toast('Apparence mise à jour.')}
 function applyTheme(){let t=state.theme;if(t==='system')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]').content=t==='dark'?'#171522':'#f8f6f2'}
-function navigate(name){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));let el=document.getElementById('screen-'+name);if(!el){name='home';el=document.getElementById('screen-home')}el.classList.add('active');document.querySelectorAll('.bottom button').forEach(b=>{const active=b.dataset.go===name;b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});if(name==='home')renderFeed();if(name==='discover')renderDiscover();if(name==='trends')renderLeaderboard();if(name==='messages')renderMessages();if(name==='notifications')renderNotifications();if(name==='profile')renderProfile();if(name==='stories')renderStories();if(name==='rewards')renderRewards();window.scrollTo({top:0,behavior:'smooth'});}
+function navigate(name){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));let el=document.getElementById('screen-'+name);if(!el){name='home';el=document.getElementById('screen-home')}el.classList.add('active');document.querySelectorAll('.bottom button').forEach(b=>{const active=b.dataset.go===name;b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});if(name==='home')renderFeed();if(name==='discover')renderDiscover();if(name==='trends')renderLeaderboard();if(name==='messages')renderMessages();if(name==='notifications')renderNotifications();if(name==='moderation')renderModeration();if(name==='profile')renderProfile();if(name==='stories')renderStories();if(name==='rewards')renderRewards();window.scrollTo({top:0,behavior:'smooth'});}
 function choosePlan(p){state.plan=p;save();document.getElementById('planModal').classList.add('hidden');updatePlan();toast(p==='premium'?'Premium activé en mode démo. Aucun paiement effectué.':'Offre gratuite sélectionnée.');}
 function showPlans(){document.getElementById('planModal').classList.remove('hidden')}
 function closePlans(){document.getElementById('planModal').classList.add('hidden')}
@@ -568,7 +583,7 @@ function postMarkup(p){
         <div class="small muted">${escapeHtml(p.style||'Création')} · ${escapeHtml(p.tag||'#MaCreation')}</div>
         <time class="small muted" datetime="${escapeHtml(p.created_at||'')}">${escapeHtml(postDateLabel(p.created_at))}</time>
       </div>
-      <button class="iconbtn" aria-label="Options de publication" title="Options de publication" onclick="toast('Les outils de signalement et de gestion seront ajoutés dans une étape dédiée.')">•••</button>
+      <button class="iconbtn" aria-label="Signaler cette création" title="Signaler cette création" onclick="openContentReport('${escapeHtml(id)}')">•••</button>
     </div>
     ${artMarkup(p)}
     <div class="post-title">${escapeHtml(p.title||'Création')}</div>
@@ -2058,6 +2073,79 @@ function openWeb(){let raw=document.getElementById('urlInput').value.trim();if(!
 function bookmarkCurrent(){let u=state.lastUrl||document.getElementById('urlInput').value.trim();if(!u)return toast('Ouvre d’abord une page.');state.bookmarks=state.bookmarks||[];if(!state.bookmarks.includes(u))state.bookmarks.push(u);save();renderBookmarks();toast('Favori enregistré localement.')}
 function renderBookmarks(){let b=document.getElementById('bookmarks');if(!b)return;b.innerHTML=(state.bookmarks||[]).map(u=>`<button class="chip" onclick="quickWeb('${escapeHtml(u)}')">${escapeHtml(new URL(u).hostname)}</button>`).join('')||'<span class="small muted">Aucun favori pour le moment.</span>'}
 function translateDemo(){let lang=document.getElementById('language').value;let el=document.getElementById('translationResult');el.classList.remove('hidden');el.textContent='Simulation : le texte serait traduit en '+lang+' par un service IA. Aucune traduction externe n’a été effectuée.'}
+
+let pendingContentReportPostId=null;
+function openContentReport(postId){
+  pendingContentReportPostId=postId;
+  const modal=document.getElementById('contentReportModal');
+  if(modal)modal.classList.remove('hidden');
+}
+function closeContentReport(){
+  pendingContentReportPostId=null;
+  document.getElementById('contentReportModal')?.classList.add('hidden');
+}
+async function submitContentReport(){
+  const postId=pendingContentReportPostId;
+  if(!postId)return toast('Aucune création sélectionnée.');
+  const {data:userData}=await museaSupabase.auth.getUser();
+  if(!userData?.user)return toast('Connecte-toi pour envoyer un signalement.');
+  const reason=document.getElementById('contentReportReason')?.value||'other';
+  const details=document.getElementById('contentReportDetails')?.value.trim()||'';
+  const {error}=await museaSupabase.from('content_reports').insert({
+    reporter_id:userData.user.id,target_type:'post',target_id:postId,reason,details
+  });
+  if(error)return toast(error.code==='23505'?'Tu as déjà signalé cette création.':'Signalement non enregistré : '+error.message);
+  document.getElementById('contentReportDetails').value='';
+  closeContentReport();
+  toast('Signalement transmis de façon confidentielle. Merci de contribuer à un espace plus sûr.');
+}
+function isMuseaModerator(user){
+  const role=user?.app_metadata?.role;
+  return role==='moderator'||role==='admin';
+}
+async function renderModeration(){
+  const {data}=await museaSupabase.auth.getUser();
+  if(!isMuseaModerator(data?.user)){
+    navigate('settings');
+    toast('Cet espace est réservé à l’équipe de modération.');
+    return;
+  }
+  await loadModerationQueue();
+}
+async function loadModerationQueue(){
+  const host=document.getElementById('moderationQueue');
+  if(!host)return;
+  const {data:userData}=await museaSupabase.auth.getUser();
+  if(!isMuseaModerator(userData?.user)){
+    host.innerHTML='<div class="notice">Accès réservé à l’équipe autorisée.</div>';
+    return;
+  }
+  host.innerHTML='<div class="card muted">Mise à jour de la file…</div>';
+  const {data,error}=await museaSupabase.rpc('musea_moderation_queue');
+  if(error){
+    host.innerHTML='<div class="notice">La file n’est pas disponible. Vérifie que la migration de modération a été appliquée et que ton rôle est bien attribué côté serveur.</div>';
+    console.warn('Moderation queue:',error);
+    return;
+  }
+  const rows=Array.isArray(data)?data:[];
+  const open=rows.filter(r=>r.status==='received'||r.status==='reviewing').length;
+  const summary=document.getElementById('moderationSummary');
+  if(summary)summary.innerHTML='<div class="stat"><strong>'+rows.length+'</strong><span class="small muted">Signalements visibles</span></div><div class="stat"><strong>'+open+'</strong><span class="small muted">À traiter</span></div><div class="stat"><strong>'+rows.filter(r=>r.status==='resolved'||r.status==='dismissed').length+'</strong><span class="small muted">Clôturés</span></div>';
+  if(!rows.length){host.innerHTML='<div class="card"><h3 class="h3">La file est calme.</h3><p class="muted">Aucun signalement ne nécessite actuellement ton attention.</p></div>';return;}
+  host.innerHTML=rows.map(r=>{
+    const statusLabel={received:'Reçu',reviewing:'En examen',resolved:'Résolu',dismissed:'Non retenu'}[r.status]||r.status;
+    const typeLabel=r.report_kind==='conversation'?'Comportement en conversation':'Contenu publié';
+    return '<article class="card"><div class="row between wrap"><span class="chip">'+escapeHtml(typeLabel)+'</span><span class="chip">'+escapeHtml(statusLabel)+'</span></div><h3 class="h3" style="margin-top:10px">'+escapeHtml(r.reason_label||r.reason||'Signalement')+'</h3><p class="small muted">'+escapeHtml(r.target_label||'Élément signalé')+' · '+escapeHtml(r.created_at?new Date(r.created_at).toLocaleString('fr-FR'):'Date inconnue')+'</p><p>'+escapeHtml(r.details||'Aucun détail fourni.')+'</p>'+(r.context_excerpt?'<div class="notice">'+escapeHtml(r.context_excerpt)+'</div>':'')+'<div class="row wrap" style="margin-top:12px">'+(r.status!=='reviewing'?'<button class="btn" onclick="reviewModerationReport(\''+escapeHtml(r.report_kind)+'\',\''+escapeHtml(r.report_id)+'\',\'reviewing\')">Prendre en charge</button>':'')+(r.status!=='resolved'?'<button class="btn primary" onclick="reviewModerationReport(\''+escapeHtml(r.report_kind)+'\',\''+escapeHtml(r.report_id)+'\',\'resolved\')">Résolu</button>':'')+(r.status!=='dismissed'?'<button class="btn" onclick="reviewModerationReport(\''+escapeHtml(r.report_kind)+'\',\''+escapeHtml(r.report_id)+'\',\'dismissed\')">Non retenu</button>':'')+'</div></article>';
+  }).join('');
+}
+async function reviewModerationReport(kind,id,status){
+  const note=prompt('Note interne facultative (non visible par le membre) :','');
+  if(note===null)return;
+  const {error}=await museaSupabase.rpc('musea_review_report',{p_report_kind:kind,p_report_id:id,p_status:status,p_note:note});
+  if(error)return toast('Mise à jour refusée : '+error.message);
+  toast('Dossier mis à jour.');
+  await loadModerationQueue();
+}
 function init(){load();applyTheme();updatePlan();const dailyPrompt=document.getElementById('dailyPromptText');if(dailyPrompt)dailyPrompt.textContent=getDailyCreativePrompt();renderFeed();renderDiscover();renderLeaderboard();renderMessages();renderNotifications();renderProfile();renderBookmarks();if(!state.plan)showPlans();if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(state.theme==='system')applyTheme()})}
 async function museaMessage(text) {
   document.getElementById('authMessage').textContent = text;
@@ -2125,6 +2213,8 @@ async function museaRefreshAccount() {
 
   document.getElementById('authLogout')
     .classList.toggle('hidden', !user);
+  const moderationAccess=document.getElementById('moderationAccessCard');
+  if(moderationAccess)moderationAccess.hidden=!isMuseaModerator(user);
 
   if (!user) {
     await stopMessageRealtime();
