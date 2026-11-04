@@ -60,6 +60,14 @@ La découverte propose trois équilibres (Mes repères, Équilibré, Surprise), 
 
 La migration `2026-11-04_discovery_controls.sql` ajoute les réglages à `creative_preferences`. Les préférences sont privées via les politiques RLS existantes ; en cas de migration non appliquée, les réglages locaux restent disponibles sur l'appareil, sans prétendre être synchronisés.
 
+## Courants créatifs — tendances fondées sur les publications réelles
+
+L'écran Tendances ne présente plus de classement individuel fictif. Il calcule des courants par style à partir des publications publiques réellement chargées, avec trois périodes (7 jours, 30 jours, publications récentes). Les courants sont ordonnés d'abord par nombre de créations, puis par diversité de créateurs ; le nombre d'interactions est affiché comme contexte et ne décide pas seul de l'ordre.
+
+Une sélection « Des créations à rencontrer » fait ressortir des publications ayant peu d'interactions. Aucun profil ou engagement fictif n'est généré et aucun point n'est attribué par cet écran. Les tendances sont limitées aux 100 dernières publications publiques accessibles via le chargement communautaire : elles ne prétendent pas représenter l'intégralité de la plateforme.
+
+Les points, le classement de récompenses et les avantages restent des prototypes locaux non synchronisés ; ils ne doivent pas être présentés comme un programme de fidélité opérationnel.
+
 ## Pulse créateur — retour privé sur les créations
 
 Le profil personnel affiche un tableau de bord privé calculé à partir des publications publiques du compte et des interactions réellement enregistrées : likes, commentaires et reposts. Il met en avant le volume de créations, l'activité récente sur 7 jours et la publication qui suscite le plus d'interactions.
