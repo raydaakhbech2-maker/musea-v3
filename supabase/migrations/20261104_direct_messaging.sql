@@ -79,7 +79,9 @@ create policy "Users can unblock others"
 on public.direct_message_blocks for delete to authenticated
 using (auth.uid() = blocker_id);
 
-grant select, insert, delete on public.direct_message_blocks to authenticated;
+revoke insert on public.direct_message_blocks from authenticated;
+grant select, delete on public.direct_message_blocks to authenticated;
+grant insert (blocker_id, blocked_id) on public.direct_message_blocks to authenticated;
 grant update (allow_messages) on public.profiles to authenticated;
 
 drop policy if exists "Users can update their own messaging preference" on public.profiles;
@@ -125,6 +127,7 @@ create policy "Participants can send as themselves"
 on public.direct_messages for insert to authenticated
 with check (
   auth.uid() = sender_id
+  and read_at is null
   and exists (
     select 1 from public.direct_conversations c
     where c.id = conversation_id
@@ -165,8 +168,12 @@ with check (
   )
 );
 
-grant select, insert on public.direct_conversations to authenticated;
-grant select, insert on public.direct_messages to authenticated;
+revoke insert on public.direct_conversations from authenticated;
+grant select on public.direct_conversations to authenticated;
+grant insert (user_one, user_two) on public.direct_conversations to authenticated;
+revoke insert on public.direct_messages from authenticated;
+grant select on public.direct_messages to authenticated;
+grant insert (conversation_id, sender_id, content) on public.direct_messages to authenticated;
 grant update (read_at) on public.direct_messages to authenticated;
 
 do $$
@@ -179,6 +186,14 @@ begin
         and tablename = 'direct_messages'
     ) then
       alter publication supabase_realtime add table public.direct_messages;
+    end if;
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime'
+        and schemaname = 'public'
+        and tablename = 'direct_message_blocks'
+    ) then
+      alter publication supabase_realtime add table public.direct_message_blocks;
     end if;
   end if;
 end $$;
