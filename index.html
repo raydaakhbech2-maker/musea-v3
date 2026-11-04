@@ -10,7 +10,7 @@
 <style>
 :root{--bg:#f6f5fb;--card:#fff;--ink:#211d32;--muted:#777286;--line:#e7e3f0;--accent:#8d7cf6;--accent2:#eae6ff;--nav:#fff;--good:#267b55;--danger:#b34454;--shadow:0 8px 28px #211d320c}
 [data-theme="dark"]{--bg:#12111a;--card:#1d1b28;--ink:#f4f1ff;--muted:#aaa4bc;--line:#363143;--accent:#a99aff;--accent2:#302a4b;--nav:#191724;--good:#75d5a7;--danger:#ff8b9a;--shadow:0 8px 28px #0003;color-scheme:dark}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;transition:background .2s,color .2s}button,input,textarea,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}a{color:var(--accent)}.app{max-width:1180px;margin:auto;min-height:100dvh;padding-bottom:82px}.top{position:sticky;top:0;z-index:5;background:var(--nav);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:12px}.brand{display:flex;align-items:center;gap:9px;font-weight:900;font-size:19px;letter-spacing:1.4px}.logo{width:38px;height:38px;border-radius:13px;background:linear-gradient(135deg,#b9aaff,#7660ed);display:grid;place-items:center;color:#211d32;font-size:20px}.top .spacer{flex:1}.pill{border:1px solid var(--line);border-radius:99px;padding:7px 11px;background:var(--card);color:var(--ink);font-size:12px;font-weight:700}.main{padding:16px;max-width:780px;margin:auto}.wide{max-width:1000px}.screen{display:none}.screen.active{display:block}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow);margin:0 0 14px}.hero{background:linear-gradient(135deg,#211a3b,#40316c 55%,#7867dc);color:#fff;border:0;padding:22px}.hero p{color:#e3ddff}.eyebrow{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}.hero .eyebrow{color:#d8ceff}.h1{font-size:clamp(24px,5vw,36px);line-height:1.1;margin:8px 0}.h2{font-size:21px;margin:0 0 12px}.h3{font-size:16px;margin:0 0 8px}.muted{color:var(--muted)}.small{font-size:12px}.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 14px;border-radius:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:7px}.btn.primary{background:var(--accent);border-color:var(--accent);color:#1c1830}.btn.soft{background:var(--accent2);border-color:transparent}.btn.danger{color:var(--danger)}.btn.full{width:100%}.btn:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:center;gap:10px}.wrap{flex-wrap:wrap}.between{justify-content:space-between}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px;color:var(--ink)}textarea.field{resize:vertical;min-height:90px}.label{display:block;font-weight:750;font-size:13px;margin:12px 0 6px}.chip{display:inline-flex;border:1px solid var(--line);border-radius:99px;padding:6px 10px;font-size:12px;background:var(--bg);color:var(--ink)}.chip.selected{background:var(--accent2);border-color:var(--accent);font-weight:750}.art{height:225px;border-radius:15px;background:linear-gradient(135deg,#251e49,#6e50a8 40%,#e09cc4);position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;text-align:center;padding:18px}.art:before,.art:after{content:"";position:absolute;border-radius:50%;filter:blur(1px);opacity:.8}.art:before{width:190px;height:190px;background:radial-gradient(circle at 35% 30%,#ffe4fd,#a69aff 35%,transparent 70%);left:10%;top:10%}.art:after{width:220px;height:220px;background:radial-gradient(circle,#ffb0c8,#ee7fa7 25%,transparent 70%);right:-20px;bottom:-90px}.art span{z-index:1;font-size:27px;font-weight:900;text-shadow:0 2px 18px #1b153a}.art.a2{background:linear-gradient(135deg,#122e36,#39817b,#f2d6a1)}.art.a3{background:linear-gradient(135deg,#10182f,#3d70ba,#c2e4f3)}.art.a4{background:linear-gradient(135deg,#3a182e,#b34d74,#f6bb91)}.post-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}.avatar{width:38px;height:38px;border-radius:50%;background:var(--accent2);display:grid;place-items:center;font-weight:900;color:var(--ink);flex-shrink:0}.post-title{font-weight:850;font-size:17px;margin:10px 0 3px}.post-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.iconbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:8px 10px}.iconbtn.on{background:var(--accent2);border-color:var(--accent)}.bottom{position:fixed;bottom:0;left:0;right:0;z-index:8;background:var(--nav);border-top:1px solid var(--line);padding:7px max(6px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:2px}.bottom button{flex:1;max-width:105px;border:0;background:transparent;color:var(--muted);padding:7px 3px;border-radius:12px;font-size:10px;font-weight:700}.bottom button b{display:block;font-size:20px;line-height:1.3}.bottom button.active{background:var(--accent2);color:var(--ink)}.bottom button{min-width:0}.bottom button b{font-weight:800}.notice{padding:12px;border-radius:12px;background:var(--accent2);font-size:13px}.storyrow{display:flex;gap:12px;overflow:auto;padding:4px 0 12px}.story{text-align:center;min-width:67px;font-size:11px}.story-ring{width:60px;height:60px;border-radius:50%;padding:3px;background:linear-gradient(135deg,#ffad7c,#8d7cf6,#e78ec5);margin:auto auto 5px}.story-ring>div{height:100%;border-radius:50%;border:3px solid var(--card);background:var(--accent2);display:grid;place-items:center;font-size:21px}.stat{background:var(--bg);border-radius:13px;padding:12px;flex:1;min-width:90px}.stat strong{display:block;font-size:21px}.line{height:1px;background:var(--line);margin:14px 0}.switchrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}input[type=checkbox]{accent-color:var(--accent);width:18px;height:18px}.toast{position:fixed;left:50%;bottom:94px;transform:translateX(-50%);z-index:20;background:#252035;color:white;padding:12px 16px;border-radius:13px;box-shadow:var(--shadow);max-width:90%;font-size:13px}.hidden{display:none!important}.browserbar{display:flex;gap:7px}.browserbar input{min-width:0}.browserframe{width:100%;height:360px;border:1px solid var(--line);border-radius:14px;background:var(--card)}.modal{position:fixed;inset:0;background:#0008;z-index:30;display:grid;place-items:center;padding:18px}.modalbox{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;max-width:520px;width:100%;max-height:90dvh;overflow:auto}.price{font-size:34px;font-weight:900;letter-spacing:-1px}.tag{background:#d9f5e6;color:#175d3c;border-radius:8px;padding:4px 7px;font-size:11px;font-weight:800}.premium-wall{background:linear-gradient(135deg,#211a3b,#5b4797,#c0a6ff);color:white;border-radius:16px;padding:20px}.footer-note{text-align:center;color:var(--muted);font-size:11px;padding:14px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;transition:background .2s,color .2s}button,input,textarea,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}a{color:var(--accent)}.app{max-width:1180px;margin:auto;min-height:100dvh;padding-bottom:82px}.top{position:sticky;top:0;z-index:5;background:var(--nav);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:12px}.brand{display:flex;align-items:center;gap:9px;font-weight:900;font-size:19px;letter-spacing:1.4px}.logo{width:38px;height:38px;border-radius:13px;background:linear-gradient(135deg,#b9aaff,#7660ed);display:grid;place-items:center;color:#211d32;font-size:20px}.top .spacer{flex:1}.pill{border:1px solid var(--line);border-radius:99px;padding:7px 11px;background:var(--card);color:var(--ink);font-size:12px;font-weight:700}.main{padding:16px;max-width:780px;margin:auto}.wide{max-width:1000px}.screen{display:none}.screen.active{display:block}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow);margin:0 0 14px}.hero{background:linear-gradient(135deg,#211a3b,#40316c 55%,#7867dc);color:#fff;border:0;padding:22px}.hero p{color:#e3ddff}.eyebrow{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}.hero .eyebrow{color:#d8ceff}.h1{font-size:clamp(24px,5vw,36px);line-height:1.1;margin:8px 0}.h2{font-size:21px;margin:0 0 12px}.h3{font-size:16px;margin:0 0 8px}.muted{color:var(--muted)}.small{font-size:12px}.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 14px;border-radius:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:7px}.btn.primary{background:var(--accent);border-color:var(--accent);color:#1c1830}.btn.soft{background:var(--accent2);border-color:transparent}.btn.danger{color:var(--danger)}.btn.full{width:100%}.btn:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:center;gap:10px}.wrap{flex-wrap:wrap}.between{justify-content:space-between}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px;color:var(--ink)}textarea.field{resize:vertical;min-height:90px}.label{display:block;font-weight:750;font-size:13px;margin:12px 0 6px}.chip{display:inline-flex;border:1px solid var(--line);border-radius:99px;padding:6px 10px;font-size:12px;background:var(--bg);color:var(--ink)}.chip.selected{background:var(--accent2);border-color:var(--accent);font-weight:750}.art{height:225px;border-radius:15px;background:linear-gradient(135deg,#251e49,#6e50a8 40%,#e09cc4);position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;text-align:center;padding:18px}.art:before,.art:after{content:"";position:absolute;border-radius:50%;filter:blur(1px);opacity:.8}.art:before{width:190px;height:190px;background:radial-gradient(circle at 35% 30%,#ffe4fd,#a69aff 35%,transparent 70%);left:10%;top:10%}.art:after{width:220px;height:220px;background:radial-gradient(circle,#ffb0c8,#ee7fa7 25%,transparent 70%);right:-20px;bottom:-90px}.art span{z-index:1;font-size:27px;font-weight:900;text-shadow:0 2px 18px #1b153a}.art.a2{background:linear-gradient(135deg,#122e36,#39817b,#f2d6a1)}.art.a3{background:linear-gradient(135deg,#10182f,#3d70ba,#c2e4f3)}.art.a4{background:linear-gradient(135deg,#3a182e,#b34d74,#f6bb91)}.post-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}.avatar{width:38px;height:38px;border-radius:50%;background:var(--accent2);display:grid;place-items:center;font-weight:900;color:var(--ink);flex-shrink:0}.post-title{font-weight:850;font-size:17px;margin:10px 0 3px}.post-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.iconbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:8px 10px}.iconbtn.on{background:var(--accent2);border-color:var(--accent)}.bottom{position:fixed;bottom:0;left:0;right:0;z-index:8;background:var(--nav);border-top:1px solid var(--line);padding:7px max(6px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:2px}.bottom button{flex:1;max-width:105px;border:0;background:transparent;color:var(--muted);padding:7px 3px;border-radius:12px;font-size:10px;font-weight:700}.bottom button b{display:block;font-size:20px;line-height:1.3}.bottom button.active{background:var(--accent2);color:var(--ink)}.bottom button{min-width:0}.bottom button b{font-weight:800}.notice{padding:12px;border-radius:12px;background:var(--accent2);font-size:13px}.storyrow{display:flex;gap:12px;overflow:auto;padding:4px 0 12px}.story-ring.has-story{background:linear-gradient(135deg,#ffad7c,#8d7cf6,#e78ec5)}.story-ring.no-story{background:var(--line)}.story-media{max-width:100%;max-height:62vh;object-fit:contain}.story-preview-media{max-width:100%;max-height:220px;object-fit:contain;border-radius:12px;margin-top:8px}.story{text-align:center;min-width:67px;font-size:11px}.story-ring{width:60px;height:60px;border-radius:50%;padding:3px;background:linear-gradient(135deg,#ffad7c,#8d7cf6,#e78ec5);margin:auto auto 5px}.story-ring>div{height:100%;border-radius:50%;border:3px solid var(--card);background:var(--accent2);display:grid;place-items:center;font-size:21px}.stat{background:var(--bg);border-radius:13px;padding:12px;flex:1;min-width:90px}.stat strong{display:block;font-size:21px}.line{height:1px;background:var(--line);margin:14px 0}.switchrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}input[type=checkbox]{accent-color:var(--accent);width:18px;height:18px}.toast{position:fixed;left:50%;bottom:94px;transform:translateX(-50%);z-index:20;background:#252035;color:white;padding:12px 16px;border-radius:13px;box-shadow:var(--shadow);max-width:90%;font-size:13px}.hidden{display:none!important}.browserbar{display:flex;gap:7px}.browserbar input{min-width:0}.browserframe{width:100%;height:360px;border:1px solid var(--line);border-radius:14px;background:var(--card)}.modal{position:fixed;inset:0;background:#0008;z-index:30;display:grid;place-items:center;padding:18px}.modalbox{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;max-width:520px;width:100%;max-height:90dvh;overflow:auto}.price{font-size:34px;font-weight:900;letter-spacing:-1px}.tag{background:#d9f5e6;color:#175d3c;border-radius:8px;padding:4px 7px;font-size:11px;font-weight:800}.premium-wall{background:linear-gradient(135deg,#211a3b,#5b4797,#c0a6ff);color:white;border-radius:16px;padding:20px}.footer-note{text-align:center;color:var(--muted);font-size:11px;padding:14px}
 @media(min-width:720px){.main{padding:22px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bottom{top:66px;bottom:0;left:auto;right:auto;width:78px;display:flex;flex-direction:column;justify-content:flex-start;padding:12px 6px;border-top:0;border-right:1px solid var(--line)}.bottom button{width:100%;flex:none;padding:12px 3px}.app{padding-left:78px;padding-bottom:0}.main{max-width:900px}.browserframe{height:440px}}
 @media(max-width:430px){.top{padding:10px}.main{padding:11px}.card{padding:13px}.art{height:195px}.pill{padding:6px 8px}.grid{gap:8px}}
 </style>
@@ -121,11 +121,25 @@ window.museaSupabase = window.supabase.createClient(
   <div class="card"><h3 class="h3">Comment gagner des points ?</h3><div class="switchrow"><span>Like reçu d'un compte authentique</span><strong>+1</strong></div><div class="switchrow"><span>Commentaire utile reçu</span><strong>+3</strong></div><div class="switchrow"><span>Enregistrement dans une collection</span><strong>+3</strong></div><div class="switchrow"><span>Repost authentique</span><strong>+4</strong></div><p class="small muted">Plafonds, détection de fraude, comptes uniques et modération seront nécessaires avant d'activer le classement.</p></div>
 </section>
 <section class="screen" id="screen-stories">
-  <div class="card"><div class="eyebrow">Stories</div><h2 class="h1">Les instants créatifs.</h2><p class="muted">Format éphémère inspiré des réseaux sociaux. Démonstration locale, sans envoi réel.</p>
-  <div class="storyrow" id="allStories"></div>
-  <label class="label">Ajouter une story (texte de démonstration)</label><input class="field" id="storyText" placeholder="Une idée, un making-of, une inspiration…">
-  <button class="btn primary full" style="margin-top:10px" onclick="addStory()">＋ Ajouter une story</button></div>
+  <div class="card"><div class="eyebrow">Stories MUSEA · 24 heures</div><h2 class="h1">Les instants créatifs.</h2><p class="muted small">Partage une photo, une courte vidéo ou un moment en texte. Tes Stories expirent automatiquement de l’affichage après 24 heures.</p>
+  <div class="storyrow" id="allStories" aria-live="polite"><p class="muted small">Chargement des Stories…</p></div></div>
+  <div class="card"><div class="eyebrow">Créer</div><h3 class="h3">Partager un instant</h3>
+    <label class="label" for="storyText">Légende (facultatif)</label><textarea class="field" id="storyText" maxlength="240" rows="2" placeholder="Une idée, un making-of, une inspiration…"></textarea>
+    <label class="label" for="storyMedia">Photo ou vidéo (facultatif)</label><input class="field" id="storyMedia" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm">
+    <p class="small muted">Formats : JPG, PNG, WEBP, GIF, MP4 ou WEBM · 20 Mo maximum. Ajoute une légende ou un média.</p>
+    <div id="storyPreview" class="hidden"></div>
+    <button class="btn primary full" style="margin-top:10px" id="publishStoryBtn" onclick="addStory()">＋ Publier ma Story</button>
+  </div>
 </section>
+<div id="storyViewer" class="modal hidden" role="dialog" aria-modal="true" aria-label="Visionneuse de Stories">
+  <div class="modalbox" style="max-width:520px;padding:12px">
+    <div class="row between"><div><strong id="storyViewerUser">Story</strong><div class="small muted" id="storyViewerTime"></div></div><button class="iconbtn" onclick="closeStoryViewer()" aria-label="Fermer">✕</button></div>
+    <div id="storyViewerMedia" style="min-height:220px;display:grid;place-items:center;background:#111;border-radius:14px;overflow:hidden;margin:10px 0"></div>
+    <p id="storyViewerCaption" style="white-space:pre-wrap"></p>
+    <div class="row between"><button class="btn" id="storyPrevBtn" onclick="stepStory(-1)">Précédente</button><span class="small muted" id="storyViewerViews"></span><button class="btn" id="storyNextBtn" onclick="stepStory(1)">Suivante</button></div>
+    <button class="btn soft full hidden" id="deleteStoryBtn" style="margin-top:9px" onclick="deleteCurrentStory()">Supprimer ma Story</button>
+  </div>
+</div>
 <section class="screen" id="screen-messages">
   <div class="card">
     <div class="eyebrow">Messagerie privée</div>
@@ -242,6 +256,7 @@ let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],co
 prefs:{likes:true,collections:true,online:true,dm:true,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
 let feedKind='all',discoverKind='Tout',activeConversationId=null,activeConversationPeer=null,activeMessageChannel=null,messageRefreshBusy=false,messageRefreshQueued=false,activeConversationCanSend=false,activeConversationStatus={blockedByMe:false,blockedByPeer:false,peerAllowsMessages:true},customStories=[];
 let activeNotificationsChannel=null,activeNotificationUserId=null,notificationPrefs={likes:true,comments:true,reposts:true,messages:true};
+let activeStoriesChannel=null,storyItems=[],activeStoryGroup=[],activeStoryIndex=0,activeStoryUserId=null,storyPreviewUrl=null;
 function load(){try{let s=JSON.parse(localStorage.getItem('museaState')||'null');if(s)state={...state,...s,prefs:{...state.prefs,...s.prefs}}}catch(e){}}
 function save(){try{localStorage.setItem('museaState',JSON.stringify(state))}catch(e){}}
 function toast(msg){let el=document.getElementById('toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.add('hidden'),2800)}
@@ -357,9 +372,161 @@ function toggleSave(id){if(state.saved.includes(id)){state.saved=state.saved.fil
 function translatePost(id){let p=defaultPosts.find(x=>x.id===id);let lang=document.getElementById('language')?.value||'Français';toast('Traduction IA simulée vers '+lang+' : la connexion au service de traduction reste à faire.');}
 async function renderDiscover(){const target=document.getElementById('discoverResults');if(!target)return;const q=(document.getElementById('searchInput')?.value||'').toLowerCase();target.innerHTML='<p class="muted small">Recherche des créations…</p>';let realPosts=[];try{const {data:rows,error}=await museaSupabase.from('posts').select('id,user_id,caption,style,visibility,image_url,created_at').order('created_at',{ascending:false}).limit(60);if(error)throw error;const ids=[...new Set((rows||[]).map(p=>p.user_id))];let profiles=[];if(ids.length){const result=await museaSupabase.from('profiles').select('id,username').in('id',ids);if(!result.error)profiles=result.data||[]}realPosts=(rows||[]).map(row=>{const username=profiles.find(p=>p.id===row.user_id)?.username||'Utilisateur';return{id:row.id,remote:true,user:username,avatar:username[0]?.toUpperCase()||'M',title:(row.caption||'Publication').slice(0,60),desc:row.caption||'',image_url:row.image_url,style:row.style||'Création',kind:'art',art:'a4',tag:'#MaCreation'}})}catch(error){console.warn('Recherche distante indisponible :',error)}const all=[...realPosts,...defaultPosts];const list=all.filter(p=>(discoverKind==='Tout'||p.style===discoverKind)&&(`${p.user} ${p.title} ${p.desc} ${p.style} ${p.tag}`).toLowerCase().includes(q));if(list.length){try{const enriched=await attachPostInteractions(list);target.innerHTML=enriched.map(postMarkup).join()}catch(e){console.warn('Interactions Supabase indisponibles',e);target.innerHTML=list.map(postMarkup).join()+'<p class="notice">Active le schéma social Supabase pour utiliser les interactions.</p>'}}else target.innerHTML='<div class="card muted">Aucun résultat. Essaie un autre mot-clé.</div>'}
 function setDiscover(k,b){discoverKind=k;document.querySelectorAll('#screen-discover .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderDiscover()}
-function renderStories(){let names=[...state.stories,...state.ownStories];let html=names.map((s,i)=>`<button class="story" style="border:0;background:transparent;color:var(--ink)" onclick="viewStory('${escapeHtml(s)}')"><div class="story-ring"><div>${s==='Ta story'?'＋':escapeHtml(s[0].toUpperCase())}</div></div>${escapeHtml(s)}</button>`).join('');document.getElementById('storyRow').innerHTML=html;let all=document.getElementById('allStories');if(all)all.innerHTML=html}
-function viewStory(s){toast('Story de '+s+' — contenu fictif dans cette démo.')}
-function addStory(){let s=document.getElementById('storyText').value.trim();if(!s)return toast('Ajoute un texte pour ta story.');state.ownStories.unshift('Ta story');state.points+=2;save();document.getElementById('storyText').value='';renderStories();toast('Story ajoutée localement. Pas de téléversement réel.')}
+function formatStoryAge(value){
+  const minutes=Math.max(0,Math.floor((Date.now()-new Date(value).getTime())/60000));
+  if(minutes<1)return 'À l’instant';
+  if(minutes<60)return 'Il y a '+minutes+' min';
+  return 'Il y a '+Math.floor(minutes/60)+' h';
+}
+function storyMediaMarkup(story,preview=false){
+  if(!story.media_url)return '';
+  const url=escapeHtml(story.media_url);
+  if(story.media_type==='video')return '<video class="'+(preview?'story-preview-media':'story-media')+'" src="'+url+'" controls playsinline preload="metadata"></video>';
+  return '<img class="'+(preview?'story-preview-media':'story-media')+'" src="'+url+'" alt="Story de '+escapeHtml(story.username||'MUSEA')+'">';
+}
+async function renderStories(){
+  const home=document.getElementById('storyRow'),all=document.getElementById('allStories');
+  if(home)home.innerHTML='<p class="muted small">Chargement…</p>';
+  if(all)all.innerHTML='<p class="muted small">Chargement…</p>';
+  try{
+    const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+    if(userError)throw userError;
+    if(!userData.user){
+      const html='<p class="muted small">Connecte-toi pour voir et publier des Stories.</p>';
+      if(home)home.innerHTML=html;if(all)all.innerHTML=html;return;
+    }
+    const now=new Date().toISOString();
+    const {data:rows,error}=await museaSupabase.from('stories')
+      .select('id,user_id,caption,media_url,media_path,media_type,created_at,expires_at')
+      .gt('expires_at',now).order('created_at',{ascending:false}).limit(200);
+    if(error)throw error;
+    const ids=[...new Set((rows||[]).map(x=>x.user_id))];
+    let profiles=[];
+    if(ids.length){
+      const result=await museaSupabase.from('profiles').select('id,username').in('id',ids);
+      if(result.error)throw result.error;profiles=result.data||[];
+    }
+    const {data:blocks,error:blockError}=await museaSupabase.from('direct_message_blocks').select('blocker_id,blocked_id').or('blocker_id.eq.'+userData.user.id+',blocked_id.eq.'+userData.user.id);
+    if(blockError)throw blockError;
+    const blockedIds=new Set((blocks||[]).flatMap(b=>[b.blocker_id,b.blocked_id]).filter(id=>id!==userData.user.id));
+    const visible=(rows||[]).filter(x=>!blockedIds.has(x.user_id)).map(x=>({...x,username:profiles.find(p=>p.id===x.user_id)?.username||'Utilisateur'}));
+    storyItems=visible;
+    const groups=[...new Map(visible.map(x=>[x.user_id,{user_id:x.user_id,username:x.username,latest:x}])).values()];
+    const renderGroup=g=>'<button class="story" style="border:0;background:transparent;color:var(--ink)" onclick="viewStoryGroup(\''+g.user_id+'\')"><div class="story-ring has-story"><div>'+escapeHtml((g.username||'M')[0].toUpperCase())+'</div></div>'+escapeHtml(g.user_id===userData.user.id?'Ta Story':'@'+g.username)+'</button>';
+    const ownExists=groups.some(g=>g.user_id===userData.user.id);
+    const ownButton='<button class="story" style="border:0;background:transparent;color:var(--ink)" onclick="'+(ownExists?'viewStoryGroup(\''+userData.user.id+'\')':'document.getElementById(\'storyText\').focus();navigate(\'stories\')')+'"><div class="story-ring '+(ownExists?'has-story':'no-story')+'"><div>'+(ownExists?'＋':'＋')+'</div></div>Ta Story</button>';
+    const html=ownButton+groups.filter(g=>g.user_id!==userData.user.id).map(renderGroup).join('');
+    if(home)home.innerHTML=html;
+    if(all)all.innerHTML=html||'<p class="muted small">Aucune Story pour le moment. Lance la première !</p>';
+    if(!activeStoriesChannel){
+      activeStoriesChannel=museaSupabase.channel('musea-stories-live')
+        .on('postgres_changes',{event:'*',schema:'public',table:'stories'},()=>{if(document.getElementById('screen-home')?.classList.contains('active')||document.getElementById('screen-stories')?.classList.contains('active'))renderStories()})
+        .subscribe();
+    }
+  }catch(e){
+    console.error('Stories :',e);
+    const msg='<div class="notice">Impossible de charger les Stories. Vérifie que la migration de cette étape a été exécutée dans Supabase.</div>';
+    if(home)home.innerHTML=msg;if(all)all.innerHTML=msg;
+  }
+}
+async function viewStoryGroup(userId){
+  activeStoryUserId=userId;
+  activeStoryGroup=storyItems.filter(x=>x.user_id===userId).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  if(!activeStoryGroup.length)return toast('Cette Story a expiré ou n’est plus disponible.');
+  activeStoryIndex=0;
+  document.getElementById('storyViewer').classList.remove('hidden');
+  await showCurrentStory();
+}
+async function showCurrentStory(){
+  const story=activeStoryGroup[activeStoryIndex];if(!story)return closeStoryViewer();
+  document.getElementById('storyViewerUser').textContent='@'+story.username;
+  document.getElementById('storyViewerTime').textContent=formatStoryAge(story.created_at);
+  document.getElementById('storyViewerCaption').textContent=story.caption||'';
+  document.getElementById('storyViewerMedia').innerHTML=storyMediaMarkup(story);
+  document.getElementById('storyPrevBtn').disabled=activeStoryIndex===0;
+  document.getElementById('storyNextBtn').disabled=activeStoryIndex===activeStoryGroup.length-1;
+  const own=await museaSupabase.auth.getUser();
+  const isOwn=own.data?.user?.id===story.user_id;
+  document.getElementById('deleteStoryBtn').classList.toggle('hidden',!isOwn);
+  document.getElementById('storyViewerViews').textContent='';
+  if(!isOwn){
+    const {data:viewer,error}=await museaSupabase.auth.getUser();
+    if(!error&&viewer.user){
+      const {error:viewError}=await museaSupabase.from('story_views').upsert({story_id:story.id,viewer_id:viewer.user.id},{onConflict:'story_id,viewer_id',ignoreDuplicates:true});
+      if(viewError)console.warn('Vue Story non enregistrée :',viewError);
+    }
+  }else{
+    const {count,error}=await museaSupabase.from('story_views').select('id',{count:'exact',head:true}).eq('story_id',story.id);
+    if(!error)document.getElementById('storyViewerViews').textContent=(count||0)+' vue(s)';
+  }
+}
+function stepStory(direction){
+  const next=activeStoryIndex+direction;
+  if(next<0||next>=activeStoryGroup.length)return;
+  activeStoryIndex=next;showCurrentStory();
+}
+function closeStoryViewer(){
+  const media=document.querySelector('#storyViewerMedia video');
+  if(media)media.pause();
+  document.getElementById('storyViewer').classList.add('hidden');
+}
+async function addStory(){
+  const button=document.getElementById('publishStoryBtn'),caption=document.getElementById('storyText').value.trim(),input=document.getElementById('storyMedia'),file=input?.files?.[0];
+  if(!caption&&!file)return toast('Ajoute une légende ou choisis une photo/vidéo.');
+  if(caption.length>240)return toast('La légende est limitée à 240 caractères.');
+  if(file){
+    const allowed=['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm'];
+    if(!allowed.includes(file.type))return toast('Format non pris en charge. Utilise JPG, PNG, WEBP, GIF, MP4 ou WEBM.');
+    if(file.size>20*1024*1024)return toast('Le fichier dépasse la limite de 20 Mo.');
+  }
+  const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+  if(userError||!userData.user)return toast('Connecte-toi pour publier une Story.');
+  button.disabled=true;button.textContent='Publication…';
+  let mediaPath=null,mediaUrl=null,mediaType=null;
+  try{
+    if(file){
+      const extension=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'');
+      mediaPath='stories/'+userData.user.id+'/'+Date.now()+'.'+extension;
+      const {error:uploadError}=await museaSupabase.storage.from('musea-posts').upload(mediaPath,file,{cacheControl:'3600',upsert:false,contentType:file.type});
+      if(uploadError)throw uploadError;
+      const {data:publicData}=museaSupabase.storage.from('musea-posts').getPublicUrl(mediaPath);
+      mediaUrl=publicData.publicUrl;mediaType=file.type.startsWith('video/')?'video':'image';
+    }
+    const {data:created,error}=await museaSupabase.from('stories').insert({
+      user_id:userData.user.id,caption:caption||null,media_url:mediaUrl,media_path:mediaPath,media_type:mediaType,
+      created_at:new Date().toISOString(),expires_at:new Date(Date.now()+24*60*60*1000).toISOString()
+    }).select('id').single();
+    if(error)throw error;
+    document.getElementById('storyText').value='';if(input)input.value='';
+    const preview=document.getElementById('storyPreview');preview.innerHTML='';preview.classList.add('hidden');
+    if(storyPreviewUrl){URL.revokeObjectURL(storyPreviewUrl);storyPreviewUrl=null}
+    await renderStories();toast('Ta Story est publiée pour 24 heures.');
+  }catch(e){
+    console.error('Publication Story :',e);
+    if(mediaPath)try{await museaSupabase.storage.from('musea-posts').remove([mediaPath])}catch(cleanupError){console.warn(cleanupError)}
+    toast('Publication impossible : '+(e.message||'erreur Supabase'));
+  }finally{button.disabled=false;button.textContent='＋ Publier ma Story'}
+}
+async function deleteCurrentStory(){
+  const story=activeStoryGroup[activeStoryIndex];if(!story)return;
+  if(!confirm('Supprimer définitivement cette Story ?'))return;
+  try{
+    const {error}=await museaSupabase.from('stories').delete().eq('id',story.id).eq('user_id',story.user_id);
+    if(error)throw error;
+    if(story.media_path){const {error:storageError}=await museaSupabase.storage.from('musea-posts').remove([story.media_path]);if(storageError)console.warn('Fichier Story à nettoyer :',storageError)}
+    closeStoryViewer();await renderStories();toast('Story supprimée.');
+  }catch(e){console.error(e);toast('Impossible de supprimer cette Story.')}
+}
+document.getElementById('storyMedia')?.addEventListener('change',event=>{
+  const file=event.target.files?.[0],preview=document.getElementById('storyPreview');
+  if(storyPreviewUrl){URL.revokeObjectURL(storyPreviewUrl);storyPreviewUrl=null}
+  preview.innerHTML='';preview.classList.add('hidden');
+  if(!file)return;
+  if(file.size>20*1024*1024){event.target.value='';return toast('Le fichier dépasse la limite de 20 Mo.')}
+  storyPreviewUrl=URL.createObjectURL(file);
+  const media=file.type.startsWith('video/')?'<video class="story-preview-media" controls playsinline src="'+storyPreviewUrl+'"></video>':'<img class="story-preview-media" src="'+storyPreviewUrl+'" alt="Aperçu de la Story">';
+  preview.innerHTML=media;preview.classList.remove('hidden');
+});
 function renderLeaderboard(){let entries=[{n:'luna.creative',p:1840,r:'Créateur vedette'},{n:'noah.visuals',p:1420,r:'Mise en avant'},{n:'aya.studio',p:980,r:'Crédits IA bonus'},{n:state.username,p:state.points,r:'Continue à créer'}].sort((a,b)=>b.p-a.p);document.getElementById('leaderboard').innerHTML=entries.map((e,i)=>`<div class="card"><div class="row"><div class="avatar">${i+1}</div><div style="flex:1"><strong>${escapeHtml(e.n)}</strong><div class="small muted">${e.p.toLocaleString('fr-FR')} points</div></div><span class="chip">#${i+1}</span></div><div class="small muted" style="margin-top:9px">Récompense possible : ${e.r}</div></div>`).join('')}
 async function renderMessages(){
   const list=document.getElementById('conversationList');
