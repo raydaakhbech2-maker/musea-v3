@@ -1366,7 +1366,7 @@ async function renderCreativeDrafts(){
         const signed=await museaSupabase.storage.from('musea-drafts').createSignedUrl(d.image_path,300);
         if(!signed.error&&signed.data?.signedUrl)image='<img src="'+escapeHtml(signed.data.signedUrl)+'" alt="Aperçu privé de la Piste" style="width:100%;max-height:190px;object-fit:cover;border-radius:12px;margin:8px 0">';
       }
-      return '<article class="notice" style="margin-top:10px">'+image+'<div class="row between"><strong>'+escapeHtml(d.title)+'</strong><span class="chip">'+labels[d.status]+'</span></div><p class="small">'+escapeHtml((d.caption||'Idée en cours de formulation').slice(0,180))+'</p><div class="small muted">'+escapeHtml(d.style)+' · '+escapeHtml(d.format)+' · Modifiée le '+escapeHtml(new Date(d.updated_at).toLocaleDateString('fr-FR'))+'</div><div class="row wrap" style="margin-top:8px"><button class="btn primary" onclick="openCreativeDraft(\\''+d.id+'\\')">Reprendre</button><button class="btn danger" onclick="deleteCreativeDraft(\\''+d.id+'\\')">Supprimer</button></div></article>';
+      return '<article class="notice" style="margin-top:10px">'+image+'<div class="row between"><strong>'+escapeHtml(d.title)+'</strong><span class="chip">'+labels[d.status]+'</span></div><p class="small">'+escapeHtml((d.caption||'Idée en cours de formulation').slice(0,180))+'</p><div class="small muted">'+escapeHtml(d.style)+' · '+escapeHtml(d.format)+' · Modifiée le '+escapeHtml(new Date(d.updated_at).toLocaleDateString('fr-FR'))+'</div><div class="row wrap" style="margin-top:8px"><button class="btn primary" onclick="openCreativeDraft(\''+d.id+'\')">Reprendre</button><button class="btn danger" onclick="deleteCreativeDraft(\''+d.id+'\')">Supprimer</button></div></article>';
     }));
     list.innerHTML=cards.length?cards.join(''):'<p class="small muted">Aucune Piste pour le moment. Commence par une idée, même incomplète : elle pourra évoluer à ton rythme.</p>';
   }catch(e){console.error('Pistes :',e);list.innerHTML='<div class="notice">Impossible de charger tes Pistes. Vérifie que la migration de l’étape 12 a été exécutée dans Supabase.</div>'}
@@ -1382,7 +1382,7 @@ async function saveCreativeDraft(){
   const {data:userData,error:userError}=await museaSupabase.auth.getUser();if(userError||!userData.user)return toast('Connecte-toi pour conserver une Piste privée.');
   const imageInput=document.getElementById('postImage');let file=imageInput?.files?.[0]||null;
   if(file&&museaEditorSource&&!museaDraftImageUnchanged){
-    try{const blob=await canvasBlob();file=new File([blob],museaEditorName.replace(/\\.[^.]+$/,'')+'-musea.jpg',{type:'image/jpeg'})}
+    try{const blob=await canvasBlob();file=new File([blob],museaEditorName.replace(/\.[^.]+$/,'')+'-musea.jpg',{type:'image/jpeg'})}
     catch(e){return toast(e.message||'Impossible de préparer cette image.')}
   }
   if(file&&!museaDraftImageUnchanged){
