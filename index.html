@@ -147,7 +147,7 @@ window.museaSupabase = window.supabase.createClient(
         <h3 class="h3" id="chatName">Sélectionne une conversation</h3>
         <span class="small muted" id="chatStatus">Tes messages resteront privés.</span>
       </div>
-      <button class="iconbtn" onclick="closeActiveConversation()" aria-label="Fermer la conversation">×</button>
+      <div class="row"><button class="btn" id="blockUserBtn" onclick="toggleDirectMessageBlock()" disabled>Bloquer</button><button class="iconbtn" onclick="closeActiveConversation()" aria-label="Fermer la conversation">×</button></div>
     </div>
     <div class="line"></div>
     <div id="chatLog" aria-live="polite"><p class="muted small">Choisis une conversation ou recherche un utilisateur pour commencer.</p></div>
@@ -199,7 +199,7 @@ window.museaSupabase = window.supabase.createClient(
   <div class="switchrow"><span>Afficher les publications aimées</span><input type="checkbox" id="prefLikes" checked onchange="savePrefs()"></div>
   <div class="switchrow"><span>Afficher mes collections</span><input type="checkbox" id="prefCollections" checked onchange="savePrefs()"></div>
   <div class="switchrow"><span>Afficher mon statut en ligne</span><input type="checkbox" id="prefOnline" checked onchange="savePrefs()"></div>
-  <div class="switchrow"><span>Autoriser les messages des non-abonnés</span><input type="checkbox" id="prefDM" onchange="savePrefs()"></div>
+  <div class="switchrow"><span>Autoriser les nouveaux messages</span><input type="checkbox" id="prefDM" onchange="savePrefs()"></div>
   <div class="switchrow"><span>Profil privé</span><input type="checkbox" id="prefPrivate" onchange="savePrefs()"></div>
   </div>
   <div class="card"><h3 class="h3">Langue</h3><select class="field" id="language"><option>Français</option><option>English</option><option>Español</option><option>العربية</option><option>中文</option><option>日本語</option><option>Deutsch</option><option>Português</option></select><p class="muted small">L'interface complète et la traduction IA seront intégrées dans une future version.</p><button class="btn" onclick="translateDemo()">Traduire un texte de démonstration</button><div id="translationResult" class="notice hidden" style="margin-top:10px"></div></div>
@@ -238,11 +238,11 @@ window.museaSupabase = window.supabase.createClient(
 <div id="planModal" class="modal hidden"><div class="modalbox"><div class="row between"><div><div class="eyebrow">Bienvenue sur MUSEA</div><h2 class="h1">Choisis ton expérience.</h2></div><button class="iconbtn" onclick="closePlans()">✕</button></div><p class="muted">Tu pourras modifier ton choix ensuite. Aucun paiement ne sera prélevé dans ce prototype.</p><div class="grid"><div class="card" style="margin:0"><span class="chip">GRATUIT</span><h3 class="h3" style="margin-top:12px">Découvrir</h3><div class="price">0 €</div><p class="small muted">Pour commencer et tester la communauté.</p><ul class="small"><li>Fil et profil</li><li>Crédits IA limités</li><li>Likes, commentaires, collections</li><li>Stories et messages de base</li></ul><button class="btn full" onclick="choosePlan('free')">Choisir Gratuit</button></div><div class="card" style="margin:0;border:2px solid var(--accent)"><span class="chip selected">PREMIUM</span><h3 class="h3" style="margin-top:12px">Créer plus</h3><div class="price">5,99 €<span style="font-size:13px;font-weight:600">/mois</span></div><p class="small muted">Prix cible à tester, pas un paiement réel.</p><ul class="small"><li>Plus de crédits IA, avec plafond</li><li>Thèmes exclusifs et options de profil</li><li>Collections avancées</li><li>Outils créatifs supplémentaires</li><li>Éligibilité possible à la vérification</li></ul><button class="btn primary full" onclick="choosePlan('premium')">Choisir Premium</button></div></div><p class="small muted" style="margin-top:14px">Le prix devra être validé avec les coûts d'IA, les commissions des stores, la TVA, l'hébergement et les tests utilisateurs. Aucun abonnement n'est encore vendu.</p></div></div>
 <script>
 const defaultPosts = [];
-let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:['luna.creative','noah.visuals','aya.studio','kai.3d'],ownStories:[],messages:[{who:'Luna Creative',text:'Salut ! J’aime beaucoup tes idées créatives ✨',mine:false}],groups:[],notifications:[
+let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:['luna.creative','noah.visuals','aya.studio','kai.3d'],ownStories:[],groups:[],notifications:[
 {type:'Like',text:'luna.creative a aimé ta création.',time:'Il y a 4 min',read:false},
 {type:'Mention',text:'noah.visuals t’a mentionné dans un commentaire.',time:'Il y a 18 min',read:false},
 {type:'Pour toi',text:'Une création pourrait te plaire.',time:'Il y a 1 h',read:false}],
-prefs:{likes:true,collections:true,online:true,dm:false,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
+prefs:{likes:true,collections:true,online:true,dm:true,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
 let feedKind='all',discoverKind='Tout',activeConversationId=null,activeConversationPeer=null,activeMessageChannel=null,messageRefreshBusy=false,customStories=[];
 function load(){try{let s=JSON.parse(localStorage.getItem('museaState')||'null');if(s)state={...state,...s,prefs:{...state.prefs,...s.prefs}}}catch(e){}}
 function save(){try{localStorage.setItem('museaState',JSON.stringify(state))}catch(e){}}
@@ -425,10 +425,14 @@ async function searchMessageContacts(){
     const {data,error}=await museaSupabase.auth.getUser();
     if(error)throw error;
     if(!data.user){target.innerHTML='<p class="small muted">Connecte-toi pour rechercher des utilisateurs.</p>';return}
-    const {data:users,error:searchError}=await museaSupabase.from('profiles').select('id,username').ilike('username','%'+query+'%').neq('id',data.user.id).limit(12);
+    const {data:users,error:searchError}=await museaSupabase.from('profiles').select('id,username,allow_messages').eq('allow_messages',true).ilike('username','%'+query+'%').neq('id',data.user.id).limit(20);
     if(searchError)throw searchError;
-    if(!users?.length){target.innerHTML='<p class="small muted">Aucun utilisateur trouvé pour « '+escapeHtml(query)+' ».</p>';return}
-    target.innerHTML=users.map(u=>'<div class="switchrow"><div class="avatar">'+escapeHtml(u.username?.[0]?.toUpperCase()||'M')+'</div><div style="flex:1"><strong>@'+escapeHtml(u.username||'Utilisateur')+'</strong></div><button class="btn primary" onclick="startDirectConversation(\''+escapeHtml(u.id)+'\')">Message</button></div>').join('');
+    const {data:blocks,error:blockError}=await museaSupabase.from('direct_message_blocks').select('blocker_id,blocked_id').or('blocker_id.eq.'+data.user.id+',blocked_id.eq.'+data.user.id);
+    if(blockError)throw blockError;
+    const blockedIds=new Set((blocks||[]).map(b=>b.blocker_id===data.user.id?b.blocked_id:b.blocker_id));
+    const visibleUsers=(users||[]).filter(u=>!blockedIds.has(u.id)).slice(0,12);
+    if(!visibleUsers.length){target.innerHTML='<p class="small muted">Aucun utilisateur disponible trouvé pour « '+escapeHtml(query)+' ».</p>';return}
+    target.innerHTML=visibleUsers.map(u=>'<div class="switchrow"><div class="avatar">'+escapeHtml(u.username?.[0]?.toUpperCase()||'M')+'</div><div style="flex:1"><strong>@'+escapeHtml(u.username||'Utilisateur')+'</strong></div><button class="btn primary" onclick="startDirectConversation(\''+escapeHtml(u.id)+'\')">Message</button></div>').join('');
   }catch(e){console.error(e);target.innerHTML='<p class="small muted">La recherche est indisponible. Vérifie la configuration du profil Supabase.</p>'}
 }
 async function startDirectConversation(peerId){
@@ -456,7 +460,7 @@ async function startDirectConversation(peerId){
   }catch(e){console.error(e);toast('Impossible de créer cette conversation. Vérifie la migration Supabase.')}
 }
 async function openDirectConversation(conversationId,peerId){
-  const {data:peer,error:peerError}=await museaSupabase.from('profiles').select('id,username').eq('id',peerId).maybeSingle();
+  const {data:peer,error:peerError}=await museaSupabase.from('profiles').select('id,username,allow_messages').eq('id',peerId).maybeSingle();
   if(peerError)throw peerError;
   const peerName=peer?.username||'Utilisateur';
   activeConversationId=conversationId;
@@ -483,6 +487,23 @@ async function refreshActiveConversation(){
     if(error)throw error;
     if(conversationId!==activeConversationId)return;
     const userId=userData.user.id;
+    const peerId=activeConversationPeer?.id;
+    const [blockResult,peerResult]=await Promise.all([
+      museaSupabase.from('direct_message_blocks').select('blocker_id,blocked_id').or('blocker_id.eq.'+userId+',blocked_id.eq.'+userId),
+      peerId?museaSupabase.from('profiles').select('allow_messages').eq('id',peerId).maybeSingle():Promise.resolve({data:null,error:null})
+    ]);
+    if(blockResult.error)throw blockResult.error;
+    if(peerResult.error)throw peerResult.error;
+    const blockRow=(blockResult.data||[]).find(b=>(b.blocker_id===userId&&b.blocked_id===peerId)||(b.blocked_id===userId&&b.blocker_id===peerId));
+    const blockedByMe=!!blockRow&&blockRow.blocker_id===userId;
+    const blockedByPeer=!!blockRow&&blockRow.blocker_id===peerId;
+    const canSend=!blockRow&&peerResult.data?.allow_messages!==false;
+    const sendButton=document.getElementById('messageSendBtn');
+    sendButton.disabled=!canSend;
+    const blockButton=document.getElementById('blockUserBtn');
+    blockButton.disabled=blockedByPeer;
+    blockButton.textContent=blockedByPeer?'Bloqué par ce compte':(blockedByMe?'Débloquer':'Bloquer');
+    document.getElementById('chatStatus').textContent=blockedByPeer?'Ce compte t’a bloqué.':(blockedByMe?'Tu as bloqué ce compte.':(canSend?'Conversation privée':'Cet utilisateur n’accepte pas les nouveaux messages.'));
     const log=document.getElementById('chatLog');
     log.innerHTML=(messages||[]).map(m=>{
       const mine=m.sender_id===userId;
@@ -523,6 +544,31 @@ async function closeActiveConversation(){
   document.getElementById('chatStatus').textContent='Tes messages resteront privés.';
   document.getElementById('chatLog').innerHTML='<p class="muted small">Choisis une conversation ou recherche un utilisateur pour commencer.</p>';
   document.getElementById('messageSendBtn').disabled=true;
+  document.getElementById('blockUserBtn').disabled=true;
+  document.getElementById('blockUserBtn').textContent='Bloquer';
+}
+async function toggleDirectMessageBlock(){
+  if(!activeConversationPeer||!activeConversationId)return;
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user)return;
+    const peerId=activeConversationPeer.id;
+    const {data:existing,error:findError}=await museaSupabase.from('direct_message_blocks').select('blocker_id,blocked_id').eq('blocker_id',data.user.id).eq('blocked_id',peerId).maybeSingle();
+    if(findError)throw findError;
+    if(existing){
+      const {error:deleteError}=await museaSupabase.from('direct_message_blocks').delete().eq('blocker_id',data.user.id).eq('blocked_id',peerId);
+      if(deleteError)throw deleteError;
+      toast('Utilisateur débloqué.');
+    }else{
+      if(!confirm('Bloquer cet utilisateur ? Les nouveaux messages seront désactivés entre vos deux comptes.'))return;
+      const {error:insertError}=await museaSupabase.from('direct_message_blocks').insert({blocker_id:data.user.id,blocked_id:peerId});
+      if(insertError)throw insertError;
+      toast('Utilisateur bloqué. Tu peux le débloquer à tout moment.');
+    }
+    await refreshActiveConversation();
+    await renderMessages();
+  }catch(e){console.error(e);toast('Impossible de modifier ce blocage.')}
 }
 function createGroup(){toast('Les groupes seront ajoutés dans une prochaine étape avec leurs invitations et leurs règles de confidentialité.')}
 function renderNotifications(){document.getElementById('notifCount').textContent=state.notifications.filter(n=>!n.read).length;document.getElementById('notificationList').innerHTML=state.notifications.map((n,i)=>`<div class="switchrow" style="align-items:flex-start"><div style="flex:1"><div class="row wrap"><strong>${escapeHtml(n.type)}</strong>${n.read?'':'<span class="tag">Nouveau</span>'}</div><div>${escapeHtml(n.text)}</div><div class="small muted">${escapeHtml(n.time)}</div></div><button class="iconbtn" onclick="state.notifications[${i}].read=true;save();renderNotifications()">✓</button></div>`).join('')||'<p class="muted">Aucune notification.</p>';let types=['Likes et commentaires','Mentions','Messages','Nouveaux abonnés','Recommandations Pour toi','Tendances hebdomadaires'];document.getElementById('notificationSettings').innerHTML=types.map(t=>`<div class="switchrow"><span>${t}</span><input type="checkbox" checked onchange="toast('Préférence enregistrée pour cette démo.')"></div>`).join('')}
@@ -534,7 +580,7 @@ async function renderProfile(){
   document.getElementById('bio').value=state.bio;
   document.getElementById('pointsStat').textContent=state.points;
   document.getElementById('likesStat').textContent=state.liked.length;
-  try{const {data}=await museaSupabase.auth.getUser();if(data.user){const count=await museaSupabase.from('post_likes').select('id',{count:'exact',head:true}).eq('user_id',data.user.id);if(!count.error)document.getElementById('likesStat').textContent=count.count||0}}catch(e){console.warn('Compteur likes indisponible',e)}
+  try{const {data}=await museaSupabase.auth.getUser();if(data.user){const [count,profile]=await Promise.all([museaSupabase.from('post_likes').select('id',{count:'exact',head:true}).eq('user_id',data.user.id),museaSupabase.from('profiles').select('allow_messages').eq('id',data.user.id).maybeSingle()]);if(!count.error)document.getElementById('likesStat').textContent=count.count||0;if(!profile.error&&profile.data){state.prefs.dm=profile.data.allow_messages!==false;document.getElementById('prefDM').checked=state.prefs.dm;save()}}}catch(e){console.warn('Préférences ou compteur indisponibles',e)}
   document.getElementById('privacyTag').textContent=state.prefs.private?'Privé':'Visible';
 
   let items=[];
@@ -656,7 +702,20 @@ async function renderProfile(){
     '<p class="muted small">Erreur Supabase : '+escapeHtml(error.message||'Erreur inconnue')+'</p>';
   }
 }function saveProfile(){state.username=document.getElementById('username').value.trim().replace(/^@/,'')||'monprofil';state.bio=document.getElementById('bio').value.trim();save();renderProfile();toast('Profil enregistré localement.')}
-function savePrefs(){state.prefs={likes:document.getElementById('prefLikes').checked,collections:document.getElementById('prefCollections').checked,online:document.getElementById('prefOnline').checked,dm:document.getElementById('prefDM').checked,private:document.getElementById('prefPrivate').checked};save();renderProfile();renderMessages();toast('Préférences mises à jour.')}
+async function savePrefs(){
+  state.prefs={likes:document.getElementById('prefLikes').checked,collections:document.getElementById('prefCollections').checked,online:document.getElementById('prefOnline').checked,dm:document.getElementById('prefDM').checked,private:document.getElementById('prefPrivate').checked};
+  save();
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(data.user){
+      const {error:updateError}=await museaSupabase.from('profiles').update({allow_messages:state.prefs.dm}).eq('id',data.user.id);
+      if(updateError)throw updateError;
+      toast('Préférences enregistrées sur ton compte.');
+    }else toast('Préférences enregistrées sur cet appareil. Connecte-toi pour synchroniser les messages.');
+  }catch(e){console.error(e);toast('Préférence locale enregistrée, mais synchronisation serveur impossible.')}
+  renderProfile();renderMessages();
+}
 function renderRewards(){document.getElementById('rewardPoints').textContent=state.points;document.getElementById('wallpaperBtn').textContent=state.wallpaper?'Fond Aurora débloqué ✓':`Débloquer (Premium · 500 pts)`;document.getElementById('wallpaperBtn').disabled=state.wallpaper}
 function redeemWallpaper(){if(state.plan!=='premium')return toast('Le fond exclusif est réservé à Premium. Compare les offres dans ton profil.');if(state.points<500)return toast('Il te faut 500 points. Continue à participer à la communauté.');state.points-=500;state.wallpaper=true;save();renderRewards();renderProfile();toast('Fond Aurora débloqué dans la démo.')}
 function redeemBadge(){if(state.badge)return toast('Tu possèdes déjà ce badge de démonstration.');if(state.points<250)return toast('Il te faut 250 points.');state.points-=250;state.badge=true;save();renderRewards();renderProfile();document.getElementById('rewardStatus').classList.remove('hidden');document.getElementById('rewardStatus').textContent='Badge créateur débloqué. Il ne s’agit pas d’une certification.';toast('Badge cosmétique débloqué.')}
