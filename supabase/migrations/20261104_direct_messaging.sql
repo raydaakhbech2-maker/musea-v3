@@ -129,6 +129,11 @@ with check (
     select 1 from public.direct_conversations c
     where c.id = conversation_id
       and (auth.uid() = c.user_one or auth.uid() = c.user_two)
+      and exists (
+        select 1 from public.profiles p
+        where p.id = case when auth.uid() = c.user_one then c.user_two else c.user_one end
+          and p.allow_messages = true
+      )
       and not exists (
         select 1 from public.direct_message_blocks b
         where (b.blocker_id = auth.uid() and b.blocked_id =
