@@ -85,12 +85,12 @@ returns boolean
 language sql
 stable
 security definer
-set search_path = public, pg_temp
+set search_path = ''
 as $$
   select exists (
     select 1
     from public.billing_subscriptions s
-    where s.user_id = auth.uid()
+    where s.user_id = (select auth.uid())
       and s.status in ('active','trialing')
       and (s.current_period_end is null or s.current_period_end > now())
   );
