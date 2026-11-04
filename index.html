@@ -1363,11 +1363,19 @@ async function saveProfile(){
 function renderPortfolioCards(items,posts,isOwner){
   const byId=new Map(posts.map(p=>[p.id,p]));
   if(!items.length)return '<div class="notice">Ton portfolio est encore vide. Sélectionne une création publiée et raconte son histoire.</div>';
-  return '<div class="'+(isOwner?'creator-portfolio-grid':'public-creator-grid')+'">'+items.map(item=>{
+  return `<div class="${isOwner?'creator-portfolio-grid':'public-creator-grid'}">${items.map((item,index)=>{
     const post=byId.get(item.post_id);
-    const media=post?.image_url?'<img class="creator-project-image" loading="lazy" src="'+escapeHtml(post.image_url)+'" alt="'+escapeHtml('Visuel du projet '+item.title)+'">':'<div class="creator-project-image art a4" role="img" aria-label="'+escapeHtml('Aperçu du projet '+item.title)+'"></div>';
-    return '<article class="card creator-project-card">'+media+'<div class="creator-project-body"><h3>'+escapeHtml(item.title)+'</h3><p>'+escapeHtml(item.context||'Une création de mon univers.')+'</p>'+(item.contribution?'<div class="creator-project-meta">Contribution · '+escapeHtml(item.contribution)+'</div>':'')+(item.process_note?'<p>'+escapeHtml(item.process_note)+'</p>':'')+(isOwner?'<div class="creator-project-actions"><button class="btn danger" onclick="removePortfolioItem(\''+escapeHtml(item.id)+'\')">Retirer du portfolio</button></div>':'')+'</div></article>';
-  }).join('')+'</div>';
+    const media=post?.image_url
+      ? `<img class="creator-project-image" loading="lazy" src="${escapeHtml(post.image_url)}" alt="${escapeHtml('Visuel du projet '+item.title)}">`
+      : `<div class="creator-project-image art a4" role="img" aria-label="${escapeHtml('Aperçu du projet '+item.title)}"></div>`;
+    const viewButton=post?`<button class="btn" onclick="openNotificationPost('${escapeHtml(item.post_id)}')">Voir la création ↗</button>`:'';
+    const ordering=isOwner
+      ? (index>0?`<button class="btn" aria-label="Monter cette pièce" onclick="movePortfolioItem('${escapeHtml(item.id)}',-1)">↑</button>`:'')+
+        (index<items.length-1?`<button class="btn" aria-label="Descendre cette pièce" onclick="movePortfolioItem('${escapeHtml(item.id)}',1)">↓</button>`:'')+
+        `<button class="btn danger" onclick="removePortfolioItem('${escapeHtml(item.id)}')">Retirer</button>`
+      :'';
+    return `<article class="card creator-project-card">${media}<div class="creator-project-body"><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.context||'Une création de mon univers.')}</p>${item.contribution?`<div class="creator-project-meta">Contribution · ${escapeHtml(item.contribution)}</div>`:''}${item.process_note?`<p>${escapeHtml(item.process_note)}</p>`:''}<div class="creator-project-actions">${viewButton}${ordering}</div></div></article>`;
+  }).join('')}</div>`;
 }
 async function addPortfolioItem(){
   const postId=document.getElementById('portfolioPostSelect').value;
@@ -1389,6 +1397,26 @@ async function addPortfolioItem(){
   if(error){if(message)message.textContent='Ajout impossible : '+error.message;return;}
   ['portfolioTitle','portfolioContext','portfolioContribution','portfolioProcess'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   if(message)message.textContent='Pièce ajoutée à ton portfolio.';
+  await renderProfile();
+}
+async function movePortfolioItem(itemId,direction){
+  const {data:userData}=await museaSupabase.auth.getUser();
+  if(!userData?.user)return toast('Connecte-toi pour organiser ton portfolio.');
+  const {data:items,error}=await museaSupabase.from('creator_portfolio_items')
+    .select('id,sort_order,created_at').eq('user_id',userData.user.id)
+    .order('sort_order',{ascending:true}).order('created_at',{ascending:true});
+  if(error)return toast('Impossible de réorganiser le portfolio : '+error.message);
+  const index=(items||[]).findIndex(item=>item.id===itemId);
+  const nextIndex=index+Number(direction);
+  if(index<0||nextIndex<0||nextIndex>=items.length)return;
+  const current=items[index],other=items[nextIndex];
+  const currentOrder=current.sort_order,otherOrder=other.sort_order;
+  const updates=await Promise.all([
+    museaSupabase.from('creator_portfolio_items').update({sort_order:otherOrder}).eq('id',current.id).eq('user_id',userData.user.id),
+    museaSupabase.from('creator_portfolio_items').update({sort_order:currentOrder}).eq('id',other.id).eq('user_id',userData.user.id)
+  ]);
+  const failure=updates.find(result=>result.error);
+  if(failure){toast('Réorganisation incomplète : '+failure.error.message);return;}
   await renderProfile();
 }
 async function removePortfolioItem(itemId){
