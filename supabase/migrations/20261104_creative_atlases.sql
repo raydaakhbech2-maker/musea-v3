@@ -97,9 +97,12 @@ using (
 )
 with check (
   exists (
-    select 1 from public.creative_atlases a
+    select 1
+    from public.creative_atlases a
+    join public.posts p on p.id = creative_atlas_items.post_id
     where a.id = creative_atlas_items.atlas_id
       and a.owner_id = auth.uid()
+      and p.visibility = 'public'
   )
 );
 
