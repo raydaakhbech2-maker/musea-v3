@@ -206,62 +206,73 @@ function artMarkup(p){
   return `<div class="art ${p.art}"><span>${escapeHtml(p.title)}</span></div>`;
 }function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function postMarkup(p){let liked=state.liked.includes(p.id),saved=state.saved.includes(p.id);return `<article class="card"><div class="post-head"><div class="avatar">${p.avatar||'✦'}</div><div style="flex:1"><strong>${escapeHtml(p.user)}</strong><div class="small muted">${escapeHtml(p.style)} · ${p.tag}</div></div><button class="iconbtn" onclick="toast('Options de publication : signaler, bloquer, masquer (démo).')">•••</button></div>${artMarkup(p)}<div class="post-title">${escapeHtml(p.title)}</div><div>${escapeHtml(p.desc)}</div><div class="row wrap" style="margin-top:9px"><span class="chip">${p.tag}</span><button class="chip" onclick="translatePost(${p.id})">文 Traduire</button></div><div class="post-actions"><button class="iconbtn ${liked?'on':''}" onclick="toggleLike(${p.id})">♡ ${p.likes+(liked?1:0)}</button><button class="iconbtn" onclick="commentPost(${p.id})">▢ ${state.comments[p.id]?.length||0}</button><button class="iconbtn ${saved?'on':''}" onclick="toggleSave(${p.id})">☆ ${saved?'Enregistré':'Enregistrer'}</button><button class="iconbtn" onclick="toast('Repost simulé. Un vrai repost doit afficher la source originale.')">⟳ Reposter</button></div><div id="comments-${p.id}"></div></article>`}
+let communityPosts = [];
+
+async function loadCommunityPosts(){
+  const {data: rows,error} = await museaSupabase
+    .from('posts')
+    .select('id,user_id,caption,style,visibility,image_url,created_at')
+    .eq('visibility','public')
+    .order('created_at',{ascending:false})
+    .limit(100);
+
+  if(error) throw error;
+
+  const userIds = [...new Set((rows||[]).map(row=>row.user_id).filter(Boolean))];
+  let profiles = [];
+
+  if(userIds.length){
+    const {data,error:profileError} = await museaSupabase
+      .from('profiles')
+      .select('id,username')
+      .in('id',userIds);
+    if(profileError) console.warn('Profils indisponibles :',profileError);
+    profiles = data||[];
+  }
+
+  communityPosts = (rows||[]).map(row=>{
+    const profile = profiles.find(item=>item.id===row.user_id);
+    const username = profile?.username || 'Utilisateur';
+    const style = row.style || 'Création';
+    const normalizedStyle = style.toLowerCase();
+    const kind = normalizedStyle.includes('fantasy') ? 'fantasy'
+      : (normalizedStyle.includes('photo') ? 'photo' : 'art');
+
+    return {
+      id: row.id,
+      user: username,
+      avatar: username[0]?.toUpperCase() || 'M',
+      title: (row.caption||'Publication').slice(0,60),
+      desc: row.caption||'',
+      image_url: row.image_url,
+      style,
+      kind,
+      art: 'a4',
+      likes: 0,
+      tag: '#MaCreation',
+      created_at: row.created_at
+    };
+  });
+
+  return communityPosts;
+}
+
 async function renderFeed(){
   const feed = document.getElementById('feed');
-  feed.innerHTML = '<p class="muted small">Chargement des publications...</p>';
+  if(!feed) return;
+  feed.innerHTML = '<p class="muted small">Chargement des créations de la communauté...</p>';
 
-  try {
-    const { data: rows, error } = await museaSupabase
-      .from('posts')
-      .select('id,user_id,caption,style,visibility,image_url,created_at')      .order('created_at', { ascending: false })
-      .limit(50);
-
-    if (error) throw error;
-
-    const userIds = [...new Set((rows || []).map(p => p.user_id))];
-    let profiles = [];
-
-    if (userIds.length) {
-      const result = await museaSupabase
-        .from('profiles')
-        .select('id,username')
-        .in('id', userIds);
-
-      if (!result.error) profiles = result.data || [];
-    }
-
-    const realPosts = (rows || []).map(row => {
-      const profile = profiles.find(p => p.id === row.user_id);
-      const username = profile?.username || 'Utilisateur';
-
-      return {
-        id: row.id,
-        user: username,
-        avatar: username[0]?.toUpperCase() || 'M',
-        title: (row.caption || 'Publication').slice(0, 60),
-        desc: row.caption || '',
-        image_url: row.image_url,
-        style: row.style || 'Création',
-        kind: 'art',
-        art: 'a4',
-        likes: 0,
-        tag: '#MaCreation'
-      };
-    });
-
-    const allPosts = [...realPosts, ...defaultPosts];
-    const filtered = allPosts.filter(p =>
-      feedKind === 'all' || p.kind === feedKind
+  try{
+    await loadCommunityPosts();
+    const filtered = communityPosts.filter(post=>
+      feedKind==='all' || post.kind===feedKind
     );
-
-    feed.innerHTML = filtered.map(postMarkup).join('');
-  } catch (error) {
-    console.error(error);
-    const filtered = defaultPosts.filter(p =>
-      feedKind === 'all' || p.kind === feedKind
-    );
-    feed.innerHTML = filtered.map(postMarkup).join('');
-    toast('Impossible de charger les publications enregistrées.');
+    feed.innerHTML = filtered.length
+      ? filtered.map(postMarkup).join('')
+      : '<div class="card"><h3 class="h3">Le prochain univers à découvrir sera peut-être le tien.</h3><p class="muted small">Aucune création publique dans cette catégorie pour le moment. Publie la première !</p><button class="btn primary" onclick="navigate(\'create\')">Créer une publication</button></div>';
+  }catch(error){
+    console.error('Chargement du fil impossible :',error);
+    feed.innerHTML = '<div class="card"><strong>Le fil est momentanément indisponible.</strong><p class="muted small">Vérifie ta connexion puis réessaie.</p><button class="btn" onclick="renderFeed()">Réessayer</button></div>';
   }
 
   renderStories();
@@ -271,7 +282,33 @@ function toggleLike(id){if(state.liked.includes(id)){state.liked=state.liked.fil
 function toggleSave(id){if(state.saved.includes(id)){state.saved=state.saved.filter(x=>x!==id)}else{state.saved.push(id)}save();renderFeed();renderProfile();toast(state.saved.includes(id)?'Ajouté à tes collections.':'Retiré de tes collections.')}
 function commentPost(id){let txt=prompt('Écris un commentaire de démonstration :');if(txt&&txt.trim()){state.comments[id]=state.comments[id]||[];state.comments[id].push(txt.trim());state.notifications.unshift({type:'Activité',text:'Commentaire ajouté sur une publication.',time:'À l’instant',read:false});save();renderFeed();toast('Commentaire ajouté au prototype.')} }
 function translatePost(id){let p=defaultPosts.find(x=>x.id===id);let lang=document.getElementById('language')?.value||'Français';toast('Traduction IA simulée vers '+lang+' : la connexion au service de traduction reste à faire.');}
-function renderDiscover(){let q=(document.getElementById('searchInput')?.value||'').toLowerCase();let list=defaultPosts.filter(p=>(discoverKind==='Tout'||p.style===discoverKind)&&(`${p.user} ${p.title} ${p.desc} ${p.style} ${p.tag}`).toLowerCase().includes(q));document.getElementById('discoverResults').innerHTML=list.length?list.map(postMarkup).join(''):'<div class="card muted">Aucun résultat. Essaie un autre mot-clé.</div>'}
+async function renderDiscover(){
+  const container = document.getElementById('discoverResults');
+  if(!container) return;
+  const q = (document.getElementById('searchInput')?.value||'').trim().toLowerCase();
+  container.innerHTML = '<p class="muted small">Recherche dans les créations publiques...</p>';
+
+  try{
+    await loadCommunityPosts();
+    const list = communityPosts.filter(post=>{
+      const categoryMatch = discoverKind==='Tout'
+        || (discoverKind==='Digital art' && post.kind==='art')
+        || (discoverKind==='Fantasy' && post.kind==='fantasy')
+        || (discoverKind==='Photo' && post.kind==='photo')
+        || (discoverKind==='3D' && post.style.toLowerCase().includes('3d'));
+      const textMatch = !q || [post.user,post.title,post.desc,post.style,post.tag]
+        .join(' ').toLowerCase().includes(q);
+      return categoryMatch && textMatch;
+    });
+
+    container.innerHTML = list.length
+      ? list.map(postMarkup).join('')
+      : '<div class="card"><h3 class="h3">Pas encore de résultat.</h3><p class="muted small">Essaie un autre mot-clé ou une autre catégorie. Les nouvelles créations publiques apparaîtront ici automatiquement.</p></div>';
+  }catch(error){
+    console.error('Recherche Explorer impossible :',error);
+    container.innerHTML = '<div class="card"><strong>La découverte est momentanément indisponible.</strong><p class="muted small">Vérifie ta connexion puis réessaie.</p><button class="btn" onclick="renderDiscover()">Réessayer</button></div>';
+  }
+}
 function setDiscover(k,b){discoverKind=k;document.querySelectorAll('#screen-discover .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderDiscover()}
 function renderStories(){let names=[...state.stories,...state.ownStories];let html=names.map((s,i)=>`<button class="story" style="border:0;background:transparent;color:var(--ink)" onclick="viewStory('${escapeHtml(s)}')"><div class="story-ring"><div>${s==='Ta story'?'＋':escapeHtml(s[0].toUpperCase())}</div></div>${escapeHtml(s)}</button>`).join('');document.getElementById('storyRow').innerHTML=html;let all=document.getElementById('allStories');if(all)all.innerHTML=html}
 function viewStory(s){toast('Story de '+s+' — contenu fictif dans cette démo.')}
