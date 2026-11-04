@@ -243,7 +243,7 @@ let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],co
 {type:'Mention',text:'noah.visuals t’a mentionné dans un commentaire.',time:'Il y a 18 min',read:false},
 {type:'Pour toi',text:'Une création pourrait te plaire.',time:'Il y a 1 h',read:false}],
 prefs:{likes:true,collections:true,online:true,dm:true,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
-let feedKind='all',discoverKind='Tout',activeConversationId=null,activeConversationPeer=null,activeMessageChannel=null,messageRefreshBusy=false,messageRefreshQueued=false,activeConversationCanSend=false,customStories=[];
+let feedKind='all',discoverKind='Tout',activeConversationId=null,activeConversationPeer=null,activeMessageChannel=null,messageRefreshBusy=false,messageRefreshQueued=false,activeConversationCanSend=false,activeConversationStatus={blockedByMe:false,blockedByPeer:false,peerAllowsMessages:true},customStories=[];
 function load(){try{let s=JSON.parse(localStorage.getItem('museaState')||'null');if(s)state={...state,...s,prefs:{...state.prefs,...s.prefs}}}catch(e){}}
 function save(){try{localStorage.setItem('museaState',JSON.stringify(state))}catch(e){}}
 function toast(msg){let el=document.getElementById('toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.add('hidden'),2800)}
@@ -470,14 +470,44 @@ async function openDirectConversation(conversationId,peerId){
   document.getElementById('messageSendBtn').disabled=false;
   if(activeMessageChannel){try{await museaSupabase.removeChannel(activeMessageChannel)}catch(e){}activeMessageChannel=null}
   await refreshActiveConversation();
-  activeMessageChannel=museaSupabase.channel('musea-dm-'+conversationId)
+  const {data:sessionData,error:sessionError}=await museaSupabase.auth.getUser();
+  if(sessionError)throw sessionError;
+  const myUserId=sessionData.user?.id;
+  if(!myUserId)return;
+  activeMessageChannel=museaSupabase.channel('musea-dm-'+conversationId,{config:{private:true,presence:{key:myUserId}}})
+    .on('presence',{event:'sync'},()=>updatePeerPresence())
     .on('postgres_changes',{event:'*',schema:'public',table:'direct_messages',filter:'conversation_id=eq.'+conversationId},payload=>{
       if(payload.new?.conversation_id===activeConversationId||payload.old?.conversation_id===activeConversationId)refreshActiveConversation();
     })
     .on('postgres_changes',{event:'*',schema:'public',table:'direct_message_blocks'},payload=>{
       const row=payload.new?.blocker_id?payload.new:payload.old;
       if(row&&(row.blocker_id===activeConversationPeer?.id||row.blocked_id===activeConversationPeer?.id))refreshActiveConversation();
-    }).subscribe();
+    }).subscribe(async status=>{
+      if(status==='SUBSCRIBED'){
+        await syncMyPresence();
+        updatePeerPresence();
+      }
+    });
+}
+function updatePeerPresence(){
+  if(!activeConversationPeer)return;
+  const status=document.getElementById('chatStatus');
+  if(activeConversationStatus.blockedByPeer){status.textContent='Ce compte t’a bloqué.';return}
+  if(activeConversationStatus.blockedByMe){status.textContent='Tu as bloqué ce compte.';return}
+  if(!activeConversationStatus.peerAllowsMessages){status.textContent='Cet utilisateur n’accepte pas les nouveaux messages.';return}
+  const presence=activeMessageChannel?.presenceState?.()||{};
+  const online=!!presence[activeConversationPeer.id]?.length;
+  status.textContent=online?'En ligne':'Hors ligne ou statut masqué';
+}
+async function syncMyPresence(){
+  if(!activeMessageChannel)return;
+  try{
+    if(state.prefs.online){
+      const {data,error}=await museaSupabase.auth.getUser();
+      if(error)throw error;
+      if(data.user)await activeMessageChannel.track({user_id:data.user.id,username:state.username,online:true});
+    }else await activeMessageChannel.untrack();
+  }catch(e){console.warn('Présence en ligne indisponible',e)}
 }
 async function refreshActiveConversation(){
   if(!activeConversationId)return;
@@ -502,14 +532,16 @@ async function refreshActiveConversation(){
     const blockRow=(blockResult.data||[]).find(b=>(b.blocker_id===userId&&b.blocked_id===peerId)||(b.blocked_id===userId&&b.blocker_id===peerId));
     const blockedByMe=!!blockRow&&blockRow.blocker_id===userId;
     const blockedByPeer=!!blockRow&&blockRow.blocker_id===peerId;
-    const canSend=!blockRow&&peerResult.data?.allow_messages!==false;
+    const peerAllowsMessages=peerResult.data?.allow_messages!==false;
+    const canSend=!blockRow&&peerAllowsMessages;
+    activeConversationStatus={blockedByMe,blockedByPeer,peerAllowsMessages};
     const sendButton=document.getElementById('messageSendBtn');
     activeConversationCanSend=canSend;
     sendButton.disabled=!canSend;
     const blockButton=document.getElementById('blockUserBtn');
     blockButton.disabled=blockedByPeer;
     blockButton.textContent=blockedByPeer?'Bloqué par ce compte':(blockedByMe?'Débloquer':'Bloquer');
-    document.getElementById('chatStatus').textContent=blockedByPeer?'Ce compte t’a bloqué.':(blockedByMe?'Tu as bloqué ce compte.':(canSend?'Conversation privée':'Cet utilisateur n’accepte pas les nouveaux messages.'));
+    updatePeerPresence();
     const log=document.getElementById('chatLog');
     log.innerHTML=(messages||[]).map(m=>{
       const mine=m.sender_id===userId;
@@ -544,7 +576,7 @@ async function sendMessage(){
   finally{button.disabled=!activeConversationId||!activeConversationCanSend}
 }
 async function closeActiveConversation(){
-  activeConversationId=null;activeConversationPeer=null;activeConversationCanSend=false;
+  activeConversationId=null;activeConversationPeer=null;activeConversationCanSend=false;activeConversationStatus={blockedByMe:false,blockedByPeer:false,peerAllowsMessages:true};
   if(activeMessageChannel){try{await museaSupabase.removeChannel(activeMessageChannel)}catch(e){}activeMessageChannel=null}
   document.getElementById('chatName').textContent='Sélectionne une conversation';
   document.getElementById('chatStatus').textContent='Tes messages resteront privés.';
@@ -586,7 +618,7 @@ async function renderProfile(){
   document.getElementById('bio').value=state.bio;
   document.getElementById('pointsStat').textContent=state.points;
   document.getElementById('likesStat').textContent=state.liked.length;
-  try{const {data}=await museaSupabase.auth.getUser();if(data.user){const [count,profile]=await Promise.all([museaSupabase.from('post_likes').select('id',{count:'exact',head:true}).eq('user_id',data.user.id),museaSupabase.from('profiles').select('allow_messages').eq('id',data.user.id).maybeSingle()]);if(!count.error)document.getElementById('likesStat').textContent=count.count||0;if(!profile.error&&profile.data){state.prefs.dm=profile.data.allow_messages!==false;document.getElementById('prefDM').checked=state.prefs.dm;save()}}}catch(e){console.warn('Préférences ou compteur indisponibles',e)}
+  try{const {data}=await museaSupabase.auth.getUser();if(data.user){const [count,profile]=await Promise.all([museaSupabase.from('post_likes').select('id',{count:'exact',head:true}).eq('user_id',data.user.id),museaSupabase.from('profiles').select('allow_messages,show_online').eq('id',data.user.id).maybeSingle()]);if(!count.error)document.getElementById('likesStat').textContent=count.count||0;if(!profile.error&&profile.data){state.prefs.dm=profile.data.allow_messages!==false;state.prefs.online=profile.data.show_online!==false;document.getElementById('prefDM').checked=state.prefs.dm;document.getElementById('prefOnline').checked=state.prefs.online;save()}}}catch(e){console.warn('Préférences ou compteur indisponibles',e)}
   document.getElementById('privacyTag').textContent=state.prefs.private?'Privé':'Visible';
 
   let items=[];
@@ -711,11 +743,12 @@ async function renderProfile(){
 async function savePrefs(){
   state.prefs={likes:document.getElementById('prefLikes').checked,collections:document.getElementById('prefCollections').checked,online:document.getElementById('prefOnline').checked,dm:document.getElementById('prefDM').checked,private:document.getElementById('prefPrivate').checked};
   save();
+  await syncMyPresence();
   try{
     const {data,error}=await museaSupabase.auth.getUser();
     if(error)throw error;
     if(data.user){
-      const {data:updatedProfile,error:updateError}=await museaSupabase.from('profiles').update({allow_messages:state.prefs.dm}).eq('id',data.user.id).select('id').maybeSingle();
+      const {data:updatedProfile,error:updateError}=await museaSupabase.from('profiles').update({allow_messages:state.prefs.dm,show_online:state.prefs.online}).eq('id',data.user.id).select('id').maybeSingle();
       if(updateError)throw updateError;
       if(!updatedProfile)throw new Error('Profil utilisateur introuvable');
       toast('Préférences enregistrées sur ton compte.');
