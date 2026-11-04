@@ -304,7 +304,8 @@ function postMarkup(p){
 
   const echoCount=p.remix_count?`<span class="small muted">✦ ${p.remix_count} Écho${p.remix_count>1?'s':''}</span>`:'';
   const remixButton=p.remote?`<button class="iconbtn" onclick="startRemix('${id}')">✦ Créer un Écho</button>`:'';
-  return `<article class="card" data-post-id="${id}"><div class="post-head"><div class="avatar">${escapeHtml(p.avatar||'✦')}</div><div style="flex:1"><strong>${escapeHtml(p.user)}</strong><div class="small muted">${escapeHtml(p.style||'Création')} · ${escapeHtml(p.tag||'#MaCreation')}</div></div>${followButton}<button class="iconbtn" onclick="toast('Options de signalement et de modération à venir.')">•••</button></div>${artMarkup(p)}<div class="post-title">${escapeHtml(p.title)}</div><div>${escapeHtml(p.desc)}</div>${lineage}${journalMarkup}<div class="row wrap" style="margin-top:9px"><span class="chip">${escapeHtml(p.tag||'#MaCreation')}</span><button class="chip" onclick="translatePost('${id}')">文 Traduire</button>${echoCount}</div><div class="post-actions">${remixButton}<button class="iconbtn ${liked?'on':''}" onclick="toggleLike('${id}')">${liked?'♥':'♡'} ${p.like_count||0}</button><button class="iconbtn" onclick="toggleComments('${id}')">▢ ${p.comment_count||0}</button><button class="iconbtn ${saved?'on':''}" onclick="toggleSave('${id}')">☆ ${saved?'Enregistré':'Enregistrer'}</button><button class="iconbtn ${reposted?'on':''}" onclick="toggleRepost('${id}')">⟳ ${reposted?'Reposté':'Reposter'} ${p.repost_count||0}</button></div><div id="comments-${id}" class="hidden"><div class="line"></div><div>${comments}</div><label class="label" for="comment-input-${id}">Ajouter un commentaire</label><textarea class="field" id="comment-input-${id}" maxlength="1000" rows="2" placeholder="Partage ton avis…"></textarea><button class="btn primary full" style="margin-top:8px" onclick="submitComment('${id}')">Publier le commentaire</button></div></article>`;
+  const atlasButton=p.remote?`<button class="iconbtn" onclick="openAtlasPicker('${id}')">✦ Ajouter à un Atlas</button>`:'';
+  return `<article class="card" data-post-id="${id}"><div class="post-head"><div class="avatar">${escapeHtml(p.avatar||'✦')}</div><div style="flex:1"><strong>${escapeHtml(p.user)}</strong><div class="small muted">${escapeHtml(p.style||'Création')} · ${escapeHtml(p.tag||'#MaCreation')}</div></div>${followButton}<button class="iconbtn" onclick="toast('Options de signalement et de modération à venir.')">•••</button></div>${artMarkup(p)}<div class="post-title">${escapeHtml(p.title)}</div><div>${escapeHtml(p.desc)}</div>${lineage}${journalMarkup}<div class="row wrap" style="margin-top:9px"><span class="chip">${escapeHtml(p.tag||'#MaCreation')}</span><button class="chip" onclick="translatePost('${id}')">文 Traduire</button>${echoCount}</div><div class="post-actions">${remixButton}${atlasButton}<button class="iconbtn ${liked?'on':''}" onclick="toggleLike('${id}')">${liked?'♥':'♡'} ${p.like_count||0}</button><button class="iconbtn" onclick="toggleComments('${id}')">▢ ${p.comment_count||0}</button><button class="iconbtn ${saved?'on':''}" onclick="toggleSave('${id}')">☆ ${saved?'Enregistré':'Enregistrer'}</button><button class="iconbtn ${reposted?'on':''}" onclick="toggleRepost('${id}')">⟳ ${reposted?'Reposté':'Reposter'} ${p.repost_count||0}</button></div><div id="comments-${id}" class="hidden"><div class="line"></div><div>${comments}</div><label class="label" for="comment-input-${id}">Ajouter un commentaire</label><textarea class="field" id="comment-input-${id}" maxlength="1000" rows="2" placeholder="Partage ton avis…"></textarea><button class="btn primary full" style="margin-top:8px" onclick="submitComment('${id}')">Publier le commentaire</button></div></article>`;
 }
 async function attachCreationJournals(posts){
   const ids=posts.filter(p=>p.remote).map(p=>p.id);
@@ -478,6 +479,129 @@ async function renderFeed(){
  renderStories();
 }
 function setFeed(k,b){feedKind=k;document.querySelectorAll('#screen-home .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderFeed()}
+
+let activeAtlasId=null,atlasPendingPostId=null;
+async function renderAtlases(){
+  const mine=document.getElementById('myAtlasList'),publicList=document.getElementById('publicAtlasList'),detail=document.getElementById('atlasDetail');
+  if(!mine||!publicList)return;
+  detail.innerHTML='';
+  mine.innerHTML=publicList.innerHTML='<p class="small muted">Chargement des Atlas…</p>';
+  try{
+    const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+    if(userError)throw userError;
+    if(!userData.user){
+      mine.innerHTML='<p class="small muted">Connecte-toi pour créer et gérer tes Atlas.</p>';
+      publicList.innerHTML='<p class="small muted">Connecte-toi pour découvrir les Atlas publics.</p>';
+      document.getElementById('myAtlasCount').textContent='0';return;
+    }
+    const {data:rows,error}=await museaSupabase.from('creative_atlases').select('id,owner_id,title,description,visibility,created_at,updated_at').order('updated_at',{ascending:false}).limit(80);
+    if(error)throw error;
+    const atlases=rows||[],mineRows=atlases.filter(a=>a.owner_id===userData.user.id),publicRows=atlases.filter(a=>a.visibility==='public');
+    const ids=atlases.map(a=>a.id);let itemRows=[];
+    if(ids.length){const result=await museaSupabase.from('creative_atlas_items').select('atlas_id').in('atlas_id',ids);if(!result.error)itemRows=result.data||[]}
+    const counts=new Map();itemRows.forEach(x=>counts.set(x.atlas_id,(counts.get(x.atlas_id)||0)+1));
+    let owners=[];const ownerIds=[...new Set(publicRows.map(a=>a.owner_id))];
+    if(ownerIds.length){const result=await museaSupabase.from('profiles').select('id,username').in('id',ownerIds);if(!result.error)owners=result.data||[]}
+    const card=(a,own)=>'<article class="notice" style="margin-top:10px"><div class="row between"><strong>'+escapeHtml(a.title)+'</strong><span class="chip">'+(a.visibility==='public'?'Public':'Privé')+'</span></div><p class="small">'+escapeHtml(a.description||'Aucun fil conducteur ajouté.')+'</p><div class="row between wrap"><span class="small muted">'+(own?'Ton Atlas':'Par @'+escapeHtml(owners.find(x=>x.id===a.owner_id)?.username||'créateur'))+' · '+(counts.get(a.id)||0)+' création(s)</span><div class="row wrap"><button class="btn" onclick="openAtlas(\''+a.id+'\')">Explorer</button>'+(own?'<button class="btn danger" onclick="deleteAtlas(\''+a.id+'\')">Supprimer</button>':'')+'</div></div></article>';
+    document.getElementById('myAtlasCount').textContent=String(mineRows.length);
+    mine.innerHTML=mineRows.length?mineRows.map(a=>card(a,true)).join(''):'<p class="small muted">Ton premier Atlas peut commencer avec une seule idée.</p>';
+    publicList.innerHTML=publicRows.length?publicRows.map(a=>card(a,false)).join(''):'<p class="small muted">Aucun Atlas public pour le moment. Le tien peut ouvrir la voie.</p>';
+  }catch(e){
+    console.error('Atlas :',e);
+    mine.innerHTML=publicList.innerHTML='<div class="notice">Impossible de charger les Atlas. Vérifie que la migration de l’étape 11 a été exécutée dans Supabase.</div>';
+  }
+}
+async function createAtlas(){
+  const title=document.getElementById('atlasTitle').value.trim(),description=document.getElementById('atlasDescription').value.trim(),visibility=document.getElementById('atlasVisibility').value;
+  if(title.length<3||title.length>60)return toast('Le titre doit contenir entre 3 et 60 caractères.');
+  if(description.length>240)return toast('Le fil conducteur est limité à 240 caractères.');
+  const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+  if(userError||!userData.user)return toast('Connecte-toi pour créer un Atlas.');
+  const {data,error}=await museaSupabase.from('creative_atlases').insert({owner_id:userData.user.id,title,description,visibility}).select('id').single();
+  if(error){console.error(error);return toast('Création impossible : '+error.message)}
+  document.getElementById('atlasTitle').value='';document.getElementById('atlasDescription').value='';
+  await renderAtlases();await openAtlas(data.id);toast('Ton Atlas est créé. Ajoute-y des créations depuis le fil ou Explorer.');
+}
+async function openAtlas(id){
+  const detail=document.getElementById('atlasDetail');if(!detail)return;
+  detail.innerHTML='<div class="card"><p class="muted small">Ouverture de l’Atlas…</p></div>';
+  try{
+    const {data:atlas,error}=await museaSupabase.from('creative_atlases').select('id,owner_id,title,description,visibility').eq('id',id).single();
+    if(error)throw error;
+    const {data:me}=await museaSupabase.auth.getUser(),isOwner=!!me.user&&me.user.id===atlas.owner_id;
+    const {data:items,error:itemError}=await museaSupabase.from('creative_atlas_items').select('id,post_id,note,position,created_at').eq('atlas_id',id).order('position',{ascending:true}).order('created_at',{ascending:true});
+    if(itemError)throw itemError;
+    const postIds=(items||[]).map(x=>x.post_id);let posts=[],profiles=[];
+    if(postIds.length){
+      const result=await museaSupabase.from('posts').select('id,user_id,caption,style,image_url,created_at').in('id',postIds);
+      if(result.error)throw result.error;posts=result.data||[];
+      const ownerIds=[...new Set(posts.map(p=>p.user_id))];
+      if(ownerIds.length){const pr=await museaSupabase.from('profiles').select('id,username').in('id',ownerIds);if(!pr.error)profiles=pr.data||[]}
+    }
+    const cards=(items||[]).map(item=>{
+      const p=posts.find(x=>x.id===item.post_id);if(!p)return '';
+      const username=profiles.find(x=>x.id===p.user_id)?.username||'Utilisateur';
+      const cardPost={id:p.id,author_id:p.user_id,remote:true,user:username,avatar:username[0]?.toUpperCase()||'M',title:(p.caption||'Publication').slice(0,60),desc:p.caption||'',image_url:p.image_url,style:p.style||'Création',kind:'art',art:'a4',tag:'#MaCreation'};
+      return '<div class="card"><div class="row between"><span class="small muted">Étape '+(item.position+1)+' du parcours</span>'+(isOwner?'<div class="row"><button class="iconbtn" aria-label="Monter" onclick="moveAtlasItem(\''+id+'\',\''+item.id+'\',-1)">↑</button><button class="iconbtn" aria-label="Descendre" onclick="moveAtlasItem(\''+id+'\',\''+item.id+'\',1)">↓</button><button class="iconbtn danger" onclick="removeAtlasItem(\''+id+'\',\''+item.id+'\')">Retirer</button></div>':'')+'</div>'+(item.note?'<p class="notice small">✦ '+escapeHtml(item.note)+'</p>':'')+postMarkup(cardPost)+'</div>';
+    }).filter(Boolean);
+    activeAtlasId=id;
+    detail.innerHTML='<div class="card"><div class="row between"><div><div class="eyebrow">Atlas '+(atlas.visibility==='public'?'public':'privé')+'</div><h2 class="h1">'+escapeHtml(atlas.title)+'</h2></div><button class="btn" onclick="document.getElementById(\'atlasDetail\').innerHTML=\'\';activeAtlasId=null">Fermer</button></div><p class="muted">'+escapeHtml(atlas.description||'Un parcours d’inspiration sans commentaire général.')+'</p><div class="small muted">'+items.length+' création(s) · ordre éditorial choisi par le créateur</div></div>'+(cards.length?cards.join(''):'<div class="card"><p class="muted small">Cet Atlas est encore vide. Ajoute des créations publiques depuis le fil ou Explorer.</p></div>');
+    detail.scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){console.error('Ouverture Atlas :',e);detail.innerHTML='<div class="notice">Cet Atlas ne peut pas être affiché. Il a peut-être été supprimé ou son contenu n’est plus public.</div>'}
+}
+async function openAtlasPicker(postId){
+  const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+  if(userError||!userData.user)return toast('Connecte-toi pour organiser tes inspirations.');
+  const {data:atlases,error}=await museaSupabase.from('creative_atlases').select('id,title').eq('owner_id',userData.user.id).order('updated_at',{ascending:false});
+  if(error)return toast('Impossible de charger tes Atlas.');
+  if(!atlases?.length){toast('Crée d’abord ton premier Atlas.');navigate('atlas');return}
+  atlasPendingPostId=postId;
+  document.getElementById('atlasTargetSelect').innerHTML=atlases.map(a=>'<option value="'+a.id+'">'+escapeHtml(a.title)+'</option>').join('');
+  document.getElementById('atlasItemNote').value='';
+  document.getElementById('atlasAddModal').classList.remove('hidden');
+}
+function closeAtlasPicker(){document.getElementById('atlasAddModal').classList.add('hidden');atlasPendingPostId=null}
+async function savePostToAtlas(){
+  const atlasId=document.getElementById('atlasTargetSelect').value,note=document.getElementById('atlasItemNote').value.trim();
+  if(!atlasPendingPostId||!atlasId)return toast('Choisis un Atlas.');
+  if(note.length>240)return toast('La note est limitée à 240 caractères.');
+  const {data:existing,error:existingError}=await museaSupabase.from('creative_atlas_items').select('id').eq('atlas_id',atlasId).eq('post_id',atlasPendingPostId).maybeSingle();
+  if(existingError)return toast('Vérification impossible : '+existingError.message);
+  if(existing)return toast('Cette création est déjà dans cet Atlas.');
+  const {data:positions,error:positionError}=await museaSupabase.from('creative_atlas_items').select('position').eq('atlas_id',atlasId).order('position',{ascending:false}).limit(1);
+  if(positionError)return toast('Impossible de préparer l’ordre de l’Atlas.');
+  const position=(positions?.[0]?.position??-1)+1;
+  const {error}=await museaSupabase.from('creative_atlas_items').insert({atlas_id:atlasId,post_id:atlasPendingPostId,note,position});
+  if(error)return toast('Ajout impossible : '+error.message);
+  closeAtlasPicker();await renderAtlases();toast('Création ajoutée à ton Atlas.');
+  if(activeAtlasId===atlasId)await openAtlas(atlasId);
+}
+async function moveAtlasItem(atlasId,itemId,direction){
+  const {data:items,error}=await museaSupabase.from('creative_atlas_items').select('id,position').eq('atlas_id',atlasId).order('position',{ascending:true});
+  if(error)return toast('Impossible de réorganiser cet Atlas.');
+  const index=items.findIndex(x=>x.id===itemId),other=items[index+direction];
+  if(index<0||!other)return;
+  const current=items[index];
+  const first=await museaSupabase.from('creative_atlas_items').update({position:other.position}).eq('id',current.id);
+  if(first.error)return toast('Déplacement impossible.');
+  const second=await museaSupabase.from('creative_atlas_items').update({position:current.position}).eq('id',other.id);
+  if(second.error)return toast('Ordre partiellement modifié. Recharge l’Atlas.');
+  await openAtlas(atlasId);await renderAtlases();
+}
+async function removeAtlasItem(atlasId,itemId){
+  if(!confirm('Retirer cette création de ton Atlas ?'))return;
+  const {error}=await museaSupabase.from('creative_atlas_items').delete().eq('id',itemId);
+  if(error)return toast('Retrait impossible : '+error.message);
+  await openAtlas(atlasId);await renderAtlases();toast('Création retirée de l’Atlas.');
+}
+async function deleteAtlas(id){
+  if(!confirm('Supprimer cet Atlas et son organisation ? Les publications originales ne seront pas supprimées.'))return;
+  const {error}=await museaSupabase.from('creative_atlases').delete().eq('id',id);
+  if(error)return toast('Suppression impossible : '+error.message);
+  if(activeAtlasId===id){activeAtlasId=null;document.getElementById('atlasDetail').innerHTML=''}
+  await renderAtlases();toast('Atlas supprimé.');
+}
+
 function toggleSave(id){if(state.saved.includes(id)){state.saved=state.saved.filter(x=>x!==id)}else{state.saved.push(id)}save();renderFeed();renderProfile();toast(state.saved.includes(id)?'Ajouté à tes collections.':'Retiré de tes collections.')}
 
 function translatePost(id){let p=defaultPosts.find(x=>x.id===id);let lang=document.getElementById('language')?.value||'Français';toast('Traduction IA simulée vers '+lang+' : la connexion au service de traduction reste à faire.');}
