@@ -62,6 +62,11 @@ revoke all on public.billing_subscriptions from anon, authenticated;
 revoke all on public.billing_invoices from anon, authenticated;
 revoke all on public.billing_webhook_events from anon, authenticated;
 
+grant all on public.billing_customers to service_role;
+grant all on public.billing_subscriptions to service_role;
+grant all on public.billing_invoices to service_role;
+grant all on public.billing_webhook_events to service_role;
+
 grant select on public.billing_subscriptions to authenticated;
 grant select on public.billing_invoices to authenticated;
 
