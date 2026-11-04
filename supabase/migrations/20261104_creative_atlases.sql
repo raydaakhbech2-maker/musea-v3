@@ -37,8 +37,12 @@ drop policy if exists "Atlas owners and public visitors read atlases" on public.
 create policy "Atlas owners and public visitors read atlases"
 on public.creative_atlases for select to anon, authenticated
 using (
-  owner_id = auth.uid()
-  or visibility = 'public'
+  (owner_id = auth.uid() or visibility = 'public')
+  and not exists (
+    select 1 from public.direct_message_blocks b
+    where (b.blocker_id = auth.uid() and b.blocked_id = creative_atlases.owner_id)
+       or (b.blocker_id = creative_atlases.owner_id and b.blocked_id = auth.uid())
+  )
 );
 
 drop policy if exists "Users create their own atlases" on public.creative_atlases;
@@ -68,6 +72,11 @@ using (
     where a.id = creative_atlas_items.atlas_id
       and p.visibility = 'public'
       and (a.owner_id = auth.uid() or a.visibility = 'public')
+      and not exists (
+        select 1 from public.direct_message_blocks b
+        where (b.blocker_id = auth.uid() and b.blocked_id in (a.owner_id, p.user_id))
+           or (b.blocker_id in (a.owner_id, p.user_id) and b.blocked_id = auth.uid())
+      )
   )
 );
 
@@ -82,6 +91,11 @@ with check (
     where a.id = creative_atlas_items.atlas_id
       and a.owner_id = auth.uid()
       and p.visibility = 'public'
+      and not exists (
+        select 1 from public.direct_message_blocks b
+        where (b.blocker_id = auth.uid() and b.blocked_id = p.user_id)
+           or (b.blocker_id = p.user_id and b.blocked_id = auth.uid())
+      )
   )
 );
 
@@ -103,6 +117,11 @@ with check (
     where a.id = creative_atlas_items.atlas_id
       and a.owner_id = auth.uid()
       and p.visibility = 'public'
+      and not exists (
+        select 1 from public.direct_message_blocks b
+        where (b.blocker_id = auth.uid() and b.blocked_id = p.user_id)
+           or (b.blocker_id = p.user_id and b.blocked_id = auth.uid())
+      )
   )
 );
 
