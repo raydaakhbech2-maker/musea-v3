@@ -1,0 +1,6 @@
+# MUSEA — Edge Functions
+# Les endpoints checkout et portal conservent la vérification JWT par défaut.
+# Seul le webhook externe Stripe désactive le JWT Supabase : il vérifie sa
+# propre signature Stripe sur le corps brut de la requête.
+[functions.stripe-webhook]
+verify_jwt = false
