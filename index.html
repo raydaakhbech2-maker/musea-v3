@@ -10,7 +10,7 @@
 <style>
 :root{--bg:#f6f5fb;--card:#fff;--ink:#211d32;--muted:#777286;--line:#e7e3f0;--accent:#8d7cf6;--accent2:#eae6ff;--nav:#fff;--good:#267b55;--danger:#b34454;--shadow:0 8px 28px #211d320c}
 [data-theme="dark"]{--bg:#12111a;--card:#1d1b28;--ink:#f4f1ff;--muted:#aaa4bc;--line:#363143;--accent:#a99aff;--accent2:#302a4b;--nav:#191724;--good:#75d5a7;--danger:#ff8b9a;--shadow:0 8px 28px #0003;color-scheme:dark}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;transition:background .2s,color .2s}button,input,textarea,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}a{color:var(--accent)}.app{max-width:1180px;margin:auto;min-height:100dvh;padding-bottom:82px}.top{position:sticky;top:0;z-index:5;background:var(--nav);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:12px}.brand{display:flex;align-items:center;gap:9px;font-weight:900;font-size:19px;letter-spacing:1.4px}.logo{width:38px;height:38px;border-radius:13px;background:linear-gradient(135deg,#b9aaff,#7660ed);display:grid;place-items:center;color:#211d32;font-size:20px}.top .spacer{flex:1}.pill{border:1px solid var(--line);border-radius:99px;padding:7px 11px;background:var(--card);color:var(--ink);font-size:12px;font-weight:700}.main{padding:16px;max-width:780px;margin:auto}.wide{max-width:1000px}.screen{display:none}.screen.active{display:block}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow);margin:0 0 14px}.hero{background:linear-gradient(135deg,#211a3b,#40316c 55%,#7867dc);color:#fff;border:0;padding:22px}.hero p{color:#e3ddff}.eyebrow{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}.hero .eyebrow{color:#d8ceff}.h1{font-size:clamp(24px,5vw,36px);line-height:1.1;margin:8px 0}.h2{font-size:21px;margin:0 0 12px}.h3{font-size:16px;margin:0 0 8px}.muted{color:var(--muted)}.small{font-size:12px}.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 14px;border-radius:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:7px}.btn.primary{background:var(--accent);border-color:var(--accent);color:#1c1830}.btn.soft{background:var(--accent2);border-color:transparent}.btn.danger{color:var(--danger)}.btn.full{width:100%}.btn:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:center;gap:10px}.wrap{flex-wrap:wrap}.between{justify-content:space-between}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px;color:var(--ink)}textarea.field{resize:vertical;min-height:90px}.label{display:block;font-weight:750;font-size:13px;margin:12px 0 6px}.chip{display:inline-flex;border:1px solid var(--line);border-radius:99px;padding:6px 10px;font-size:12px;background:var(--bg);color:var(--ink)}.chip.selected{background:var(--accent2);border-color:var(--accent);font-weight:750}.art{height:225px;border-radius:15px;background:linear-gradient(135deg,#251e49,#6e50a8 40%,#e09cc4);position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;text-align:center;padding:18px}.art:before,.art:after{content:"";position:absolute;border-radius:50%;filter:blur(1px);opacity:.8}.art:before{width:190px;height:190px;background:radial-gradient(circle at 35% 30%,#ffe4fd,#a69aff 35%,transparent 70%);left:10%;top:10%}.art:after{width:220px;height:220px;background:radial-gradient(circle,#ffb0c8,#ee7fa7 25%,transparent 70%);right:-20px;bottom:-90px}.art span{z-index:1;font-size:27px;font-weight:900;text-shadow:0 2px 18px #1b153a}.art.a2{background:linear-gradient(135deg,#122e36,#39817b,#f2d6a1)}.art.a3{background:linear-gradient(135deg,#10182f,#3d70ba,#c2e4f3)}.art.a4{background:linear-gradient(135deg,#3a182e,#b34d74,#f6bb91)}.post-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}.avatar{width:38px;height:38px;border-radius:50%;background:var(--accent2);display:grid;place-items:center;font-weight:900;color:var(--ink);flex-shrink:0}.post-title{font-weight:850;font-size:17px;margin:10px 0 3px}.post-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.iconbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:8px 10px}.iconbtn.on{background:var(--accent2);border-color:var(--accent)}.bottom{position:fixed;bottom:0;left:0;right:0;z-index:8;background:var(--nav);border-top:1px solid var(--line);padding:7px max(6px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:2px}.bottom button{flex:1;max-width:105px;border:0;background:transparent;color:var(--muted);padding:7px 3px;border-radius:12px;font-size:10px;font-weight:700}.bottom button b{display:block;font-size:20px;line-height:1.3}.bottom button.active{background:var(--accent2);color:var(--ink)}.notice{padding:12px;border-radius:12px;background:var(--accent2);font-size:13px}.storyrow{display:flex;gap:12px;overflow:auto;padding:4px 0 12px}.story{text-align:center;min-width:67px;font-size:11px}.story-ring{width:60px;height:60px;border-radius:50%;padding:3px;background:linear-gradient(135deg,#ffad7c,#8d7cf6,#e78ec5);margin:auto auto 5px}.story-ring>div{height:100%;border-radius:50%;border:3px solid var(--card);background:var(--accent2);display:grid;place-items:center;font-size:21px}.stat{background:var(--bg);border-radius:13px;padding:12px;flex:1;min-width:90px}.stat strong{display:block;font-size:21px}.line{height:1px;background:var(--line);margin:14px 0}.switchrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}input[type=checkbox]{accent-color:var(--accent);width:18px;height:18px}.toast{position:fixed;left:50%;bottom:94px;transform:translateX(-50%);z-index:20;background:#252035;color:white;padding:12px 16px;border-radius:13px;box-shadow:var(--shadow);max-width:90%;font-size:13px}.hidden{display:none!important}.browserbar{display:flex;gap:7px}.browserbar input{min-width:0}.browserframe{width:100%;height:360px;border:1px solid var(--line);border-radius:14px;background:var(--card)}.modal{position:fixed;inset:0;background:#0008;z-index:30;display:grid;place-items:center;padding:18px}.modalbox{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;max-width:520px;width:100%;max-height:90dvh;overflow:auto}.price{font-size:34px;font-weight:900;letter-spacing:-1px}.tag{background:#d9f5e6;color:#175d3c;border-radius:8px;padding:4px 7px;font-size:11px;font-weight:800}.premium-wall{background:linear-gradient(135deg,#211a3b,#5b4797,#c0a6ff);color:white;border-radius:16px;padding:20px}.footer-note{text-align:center;color:var(--muted);font-size:11px;padding:14px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;transition:background .2s,color .2s}button,input,textarea,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}a{color:var(--accent)}.app{max-width:1180px;margin:auto;min-height:100dvh;padding-bottom:82px}.top{position:sticky;top:0;z-index:5;background:var(--nav);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:12px}.brand{display:flex;align-items:center;gap:9px;font-weight:900;font-size:19px;letter-spacing:1.4px}.logo{width:38px;height:38px;border-radius:13px;background:linear-gradient(135deg,#b9aaff,#7660ed);display:grid;place-items:center;color:#211d32;font-size:20px}.top .spacer{flex:1}.pill{border:1px solid var(--line);border-radius:99px;padding:7px 11px;background:var(--card);color:var(--ink);font-size:12px;font-weight:700}.main{padding:16px;max-width:780px;margin:auto}.wide{max-width:1000px}.screen{display:none}.screen.active{display:block}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow);margin:0 0 14px}.hero{background:linear-gradient(135deg,#211a3b,#40316c 55%,#7867dc);color:#fff;border:0;padding:22px}.hero p{color:#e3ddff}.eyebrow{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}.hero .eyebrow{color:#d8ceff}.h1{font-size:clamp(24px,5vw,36px);line-height:1.1;margin:8px 0}.h2{font-size:21px;margin:0 0 12px}.h3{font-size:16px;margin:0 0 8px}.muted{color:var(--muted)}.small{font-size:12px}.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 14px;border-radius:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:7px}.btn.primary{background:var(--accent);border-color:var(--accent);color:#1c1830}.btn.soft{background:var(--accent2);border-color:transparent}.btn.danger{color:var(--danger)}.btn.full{width:100%}.btn:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:center;gap:10px}.wrap{flex-wrap:wrap}.between{justify-content:space-between}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px;color:var(--ink)}textarea.field{resize:vertical;min-height:90px}.label{display:block;font-weight:750;font-size:13px;margin:12px 0 6px}.chip{display:inline-flex;border:1px solid var(--line);border-radius:99px;padding:6px 10px;font-size:12px;background:var(--bg);color:var(--ink)}.chip.selected{background:var(--accent2);border-color:var(--accent);font-weight:750}.art{height:225px;border-radius:15px;background:linear-gradient(135deg,#251e49,#6e50a8 40%,#e09cc4);position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;text-align:center;padding:18px}.art:before,.art:after{content:"";position:absolute;border-radius:50%;filter:blur(1px);opacity:.8}.art:before{width:190px;height:190px;background:radial-gradient(circle at 35% 30%,#ffe4fd,#a69aff 35%,transparent 70%);left:10%;top:10%}.art:after{width:220px;height:220px;background:radial-gradient(circle,#ffb0c8,#ee7fa7 25%,transparent 70%);right:-20px;bottom:-90px}.art span{z-index:1;font-size:27px;font-weight:900;text-shadow:0 2px 18px #1b153a}.art.a2{background:linear-gradient(135deg,#122e36,#39817b,#f2d6a1)}.art.a3{background:linear-gradient(135deg,#10182f,#3d70ba,#c2e4f3)}.art.a4{background:linear-gradient(135deg,#3a182e,#b34d74,#f6bb91)}.post-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}.avatar{width:38px;height:38px;border-radius:50%;background:var(--accent2);display:grid;place-items:center;font-weight:900;color:var(--ink);flex-shrink:0}.post-title{font-weight:850;font-size:17px;margin:10px 0 3px}.post-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.iconbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:8px 10px}.iconbtn.on{background:var(--accent2);border-color:var(--accent)}.bottom{position:fixed;bottom:0;left:0;right:0;z-index:8;background:var(--nav);border-top:1px solid var(--line);padding:7px max(6px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:2px}.bottom button{flex:1;max-width:105px;border:0;background:transparent;color:var(--muted);padding:7px 3px;border-radius:12px;font-size:10px;font-weight:700}.bottom button b{display:block;font-size:20px;line-height:1.3}.bottom button.active{background:var(--accent2);color:var(--ink)}.bottom button{min-width:0}.bottom button b{font-weight:800}.notice{padding:12px;border-radius:12px;background:var(--accent2);font-size:13px}.storyrow{display:flex;gap:12px;overflow:auto;padding:4px 0 12px}.story-ring.has-story{background:linear-gradient(135deg,#ffad7c,#8d7cf6,#e78ec5)}.story-ring.no-story{background:var(--line)}.story-media{max-width:100%;max-height:62vh;object-fit:contain}.story-preview-media{max-width:100%;max-height:220px;object-fit:contain;border-radius:12px;margin-top:8px}.story{text-align:center;min-width:67px;font-size:11px}.story-ring{width:60px;height:60px;border-radius:50%;padding:3px;background:linear-gradient(135deg,#ffad7c,#8d7cf6,#e78ec5);margin:auto auto 5px}.story-ring>div{height:100%;border-radius:50%;border:3px solid var(--card);background:var(--accent2);display:grid;place-items:center;font-size:21px}.stat{background:var(--bg);border-radius:13px;padding:12px;flex:1;min-width:90px}.stat strong{display:block;font-size:21px}.line{height:1px;background:var(--line);margin:14px 0}.switchrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}input[type=checkbox]{accent-color:var(--accent);width:18px;height:18px}.toast{position:fixed;left:50%;bottom:94px;transform:translateX(-50%);z-index:20;background:#252035;color:white;padding:12px 16px;border-radius:13px;box-shadow:var(--shadow);max-width:90%;font-size:13px}.hidden{display:none!important}.browserbar{display:flex;gap:7px}.browserbar input{min-width:0}.browserframe{width:100%;height:360px;border:1px solid var(--line);border-radius:14px;background:var(--card)}.modal{position:fixed;inset:0;background:#0008;z-index:30;display:grid;place-items:center;padding:18px}.modalbox{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;max-width:520px;width:100%;max-height:90dvh;overflow:auto}.price{font-size:34px;font-weight:900;letter-spacing:-1px}.tag{background:#d9f5e6;color:#175d3c;border-radius:8px;padding:4px 7px;font-size:11px;font-weight:800}.premium-wall{background:linear-gradient(135deg,#211a3b,#5b4797,#c0a6ff);color:white;border-radius:16px;padding:20px}.footer-note{text-align:center;color:var(--muted);font-size:11px;padding:14px}
 @media(min-width:720px){.main{padding:22px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bottom{top:66px;bottom:0;left:auto;right:auto;width:78px;display:flex;flex-direction:column;justify-content:flex-start;padding:12px 6px;border-top:0;border-right:1px solid var(--line)}.bottom button{width:100%;flex:none;padding:12px 3px}.app{padding-left:78px;padding-bottom:0}.main{max-width:900px}.browserframe{height:440px}}
 @media(max-width:430px){.top{padding:10px}.main{padding:11px}.card{padding:13px}.art{height:195px}.pill{padding:6px 8px}.grid{gap:8px}}
 </style>
@@ -28,7 +28,8 @@ window.museaSupabase = window.supabase.createClient(
   <div class="brand"><div class="logo">✦</div><span>MUSEA</span></div>
   <span class="pill" id="planPill">GRATUIT</span>
   <div class="spacer"></div>
-  <button class="iconbtn" onclick="navigate('notifications')" aria-label="Notifications">♧ <span id="notifCount">3</span></button>
+  <button class="iconbtn" onclick="navigate('more')" aria-label="Plus de fonctionnalités">＋</button>
+  <button class="iconbtn" onclick="navigate('notifications')" aria-label="Notifications">♧ <span id="notifCount">0</span></button>
   <button class="iconbtn" onclick="navigate('profile')" aria-label="Profil">◉</button>
 </header>
 <main class="main" id="main">
@@ -70,19 +71,24 @@ window.museaSupabase = window.supabase.createClient(
   <div class="row between"><h2 class="h2">Stories</h2><button class="btn" onclick="navigate('stories')">Voir tout</button></div>
   <div class="storyrow" id="storyRow"></div>
   <div class="row between"><h2 class="h2">Pour toi</h2><button class="btn" onclick="navigate('discover')">Découvrir ↗</button></div>
-  <div class="row wrap" style="margin-bottom:12px"><button class="chip selected" onclick="setFeed('all',this)">Tout</button><button class="chip" onclick="setFeed('art',this)">Art digital</button><button class="chip" onclick="setFeed('fantasy',this)">Fantasy</button><button class="chip" onclick="setFeed('photo',this)">Photo</button></div>
+  <div class="row wrap" style="margin-bottom:12px"><button class="chip selected" onclick="setFeed('all',this)">Pour toi</button><button class="chip" onclick="setFeed('circle',this)">Mon cercle</button><button class="chip" onclick="setFeed('bridges',this)">Passerelles ✦</button></div><p class="small muted" id="feedExplanation">Un mélange de créations suivies et de découvertes reliées à tes intérêts.</p>
   <div id="feed"></div>
 </section>
 <section class="screen" id="screen-discover">
   <div class="card"><div class="eyebrow">Explorer</div><h2 class="h1">Trouve ton inspiration.</h2>
   <input class="field" id="searchInput" placeholder="Rechercher des artistes, styles, mots-clés…" oninput="renderDiscover()">
   <div class="row wrap" style="margin-top:10px"><button class="chip selected" onclick="setDiscover('Tout',this)">Tout</button><button class="chip" onclick="setDiscover('Digital art',this)">Digital art</button><button class="chip" onclick="setDiscover('Fantasy',this)">Fantasy</button><button class="chip" onclick="setDiscover('Photo',this)">Photo</button><button class="chip" onclick="setDiscover('3D',this)">3D</button></div></div>
+  <div class="card"><div class="eyebrow">Ton radar créatif</div><h3 class="h3">Choisis tes univers</h3><p class="small muted">Tes choix servent à relier des créateurs et des styles inattendus. Ils ne limitent pas ce que tu peux voir et sont visibles aux membres connectés.</p><div id="interestPicker" class="row wrap"></div><p class="small muted" id="interestStatus">Connecte-toi pour synchroniser tes intérêts.</p></div>
+  <div class="card"><div class="eyebrow">Rencontres créatives</div><h3 class="h3">Trouver un créateur</h3><div class="row"><input class="field" id="creatorSearch" maxlength="40" placeholder="Chercher un pseudo…" oninput="renderCreatorDirectory()"><button class="btn primary" onclick="renderCreatorDirectory()">Chercher</button></div><div id="creatorResults" style="margin-top:12px"></div></div>
   <div id="discoverResults"></div>
   <div class="card"><h3 class="h3">Collections thématiques</h3><div class="grid"><button class="btn" onclick="toast('Collection ouverte en mode démonstration.')">🌌 Univers futuristes</button><button class="btn" onclick="toast('Collection ouverte en mode démonstration.')">🌿 Nature & rêves</button><button class="btn" onclick="toast('Collection ouverte en mode démonstration.')">🎨 Art abstrait</button><button class="btn" onclick="toast('Collection ouverte en mode démonstration.')">📷 Photographie</button></div></div>
 </section>
 <section class="screen" id="screen-create">
-  <div class="card"><div class="eyebrow">Studio IA</div><h2 class="h1">Donne forme à ton idée.</h2><p class="muted">Ce prototype simule la création. Une vraie génération nécessitera une API IA et un budget contrôlé.</p>
-  <label class="label" for="prompt">Décris ton idée</label><textarea class="field" id="prompt" placeholder="Ex. : une cité flottante au-dessus des nuages, au coucher du soleil…">Une cité flottante au-dessus des nuages, au coucher du soleil</textarea>
+  <div class="card"><div class="eyebrow">Studio MUSEA</div><h2 class="h1">Donne forme à ton idée.</h2><p class="muted">Crée à ton rythme. Tu peux garder une idée privée, la reprendre plus tard et choisir toi-même quand elle est prête à être partagée.</p>
+  <div class="row wrap" style="margin:10px 0"><button class="btn" type="button" onclick="navigate('drafts')">✦ Mes Pistes</button><span class="small muted" id="activeDraftLabel">Nouvelle création</span></div>
+  <label class="label" for="draftTitle">Nom de ta Piste</label><input class="field" id="draftTitle" maxlength="80" placeholder="Ex. : Une ville entre deux saisons">
+  <label class="label" for="draftStatus">Où en est ton idée ?</label><select class="field" id="draftStatus"><option value="seed">Graine · idée à explorer</option><option value="work">En cours · je développe</option><option value="ready">Prête · à publier quand je le décide</option></select>
+  <div id="remixContext" class="notice hidden" style="margin:12px 0"></div><div id="remixNoteWrap" class="hidden"><label class="label" for="remixNote">Ce que tu transformes (10 à 500 caractères)</label><textarea class="field" id="remixNote" maxlength="500" rows="2" placeholder="Ex. : Je transforme cette ambiance en décor futuriste, avec une palette et un point de vue différents."></textarea><div class="small muted">Ce texte explique ton apport personnel. Il sera affiché avec le crédit de la création d’origine.</div><div class="row wrap" style="margin-top:8px"><button class="btn hidden" id="cancelRemixBtn" type="button" onclick="cancelRemix()">Annuler l’Écho</button></div></div><details class="card" style="margin:12px 0"><summary style="cursor:pointer;font-weight:700">✦ Ajouter un Carnet de création <span class="small muted">(facultatif)</span></summary><p class="small muted">MUSEA valorise aussi le chemin parcouru. Partage seulement ce que tu souhaites rendre public : ces notes seront visibles avec ta publication.</p><label class="label" for="journalIntention">L’étincelle — qu’est-ce qui t’a donné l’idée ?</label><textarea class="field" id="journalIntention" maxlength="400" rows="2" placeholder="Une image, une question, une émotion…"></textarea><label class="label" for="journalChoice">Le choix — quelle décision a changé ta création ?</label><textarea class="field" id="journalChoice" maxlength="400" rows="2" placeholder="Une couleur, une contrainte, une technique…"></textarea><label class="label" for="journalDiscovery">La découverte — qu’as-tu appris ou découvert ?</label><textarea class="field" id="journalDiscovery" maxlength="400" rows="2" placeholder="Un résultat inattendu, une idée à explorer…"></textarea><p class="small muted">Chaque fragment est facultatif (400 caractères maximum). Tu peux n’en partager qu’un seul.</p></details><label class="label" for="prompt">Décris ton idée</label><textarea class="field" id="prompt" placeholder="Ex. : une cité flottante au-dessus des nuages, au coucher du soleil…">Une cité flottante au-dessus des nuages, au coucher du soleil</textarea>
     <div class="line"></div>
 
 <label class="label" for="postImage">Ajouter une image</label>
@@ -95,10 +101,25 @@ window.museaSupabase = window.supabase.createClient(
 >
 
 <div id="imagePreview" style="margin-top:12px"></div>
+  <div id="editorTools" class="card hidden" style="margin-top:12px">
+    <div class="row between"><h3 class="h3">Retouche rapide</h3><button class="btn" type="button" onclick="resetEditor(true)">Réinitialiser</button></div>
+    <p class="small muted">Les réglages sont appliqués à l'image exportée et à la publication.</p>
+    <label class="label" for="editBrightness">Luminosité <span id="brightnessValue">100 %</span></label>
+    <input class="field" type="range" id="editBrightness" min="50" max="150" value="100" oninput="updateEditor()">
+    <label class="label" for="editContrast">Contraste <span id="contrastValue">100 %</span></label>
+    <input class="field" type="range" id="editContrast" min="50" max="150" value="100" oninput="updateEditor()">
+    <label class="label" for="editSaturation">Saturation <span id="saturationValue">100 %</span></label>
+    <input class="field" type="range" id="editSaturation" min="0" max="200" value="100" oninput="updateEditor()">
+    <button class="btn full" type="button" style="margin-top:10px" onclick="downloadEditedImage()">↓ Exporter l'image retouchée</button>
+  </div>
   <label class="label">Style</label><select class="field" id="artStyle"><option>Digital art</option><option>Anime</option><option>Fantasy</option><option>Photorealistic</option><option>3D</option><option>Peinture</option><option>Minimaliste</option></select>
   <label class="label">Format</label><select class="field" id="artFormat"><option>Carré</option><option>Portrait</option><option>Paysage</option><option>Story 9:16</option></select>
   <div class="row between" style="margin:14px 0"><span class="muted small">Crédits disponibles</span><strong id="credits">5 / jour</strong></div>
-  <button class="btn primary full" onclick="generateArt()">✦ Générer un aperçu (simulation)</button><div id="generated" class="hidden" style="margin-top:14px"></div>
+  <button class="btn primary full" onclick="generateArt()">✦ Générer un aperçu (simulation)</button>
+  <button class="btn full" style="margin-top:8px" type="button" onclick="saveCreativeDraft()">Enregistrer comme Piste privée</button>
+  <button class="btn full" style="margin-top:8px" type="button" onclick="clearDraftImage()">Retirer l’image de cette Piste</button>
+  <div class="small muted" id="draftImageStatus">Les images des Pistes restent privées et ne sont jamais publiées automatiquement.</div>
+  <div id="generated" class="hidden" style="margin-top:14px"></div>
   </div>
   <div class="card"><h3 class="h3">Outils de création à venir</h3><div class="row wrap"><span class="chip">Image → style IA</span><span class="chip">Variations</span><span class="chip">Retouche</span><span class="chip">Vidéo IA</span><span class="chip">Suppression d'arrière-plan</span></div></div>
 </section>
@@ -109,20 +130,67 @@ window.museaSupabase = window.supabase.createClient(
   <div class="card"><h3 class="h3">Comment gagner des points ?</h3><div class="switchrow"><span>Like reçu d'un compte authentique</span><strong>+1</strong></div><div class="switchrow"><span>Commentaire utile reçu</span><strong>+3</strong></div><div class="switchrow"><span>Enregistrement dans une collection</span><strong>+3</strong></div><div class="switchrow"><span>Repost authentique</span><strong>+4</strong></div><p class="small muted">Plafonds, détection de fraude, comptes uniques et modération seront nécessaires avant d'activer le classement.</p></div>
 </section>
 <section class="screen" id="screen-stories">
-  <div class="card"><div class="eyebrow">Stories</div><h2 class="h1">Les instants créatifs.</h2><p class="muted">Format éphémère inspiré des réseaux sociaux. Démonstration locale, sans envoi réel.</p>
-  <div class="storyrow" id="allStories"></div>
-  <label class="label">Ajouter une story (texte de démonstration)</label><input class="field" id="storyText" placeholder="Une idée, un making-of, une inspiration…">
-  <button class="btn primary full" style="margin-top:10px" onclick="addStory()">＋ Ajouter une story</button></div>
+  <div class="card"><div class="eyebrow">Stories MUSEA · 24 heures</div><h2 class="h1">Les instants créatifs.</h2><p class="muted small">Partage une photo, une courte vidéo ou un moment en texte. Tes Stories expirent automatiquement de l’affichage après 24 heures.</p>
+  <div class="storyrow" id="allStories" aria-live="polite"><p class="muted small">Chargement des Stories…</p></div></div>
+  <div class="card"><div class="eyebrow">Créer</div><h3 class="h3">Partager un instant</h3>
+    <label class="label" for="storyText">Légende (facultatif)</label><textarea class="field" id="storyText" maxlength="240" rows="2" placeholder="Une idée, un making-of, une inspiration…"></textarea>
+    <label class="label" for="storyMedia">Photo ou vidéo (facultatif)</label><input class="field" id="storyMedia" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm">
+    <p class="small muted">Formats : JPG, PNG, WEBP, GIF, MP4 ou WEBM · 20 Mo maximum. Ajoute une légende ou un média.</p>
+    <div id="storyPreview" class="hidden"></div>
+    <button class="btn primary full" style="margin-top:10px" id="publishStoryBtn" onclick="addStory()">＋ Publier ma Story</button>
+  </div>
 </section>
+<div id="storyViewer" class="modal hidden" role="dialog" aria-modal="true" aria-label="Visionneuse de Stories">
+  <div class="modalbox" style="max-width:520px;padding:12px">
+    <div class="row between"><div><strong id="storyViewerUser">Story</strong><div class="small muted" id="storyViewerTime"></div></div><button class="iconbtn" onclick="closeStoryViewer()" aria-label="Fermer">✕</button></div>
+    <div id="storyViewerMedia" style="min-height:220px;display:grid;place-items:center;background:#111;border-radius:14px;overflow:hidden;margin:10px 0"></div>
+    <p id="storyViewerCaption" style="white-space:pre-wrap"></p>
+    <div class="row between"><button class="btn" id="storyPrevBtn" onclick="stepStory(-1)">Précédente</button><span class="small muted" id="storyViewerViews"></span><button class="btn" id="storyNextBtn" onclick="stepStory(1)">Suivante</button></div>
+    <button class="btn soft full hidden" id="deleteStoryBtn" style="margin-top:9px" onclick="deleteCurrentStory()">Supprimer ma Story</button>
+  </div>
+</div>
 <section class="screen" id="screen-messages">
-  <div class="card"><div class="eyebrow">Messages</div><h2 class="h1">Tes conversations.</h2><p class="muted">Les échanges ci-dessous restent sur cet appareil. Aucun vrai message n'est envoyé.</p><div id="conversationList"></div></div>
-  <div class="card" id="chatCard"><div class="row between"><div><h3 class="h3" id="chatName">Luna Creative</h3><span class="small muted" id="chatStatus">En ligne · statut fictif</span></div><div class="row"><button class="iconbtn" onclick="toast('Un appel audio réel nécessite un service WebRTC et un backend.')">☎</button><button class="iconbtn" onclick="toast('Un appel vidéo réel nécessite un service WebRTC et un backend.')">▣</button></div></div><div class="line"></div><div id="chatLog"></div><div class="row"><input class="field" id="messageInput" placeholder="Écrire un message…" onkeydown="if(event.key==='Enter')sendMessage()"><button class="btn primary" onclick="sendMessage()">Envoyer</button></div></div>
-  <div class="card"><h3 class="h3">Groupes</h3><p class="muted small">Les groupes devraient être réservés aux abonnements réciproques ou aux invitations acceptées.</p><input class="field" id="groupName" placeholder="Nom du groupe"><button class="btn full" style="margin-top:9px" onclick="createGroup()">＋ Créer un groupe de test</button><div id="groups"></div></div>
+  <div class="card">
+    <div class="eyebrow">Messagerie privée</div>
+    <h2 class="h1">Tes conversations.</h2>
+    <p class="muted small">Échanges privés entre comptes MUSEA. Les messages sont enregistrés sur le serveur et accessibles uniquement aux deux participants.</p>
+    <label class="label" for="contactSearch">Trouver un utilisateur</label>
+    <div class="row">
+      <input class="field" id="contactSearch" placeholder="Rechercher un pseudonyme…" maxlength="40" onkeydown="if(event.key==='Enter')searchMessageContacts()">
+      <button class="btn primary" onclick="searchMessageContacts()">Rechercher</button>
+    </div>
+    <div id="contactResults" aria-live="polite"></div>
+    <div class="line"></div>
+    <h3 class="h3">Conversations</h3>
+    <div id="conversationList"><p class="muted small">Chargement…</p></div>
+  </div>
+  <div class="card" id="chatCard">
+    <div class="row between">
+      <div style="min-width:0">
+        <h3 class="h3" id="chatName">Sélectionne une conversation</h3>
+        <span class="small muted" id="chatStatus">Tes messages resteront privés.</span>
+      </div>
+      <div class="row"><button class="btn" id="blockUserBtn" onclick="toggleDirectMessageBlock()" disabled>Bloquer</button><button class="iconbtn" onclick="closeActiveConversation()" aria-label="Fermer la conversation">×</button></div>
+    </div>
+    <div class="line"></div>
+    <div id="chatLog" aria-live="polite" style="max-height:55vh;overflow-y:auto;padding:4px"><p class="muted small">Choisis une conversation ou recherche un utilisateur pour commencer.</p></div>
+    <div class="line"></div>
+    <label class="label" for="messageInput">Ton message</label>
+    <div class="row">
+      <textarea class="field" id="messageInput" rows="2" maxlength="4000" placeholder="Écrire un message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
+      <button class="btn primary" id="messageSendBtn" onclick="sendMessage()" disabled>Envoyer</button>
+    </div>
+    <p class="small muted">Entrée pour envoyer · Maj + Entrée pour un retour à la ligne · 4 000 caractères maximum.</p>
+  </div>
+  <div class="card">
+    <h3 class="h3">Fonctions complémentaires</h3>
+    <p class="muted small">Les appels audio/vidéo et les conversations de groupe ne sont pas encore activés. Ils seront ajoutés avec leur propre système de connexion et de confidentialité.</p>
+  </div>
 </section>
 <section class="screen" id="screen-notifications">
-  <div class="row between"><h2 class="h1">Notifications</h2><button class="btn" onclick="markRead()">Tout lire</button></div>
-  <div class="card"><p class="muted small">Configure les activités qui te concernent. Les alertes sont simulées dans cette version.</p><div id="notificationList"></div></div>
-  <div class="card"><h3 class="h3">Préférences de notification</h3><div id="notificationSettings"></div></div>
+  <div class="row between"><div><div class="eyebrow">Ton activité</div><h2 class="h1">Notifications</h2></div><button class="btn" onclick="markRead()">Tout lire</button></div>
+  <div class="card"><p class="muted small">Tes notifications sont synchronisées avec ton compte et restent disponibles sur tes appareils.</p><div id="notificationList"><p class="muted small">Chargement…</p></div></div>
+  <div class="card"><h3 class="h3">Préférences de notification</h3><p class="muted small">Choisis les activités pour lesquelles tu souhaites être averti.</p><div id="notificationSettings"></div></div>
 </section>
 <section class="screen" id="screen-browser">
   <div class="card"><div class="eyebrow">Explorer le web</div><h2 class="h1">Navigateur</h2>
@@ -136,10 +204,11 @@ window.museaSupabase = window.supabase.createClient(
 </section>
 <section class="screen" id="screen-profile">
   <div class="card"><div class="row"><div class="avatar" style="width:66px;height:66px;font-size:25px">M</div><div style="flex:1"><h2 class="h2" id="profileName">@monprofil</h2><p class="muted small" id="profileBio">Créateur en devenir ✨</p></div><button class="btn" onclick="navigate('settings')">⚙ Paramètres</button></div>
-  <div class="row" style="margin-top:14px"><div class="stat"><strong id="pointsStat">120</strong><span class="muted small">Points</span></div><div class="stat"><strong id="followersStat">24</strong><span class="muted small">Abonnés</span></div><div class="stat"><strong id="likesStat">0</strong><span class="muted small">Likes donnés</span></div></div>
+  <div class="row wrap" style="margin-top:14px"><div class="stat"><strong id="pointsStat">120</strong><span class="muted small">Points</span></div><div class="stat"><strong id="followersStat">0</strong><span class="muted small">Abonnés</span></div><div class="stat"><strong id="followingStat">0</strong><span class="muted small">Abonnements</span></div><div class="stat"><strong id="likesStat">0</strong><span class="muted small">Likes donnés</span></div></div>
   <label class="label">Nom d'utilisateur</label><input class="field" id="username" value="monprofil">
   <label class="label">Biographie</label><textarea class="field" id="bio" rows="2">Créateur en devenir ✨</textarea>
   <button class="btn primary full" style="margin-top:10px" onclick="saveProfile()">Enregistrer le profil</button></div>
+  <div class="card"><h3 class="h3">Mon cercle</h3><div class="eyebrow">Mes abonnements</div><div id="followingList"><p class="small muted">Chargement…</p></div><div class="line"></div><div class="eyebrow">Mes abonnés</div><div id="followerList"><p class="small muted">Chargement…</p></div></div>
   <div class="card"><div class="row between"><h3 class="h3">Mon activité</h3><span class="chip" id="privacyTag">Visible</span></div><p class="muted small">Les publications aimées et les collections apparaissent ici si tes préférences les rendent publiques.</p><div id="profileActivity"></div></div>
   <div class="line"></div>
 <h3 class="h3">Mes publications</h3>
@@ -154,8 +223,8 @@ window.museaSupabase = window.supabase.createClient(
   <div class="switchrow"><span>Afficher les publications aimées</span><input type="checkbox" id="prefLikes" checked onchange="savePrefs()"></div>
   <div class="switchrow"><span>Afficher mes collections</span><input type="checkbox" id="prefCollections" checked onchange="savePrefs()"></div>
   <div class="switchrow"><span>Afficher mon statut en ligne</span><input type="checkbox" id="prefOnline" checked onchange="savePrefs()"></div>
-  <div class="switchrow"><span>Autoriser les messages des non-abonnés</span><input type="checkbox" id="prefDM" onchange="savePrefs()"></div>
-  <div class="switchrow"><span>Profil privé</span><input type="checkbox" id="prefPrivate" onchange="savePrefs()"></div>
+  <div class="switchrow"><span>Autoriser les nouveaux messages</span><input type="checkbox" id="prefDM" onchange="savePrefs()"></div>
+  <div class="switchrow"><span>Masquer mon activité sur mon profil (local)</span><input type="checkbox" id="prefPrivate" onchange="savePrefs()"></div><p class="small muted">Ce réglage masque seulement ton activité dans cette interface. Il ne rend pas tes publications privées sur le serveur.</p>
   </div>
   <div class="card"><h3 class="h3">Langue</h3><select class="field" id="language"><option>Français</option><option>English</option><option>Español</option><option>العربية</option><option>中文</option><option>日本語</option><option>Deutsch</option><option>Português</option></select><p class="muted small">L'interface complète et la traduction IA seront intégrées dans une future version.</p><button class="btn" onclick="translateDemo()">Traduire un texte de démonstration</button><div id="translationResult" class="notice hidden" style="margin-top:10px"></div></div>
   <div class="card"><h3 class="h3">Sécurité</h3><div class="switchrow"><span>Filtrage de contenu sensible (concept)</span><input type="checkbox" checked></div><div class="switchrow"><span>Masquer les contenus signalés</span><input type="checkbox" checked></div><p class="small muted">La vraie version nécessitera signalement, blocage, modération humaine et automatisée, export/suppression des données et protections anti-abus.</p><button class="btn danger full" onclick="if(confirm('Réinitialiser les données locales du prototype ?')){localStorage.removeItem('museaState');location.reload()}">Réinitialiser la démo</button></div>
@@ -168,33 +237,71 @@ window.museaSupabase = window.supabase.createClient(
   <div class="card"><div class="row between"><div><h3 class="h3">Badge certifié</h3><p class="muted small">Vérification réelle, rare et soumise à examen.</p></div><span class="chip">5 000 pts + Premium</span></div><p class="small">Conditions proposées : compte ancien et complet, identité ou statut à vérifier, absence de fraude/violations, examen manuel. Les points ne garantissent jamais l'obtention.</p><button class="btn full" onclick="requestVerification()">Vérifier mon éligibilité</button></div>
   <div id="rewardStatus" class="notice hidden"></div>
 </section>
+<section class="screen" id="screen-more">
+  <div class="card hero"><div class="eyebrow">MUSEA · Espace personnel</div><h2 class="h1">Tout ton univers, au même endroit.</h2><p>Accède aux fonctionnalités complémentaires de la communauté et personnalise ton expérience.</p></div>
+  <div class="grid">
+    <button class="card" onclick="navigate('trends')" style="text-align:left;color:var(--ink)"><div class="h2">↗ Tendances</div><div class="muted small">Classement et créations populaires</div></button>
+    <button class="card" onclick="navigate('stories')" style="text-align:left;color:var(--ink)"><div class="h2">◉ Stories</div><div class="muted small">Instants et coulisses créatives</div></button>
+    <button class="card" onclick="navigate('notifications')" style="text-align:left;color:var(--ink)"><div class="h2">♧ Notifications</div><div class="muted small">Activité et préférences d'alertes</div></button>
+    <button class="card" onclick="navigate('browser')" style="text-align:left;color:var(--ink)"><div class="h2">◎ Navigateur</div><div class="muted small">Recherche et favoris web</div></button>
+    <button class="card" onclick="navigate('drafts')" style="text-align:left;color:var(--ink)"><div class="h2">✧ Mes Pistes</div><div class="muted small">Retrouve tes idées et créations en préparation</div></button>
+    <button class="card" onclick="navigate('feedback')" style="text-align:left;color:var(--ink)"><div class="h2">✧ Les Regards</div><div class="muted small">Demande et partage des retours créatifs constructifs</div></button>
+    <button class="card" onclick="navigate('atlas')" style="text-align:left;color:var(--ink)"><div class="h2">✦ Atlas créatifs</div><div class="muted small">Compose et partage tes parcours d’inspiration</div></button>
+    <button class="card" onclick="navigate('rewards')" style="text-align:left;color:var(--ink)"><div class="h2">✧ Récompenses</div><div class="muted small">Points et éléments cosmétiques</div></button>
+    <button class="card" onclick="navigate('settings')" style="text-align:left;color:var(--ink)"><div class="h2">⚙ Paramètres</div><div class="muted small">Confidentialité et apparence</div></button>
+  </div>
+  <div class="card"><h3 class="h3">À propos de MUSEA</h3><p class="muted small">Certaines fonctions restent des démonstrations. Les écrans indiquent lorsqu'un service réel ou une intégration supplémentaire est nécessaire.</p><button class="btn full" onclick="navigate('browserinfo')">En savoir plus sur le navigateur</button></div>
+</section>
+<section class="screen" id="screen-atlas">
+  <div class="card hero"><div class="eyebrow">MUSEA · Curation créative</div><h2 class="h1">Construis ton Atlas.</h2><p>Relie des créations par une idée, une ambiance ou une question. Chaque Atlas devient un parcours que les autres peuvent découvrir à travers ton regard.</p></div>
+  <div class="card"><div class="eyebrow">Nouvel Atlas</div><h3 class="h3">Donne un fil conducteur à ta sélection</h3>
+    <label class="label" for="atlasTitle">Titre</label><input class="field" id="atlasTitle" maxlength="60" placeholder="Ex. : Villes qui semblent rêver">
+    <label class="label" for="atlasDescription">Le fil conducteur <span class="small muted">(facultatif · 240 caractères)</span></label><textarea class="field" id="atlasDescription" maxlength="240" rows="2" placeholder="Qu’est-ce qui relie ces créations ? Quelle idée veux-tu explorer ?"></textarea>
+    <label class="label" for="atlasVisibility">Visibilité</label><select class="field" id="atlasVisibility"><option value="private">Privé · visible uniquement par moi</option><option value="public">Public · partageable avec la communauté</option></select>
+    <button class="btn primary full" style="margin-top:12px" onclick="createAtlas()">＋ Créer mon Atlas</button>
+  </div>
+  <div class="card"><div class="row between"><div><div class="eyebrow">Bibliothèque vivante</div><h3 class="h3">Mes Atlas</h3></div><span class="chip" id="myAtlasCount">0</span></div><div id="myAtlasList"><p class="small muted">Connecte-toi pour retrouver tes Atlas.</p></div></div>
+  <div class="card"><div class="eyebrow">Regards de la communauté</div><h3 class="h3">Atlas publics</h3><p class="small muted">Des parcours sélectionnés par d’autres créateurs, à explorer sans algorithme imposant un classement.</p><div id="publicAtlasList"><p class="small muted">Chargement…</p></div></div>
+  <div id="atlasDetail"></div>
+  <div id="atlasAddModal" class="modal hidden"><div class="modalbox"><div class="row between"><div><div class="eyebrow">Ajouter une création</div><h3 class="h2">Dans quel Atlas ?</h3></div><button class="iconbtn" onclick="closeAtlasPicker()">✕</button></div><label class="label" for="atlasTargetSelect">Choisir un Atlas</label><select class="field" id="atlasTargetSelect"></select><label class="label" for="atlasItemNote">Ta note <span class="small muted">(facultatif · 240 caractères)</span></label><textarea class="field" id="atlasItemNote" maxlength="240" rows="2" placeholder="Ce détail m’intéresse parce que…"></textarea><button class="btn primary full" style="margin-top:12px" onclick="savePostToAtlas()">Ajouter à l’Atlas</button></div></div>
+</section>
+<section class="screen" id="screen-drafts">
+  <div class="card hero"><div class="eyebrow">MUSEA · Espace privé</div><h2 class="h1">Tes idées ont le droit de mûrir.</h2><p>Les Pistes gardent tes textes, tes réglages, tes Carnets et tes images à l’abri. Rien n’est publié tant que tu ne le décides pas.</p><button class="btn primary full" onclick="startNewCreativeDraft()">＋ Commencer une nouvelle Piste</button></div>
+  <div class="card"><div class="row between"><div><div class="eyebrow">Ton atelier personnel</div><h3 class="h3">Toutes tes Pistes</h3></div><span class="chip" id="creativeDraftCount">0</span></div><div id="creativeDraftList"><p class="small muted">Connecte-toi pour retrouver tes Pistes.</p></div></div>
+</section>
+<section class="screen" id="screen-feedback">
+  <div class="card hero"><div class="eyebrow">MUSEA · Échange créatif</div><h2 class="h1">Les Regards ✧</h2><p>Une question précise, plusieurs sensibilités. Ici, on ne note pas les créations : on aide leurs auteurs à voir ce qu’ils n’avaient peut-être pas remarqué.</p><div class="small muted">Un regard par personne et par création. Des retours sur l’œuvre, jamais sur la valeur de la personne.</div></div>
+  <div class="card"><div class="row between"><div><div class="eyebrow">À découvrir</div><h3 class="h3">Les questions ouvertes</h3></div><span class="chip" id="feedbackOpenCount">0</span></div><div id="feedbackRequestList"><p class="small muted">Chargement des questions…</p></div></div>
+  <div class="card"><div class="eyebrow">Ton espace</div><h3 class="h3">Tes demandes</h3><div id="myFeedbackRequests"><p class="small muted">Connecte-toi pour retrouver tes demandes.</p></div></div>
+  <div id="feedbackDetail"></div>
+  <div id="feedbackComposeModal" class="modal hidden"><div class="modalbox"><div class="row between"><div><div class="eyebrow">Ouvrir un échange</div><h3 class="h2">Quel regard recherches-tu ?</h3></div><button class="iconbtn" onclick="closeFeedbackComposer()">✕</button></div><p class="small muted">Choisis un angle et pose une question courte. Une seule demande est possible par publication.</p><label class="label" for="feedbackQuestionKind">Type de regard</label><select class="field" id="feedbackQuestionKind"><option value="impression">Première impression · Qu'est-ce qui ressort ?</option><option value="intention">Intention · Qu'as-tu compris de mon idée ?</option><option value="exploration">Exploration · Quelle piste pourrait être développée ?</option></select><label class="label" for="feedbackQuestion">Ta question (12 à 180 caractères)</label><textarea class="field" id="feedbackQuestion" maxlength="180" rows="3" placeholder="Ex. : Quel détail attire ton attention en premier ?"></textarea><div class="row wrap"><button class="btn" onclick="closeFeedbackComposer()">Annuler</button><button class="btn primary" onclick="createFeedbackRequest()">Ouvrir les Regards</button></div></div></div>
+</section>
 <section class="screen" id="screen-browserinfo"><div class="card"><h2 class="h1">À propos du navigateur</h2><p>Un vrai navigateur intégré exige une application native. Cette maquette ouvre les pages dans le navigateur de l'appareil.</p></div></section>
 </main>
 <nav class="bottom" aria-label="Navigation principale">
 <button class="active" data-go="home" onclick="navigate('home')"><b>⌂</b>Accueil</button>
 <button data-go="discover" onclick="navigate('discover')"><b>⌕</b>Explorer</button>
-<button data-go="create" onclick="navigate('create')"><b>✦</b>Créer</button>
-<button data-go="trends" onclick="navigate('trends')"><b>↗</b>Tendances</button>
+<button data-go="create" onclick="navigate('create')"><b>✦</b>Studio</button>
 <button data-go="messages" onclick="navigate('messages')"><b>☏</b>Messages</button>
-<button data-go="browser" onclick="navigate('browser')"><b>◎</b>Web</button>
 <button data-go="profile" onclick="navigate('profile')"><b>◉</b>Profil</button>
 </nav>
 <div id="toast" class="toast hidden" role="status"></div>
 <div id="planModal" class="modal hidden"><div class="modalbox"><div class="row between"><div><div class="eyebrow">Bienvenue sur MUSEA</div><h2 class="h1">Choisis ton expérience.</h2></div><button class="iconbtn" onclick="closePlans()">✕</button></div><p class="muted">Tu pourras modifier ton choix ensuite. Aucun paiement ne sera prélevé dans ce prototype.</p><div class="grid"><div class="card" style="margin:0"><span class="chip">GRATUIT</span><h3 class="h3" style="margin-top:12px">Découvrir</h3><div class="price">0 €</div><p class="small muted">Pour commencer et tester la communauté.</p><ul class="small"><li>Fil et profil</li><li>Crédits IA limités</li><li>Likes, commentaires, collections</li><li>Stories et messages de base</li></ul><button class="btn full" onclick="choosePlan('free')">Choisir Gratuit</button></div><div class="card" style="margin:0;border:2px solid var(--accent)"><span class="chip selected">PREMIUM</span><h3 class="h3" style="margin-top:12px">Créer plus</h3><div class="price">5,99 €<span style="font-size:13px;font-weight:600">/mois</span></div><p class="small muted">Prix cible à tester, pas un paiement réel.</p><ul class="small"><li>Plus de crédits IA, avec plafond</li><li>Thèmes exclusifs et options de profil</li><li>Collections avancées</li><li>Outils créatifs supplémentaires</li><li>Éligibilité possible à la vérification</li></ul><button class="btn primary full" onclick="choosePlan('premium')">Choisir Premium</button></div></div><p class="small muted" style="margin-top:14px">Le prix devra être validé avec les coûts d'IA, les commissions des stores, la TVA, l'hébergement et les tests utilisateurs. Aucun abonnement n'est encore vendu.</p></div></div>
 <script>
 const defaultPosts = [];
-let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:['luna.creative','noah.visuals','aya.studio','kai.3d'],ownStories:[],messages:[{who:'Luna Creative',text:'Salut ! J’aime beaucoup tes idées créatives ✨',mine:false}],groups:[],notifications:[
-{type:'Like',text:'luna.creative a aimé ta création.',time:'Il y a 4 min',read:false},
-{type:'Mention',text:'noah.visuals t’a mentionné dans un commentaire.',time:'Il y a 18 min',read:false},
-{type:'Pour toi',text:'Une création pourrait te plaire.',time:'Il y a 1 h',read:false}],
-prefs:{likes:true,collections:true,online:true,dm:false,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
-let feedKind='all',discoverKind='Tout',currentChat='Luna Creative',customStories=[];
+let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:['luna.creative','noah.visuals','aya.studio','kai.3d'],ownStories:[],groups:[],
+prefs:{likes:true,collections:true,online:true,dm:true,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
+let feedKind='all',discoverKind='Tout',myUserId=null,myFollowIds=new Set(),myInterests=[],activeConversationId=null,activeConversationPeer=null,activeMessageChannel=null,messageRefreshBusy=false,messageRefreshQueued=false,activeConversationCanSend=false,activeConversationStatus={blockedByMe:false,blockedByPeer:false,peerAllowsMessages:true},customStories=[];
+let museaRemixSource=null;
+const museaPostCache=new Map();
+let activeNotificationsChannel=null,activeNotificationUserId=null,notificationPrefs={likes:true,comments:true,reposts:true,messages:true};
+let activeStoriesChannel=null,storyItems=[],activeStoryGroup=[],activeStoryIndex=0,activeStoryUserId=null,storyPreviewUrl=null;
 function load(){try{let s=JSON.parse(localStorage.getItem('museaState')||'null');if(s)state={...state,...s,prefs:{...state.prefs,...s.prefs}}}catch(e){}}
 function save(){try{localStorage.setItem('museaState',JSON.stringify(state))}catch(e){}}
 function toast(msg){let el=document.getElementById('toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.add('hidden'),2800)}
 function setTheme(t){state.theme=t;save();applyTheme();toast('Apparence mise à jour.')}
 function applyTheme(){let t=state.theme;if(t==='system')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]').content=t==='dark'?'#12111a':'#f6f5fb'}
-function navigate(name){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));let el=document.getElementById('screen-'+name);if(!el){name='home';el=document.getElementById('screen-home')}el.classList.add('active');document.querySelectorAll('.bottom button').forEach(b=>b.classList.toggle('active',b.dataset.go===name));if(name==='home')renderFeed();if(name==='discover')renderDiscover();if(name==='trends')renderLeaderboard();if(name==='messages')renderMessages();if(name==='notifications')renderNotifications();if(name==='profile')renderProfile();if(name==='stories')renderStories();if(name==='rewards')renderRewards();window.scrollTo({top:0,behavior:'smooth'})}
+function navigate(name){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));let el=document.getElementById('screen-'+name);if(!el){name='home';el=document.getElementById('screen-home')}el.classList.add('active');const primaryTab=['home','discover','create','messages','profile'].includes(name)?name:'more';document.querySelectorAll('.bottom button').forEach(b=>b.classList.toggle('active',b.dataset.go===primaryTab));if(name==='home')renderFeed();if(name==='discover'){loadRelationshipContext().then(()=>{renderInterestPicker();renderCreatorDirectory();renderDiscover()}).catch(e=>{console.warn(e);renderDiscover()})};if(name==='trends')renderLeaderboard();if(name==='messages')renderMessages();if(name==='notifications')renderNotifications();if(name==='profile')renderProfile();if(name==='stories')renderStories();if(name==='rewards')renderRewards();if(name==='atlas')renderAtlases();if(name==='drafts')renderCreativeDrafts();if(name==='feedback')renderFeedbackHub();window.scrollTo({top:0,behavior:'smooth'})}
 function choosePlan(p){state.plan=p;save();document.getElementById('planModal').classList.add('hidden');updatePlan();toast(p==='premium'?'Premium activé en mode démo. Aucun paiement effectué.':'Offre gratuite sélectionnée.');}
 function showPlans(){document.getElementById('planModal').classList.remove('hidden')}
 function closePlans(){document.getElementById('planModal').classList.add('hidden')}
@@ -205,84 +312,967 @@ function artMarkup(p){
   }
   return `<div class="art ${p.art}"><span>${escapeHtml(p.title)}</span></div>`;
 }function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function postMarkup(p){let liked=state.liked.includes(p.id),saved=state.saved.includes(p.id);return `<article class="card"><div class="post-head"><div class="avatar">${p.avatar||'✦'}</div><div style="flex:1"><strong>${escapeHtml(p.user)}</strong><div class="small muted">${escapeHtml(p.style)} · ${p.tag}</div></div><button class="iconbtn" onclick="toast('Options de publication : signaler, bloquer, masquer (démo).')">•••</button></div>${artMarkup(p)}<div class="post-title">${escapeHtml(p.title)}</div><div>${escapeHtml(p.desc)}</div><div class="row wrap" style="margin-top:9px"><span class="chip">${p.tag}</span><button class="chip" onclick="translatePost(${p.id})">文 Traduire</button></div><div class="post-actions"><button class="iconbtn ${liked?'on':''}" onclick="toggleLike(${p.id})">♡ ${p.likes+(liked?1:0)}</button><button class="iconbtn" onclick="commentPost(${p.id})">▢ ${state.comments[p.id]?.length||0}</button><button class="iconbtn ${saved?'on':''}" onclick="toggleSave(${p.id})">☆ ${saved?'Enregistré':'Enregistrer'}</button><button class="iconbtn" onclick="toast('Repost simulé. Un vrai repost doit afficher la source originale.')">⟳ Reposter</button></div><div id="comments-${p.id}"></div></article>`}
-async function renderFeed(){
-  const feed = document.getElementById('feed');
-  feed.innerHTML = '<p class="muted small">Chargement des publications...</p>';
+function postMarkup(p){
+  museaPostCache.set(String(p.id),p);
+  const liked=!!p.liked,saved=state.saved.includes(p.id),reposted=!!p.reposted,id=escapeHtml(String(p.id));
+  const followButton=myUserId&&p.author_id&&p.author_id!==myUserId?`<button class="iconbtn ${myFollowIds.has(p.author_id)?'on':''}" onclick="toggleFollow('${escapeHtml(p.author_id)}')">${myFollowIds.has(p.author_id)?'✓ Abonné':'＋ Suivre'}</button>`:'';
+  const comments=(p.comments||[]).map(c=>`<div class="switchrow" style="align-items:flex-start"><div style="flex:1"><strong>${escapeHtml(c.username||'Utilisateur')}</strong><div>${escapeHtml(c.content)}</div><div class="small muted">${escapeHtml(new Date(c.created_at).toLocaleString('fr-FR'))}</div></div>${c.owned?`<button class="iconbtn" onclick="deleteComment('${escapeHtml(c.id)}','${id}')">Supprimer</button>`:''}</div>`).join('');
+  const lineage=p.remix_source?`<div class="notice small" style="margin-top:10px">✦ Écho de @${escapeHtml(p.remix_source.username)} · ${escapeHtml(p.remix_source.note)}</div>`:'';
+  const journal=p.creation_journal;
+  const journalParts=journal?[['L’étincelle',journal.intention],['Le choix',journal.choice],['La découverte',journal.discovery]].filter(x=>x[1]):[];
+  const journalMarkup=journalParts.length?`<details class="notice" style="margin-top:10px"><summary style="cursor:pointer;font-weight:700">✦ Carnet de création · ${journalParts.length} fragment${journalParts.length>1?'s':''}</summary>${journalParts.map(x=>`<div style="margin-top:10px"><strong>${x[0]}</strong><div>${escapeHtml(x[1])}</div></div>`).join('')}</details>`:'';
 
-  try {
-    const { data: rows, error } = await museaSupabase
-      .from('posts')
-      .select('id,user_id,caption,style,visibility,image_url,created_at')      .order('created_at', { ascending: false })
-      .limit(50);
-
-    if (error) throw error;
-
-    const userIds = [...new Set((rows || []).map(p => p.user_id))];
-    let profiles = [];
-
-    if (userIds.length) {
-      const result = await museaSupabase
-        .from('profiles')
-        .select('id,username')
-        .in('id', userIds);
-
-      if (!result.error) profiles = result.data || [];
+  const echoCount=p.remix_count?`<span class="small muted">✦ ${p.remix_count} Écho${p.remix_count>1?'s':''}</span>`:'';
+  const remixButton=p.remote?`<button class="iconbtn" onclick="startRemix('${id}')">✦ Créer un Écho</button>`:'';
+  const atlasButton=p.remote?`<button class="iconbtn" onclick="openAtlasPicker('${id}')">✦ Ajouter à un Atlas</button>`:'';
+  const feedbackButton=p.remote&&p.feedback_request?`<button class="iconbtn" onclick="openFeedbackRequest('${escapeHtml(p.feedback_request.id)}')">✧ Voir les Regards</button>`:p.remote&&myUserId&&p.author_id===myUserId?`<button class="iconbtn" onclick="openFeedbackComposer('${id}')">✧ Demander un regard</button>`:'';
+  return `<article class="card" data-post-id="${id}"><div class="post-head"><div class="avatar">${escapeHtml(p.avatar||'✦')}</div><div style="flex:1"><strong>${escapeHtml(p.user)}</strong><div class="small muted">${escapeHtml(p.style||'Création')} · ${escapeHtml(p.tag||'#MaCreation')}</div></div>${followButton}<button class="iconbtn" onclick="toast('Options de signalement et de modération à venir.')">•••</button></div>${artMarkup(p)}<div class="post-title">${escapeHtml(p.title)}</div><div>${escapeHtml(p.desc)}</div>${lineage}${journalMarkup}<div class="row wrap" style="margin-top:9px"><span class="chip">${escapeHtml(p.tag||'#MaCreation')}</span><button class="chip" onclick="translatePost('${id}')">文 Traduire</button>${echoCount}</div><div class="post-actions">${remixButton}${atlasButton}${feedbackButton}<button class="iconbtn ${liked?'on':''}" onclick="toggleLike('${id}')">${liked?'♥':'♡'} ${p.like_count||0}</button><button class="iconbtn" onclick="toggleComments('${id}')">▢ ${p.comment_count||0}</button><button class="iconbtn ${saved?'on':''}" onclick="toggleSave('${id}')">☆ ${saved?'Enregistré':'Enregistrer'}</button><button class="iconbtn ${reposted?'on':''}" onclick="toggleRepost('${id}')">⟳ ${reposted?'Reposté':'Reposter'} ${p.repost_count||0}</button></div><div id="comments-${id}" class="hidden"><div class="line"></div><div>${comments}</div><label class="label" for="comment-input-${id}">Ajouter un commentaire</label><textarea class="field" id="comment-input-${id}" maxlength="1000" rows="2" placeholder="Partage ton avis…"></textarea><button class="btn primary full" style="margin-top:8px" onclick="submitComment('${id}')">Publier le commentaire</button></div></article>`;
+}
+async function attachCreationJournals(posts){
+  const ids=posts.filter(p=>p.remote).map(p=>p.id);
+  if(!ids.length)return posts;
+  try{
+    const {data,error}=await museaSupabase.from('post_creation_journals')
+      .select('post_id,intention,choice,discovery').in('post_id',ids);
+    if(error)throw error;
+    const byPost=new Map((data||[]).map(row=>[row.post_id,row]));
+    return posts.map(post=>({...post,creation_journal:byPost.get(post.id)||null}));
+  }catch(error){
+    console.warn('Carnets de création indisponibles :',error);
+    return posts;
+  }
+}
+async function attachRemixMetadata(posts){
+  const ids=posts.filter(p=>p.remote).map(p=>p.id);
+  if(!ids.length)return posts;
+  try{
+    const [incoming,outgoing]=await Promise.all([
+      museaSupabase.from('post_remixes').select('remix_post_id,source_post_id,note').in('remix_post_id',ids),
+      museaSupabase.from('post_remixes').select('source_post_id').in('source_post_id',ids)
+    ]);
+    if(incoming.error)throw incoming.error;
+    if(outgoing.error)throw outgoing.error;
+    const sourceIds=[...new Set((incoming.data||[]).map(x=>x.source_post_id))];
+    let sourcePosts=[],sourceProfiles=[];
+    if(sourceIds.length){
+      const sourceResult=await museaSupabase.from('posts').select('id,user_id,caption,style').in('id',sourceIds).eq('visibility','public');
+      if(sourceResult.error)throw sourceResult.error;
+      sourcePosts=sourceResult.data||[];
+      const ownerIds=[...new Set(sourcePosts.map(x=>x.user_id))];
+      if(ownerIds.length){
+        const profileResult=await museaSupabase.from('profiles').select('id,username').in('id',ownerIds);
+        if(profileResult.error)throw profileResult.error;
+        sourceProfiles=profileResult.data||[];
+      }
     }
-
-    const realPosts = (rows || []).map(row => {
-      const profile = profiles.find(p => p.id === row.user_id);
-      const username = profile?.username || 'Utilisateur';
-
-      return {
-        id: row.id,
-        user: username,
-        avatar: username[0]?.toUpperCase() || 'M',
-        title: (row.caption || 'Publication').slice(0, 60),
-        desc: row.caption || '',
-        image_url: row.image_url,
-        style: row.style || 'Création',
-        kind: 'art',
-        art: 'a4',
-        likes: 0,
-        tag: '#MaCreation'
+    return posts.map(post=>{
+      const lineage=(incoming.data||[]).find(x=>x.remix_post_id===post.id);
+      const source=lineage?sourcePosts.find(x=>x.id===lineage.source_post_id):null;
+      const sourceUsername=sourceProfiles.find(x=>x.id===source?.user_id)?.username||'un créateur';
+      return {...post,
+        remix_source:lineage&&source?{id:source.id,username:sourceUsername,note:lineage.note}:null,
+        remix_count:(outgoing.data||[]).filter(x=>x.source_post_id===post.id).length
       };
     });
-
-    const allPosts = [...realPosts, ...defaultPosts];
-    const filtered = allPosts.filter(p =>
-      feedKind === 'all' || p.kind === feedKind
-    );
-
-    feed.innerHTML = filtered.map(postMarkup).join('');
-  } catch (error) {
-    console.error(error);
-    const filtered = defaultPosts.filter(p =>
-      feedKind === 'all' || p.kind === feedKind
-    );
-    feed.innerHTML = filtered.map(postMarkup).join('');
-    toast('Impossible de charger les publications enregistrées.');
+  }catch(error){
+    console.warn('Filiation des Échos indisponible :',error);
+    return posts;
   }
+}
+async function startRemix(postId){
+  try{
+    if(museaActiveDraftId){
+      const leave=confirm('Tu as une Piste ouverte. Enregistre tes changements avant de passer à un Écho. Quitter sans enregistrer les dernières modifications ?');
+      if(!leave)return;
+      museaActiveDraftId=null;museaActiveDraftImagePath=null;museaDraftImageUnchanged=false;museaDraftRemoveImage=false;
+    }
+    const user=await requireSocialUser();
+    if(!user)return;
+    const source=museaPostCache.get(String(postId));
+    if(!source||!source.remote)return toast('Cette création ne peut pas encore devenir un Écho.');
+    museaRemixSource={id:source.id,username:source.user};
+    document.getElementById('prompt').value='';
+    document.getElementById('prompt').placeholder='Décris ta propre interprétation, pas une copie de l’original…';
+    document.getElementById('remixNote').value='';
+    document.getElementById('remixNoteWrap').classList.remove('hidden');
+    document.getElementById('remixContext').innerHTML='<div class="eyebrow">Création source</div><strong>'+escapeHtml(source.user)+'</strong><p class="small">'+escapeHtml((source.desc||source.title||'Création publique').slice(0,220))+'</p><p class="small muted">Ton Écho sera relié à cette œuvre et créditera son auteur.</p>';
+    document.getElementById('remixContext').classList.remove('hidden');
+    document.getElementById('cancelRemixBtn').classList.remove('hidden');
+    document.getElementById('postImage').value='';
+    document.getElementById('imagePreview').innerHTML='';
+    document.getElementById('editorTools').classList.add('hidden');
+    museaEditorSource=null;
+    navigate('create');
+  }catch(error){console.error(error);toast('Impossible de préparer cet Écho.')}
+}
+function cancelRemix(){
+  museaRemixSource=null;
+  document.getElementById('remixContext')?.classList.add('hidden');
+  document.getElementById('cancelRemixBtn')?.classList.add('hidden');
+  document.getElementById('remixNoteWrap')?.classList.add('hidden');
+  document.getElementById('remixNote').value='';
+  document.getElementById('prompt').placeholder='Ex. : une cité flottante au-dessus des nuages, au coucher du soleil…';
+}
+async function attachPostInteractions(posts){
+  const ids=posts.filter(p=>p.remote).map(p=>p.id);
+  if(!ids.length)return posts.map(p=>({...p,like_count:0,comment_count:0,repost_count:0,liked:false,reposted:false,comments:[]}));
+  const [likesRes,commentsRes,repostsRes,userRes]=await Promise.all([
+    museaSupabase.from('post_likes').select('post_id,user_id').in('post_id',ids),
+    museaSupabase.from('post_comments').select('id,post_id,user_id,content,created_at').in('post_id',ids).order('created_at',{ascending:true}),
+    museaSupabase.from('post_reposts').select('post_id,user_id').in('post_id',ids),
+    museaSupabase.auth.getUser()
+  ]);
+  const failed=[likesRes,commentsRes,repostsRes].find(x=>x.error);if(failed)throw failed.error;
+  const currentUser=userRes.data?.user?.id||null,commentRows=commentsRes.data||[],commenterIds=[...new Set(commentRows.map(c=>c.user_id))];let profiles=[];
+  if(commenterIds.length){const pr=await museaSupabase.from('profiles').select('id,username').in('id',commenterIds);if(!pr.error)profiles=pr.data||[]}
+  return posts.map(p=>{
+    const likes=(likesRes.data||[]).filter(x=>x.post_id===p.id),comments=commentRows.filter(x=>x.post_id===p.id),reposts=(repostsRes.data||[]).filter(x=>x.post_id===p.id);
+    return {...p,like_count:likes.length,comment_count:comments.length,repost_count:reposts.length,liked:!!currentUser&&likes.some(x=>x.user_id===currentUser),reposted:!!currentUser&&reposts.some(x=>x.user_id===currentUser),comments:comments.map(c=>({...c,username:profiles.find(u=>u.id===c.user_id)?.username||'Utilisateur',owned:!!currentUser&&c.user_id===currentUser}))};
+  });
+}
+async function requireSocialUser(){const {data,error}=await museaSupabase.auth.getUser();if(error)throw error;if(!data.user){toast('Connecte-toi pour interagir avec les publications.');return null}return data.user}
+async function toggleLike(id){
+  try{const user=await requireSocialUser();if(!user)return;const {data:existing,error:findError}=await museaSupabase.from('post_likes').select('id').eq('post_id',id).eq('user_id',user.id).maybeSingle();if(findError)throw findError;const result=existing?await museaSupabase.from('post_likes').delete().eq('id',existing.id):await museaSupabase.from('post_likes').insert({post_id:id,user_id:user.id});if(result.error)throw result.error;if(!existing){await refreshNotificationBadge()}await renderFeed()}catch(e){console.error(e);toast('Impossible d’enregistrer le like. Vérifie la configuration Supabase.')}
+}
+function toggleComments(id){document.getElementById('comments-'+id)?.classList.toggle('hidden')}
+async function submitComment(id){
+  const input=document.getElementById('comment-input-'+id),content=input?.value.trim();if(!content)return toast('Écris un commentaire avant de publier.');if(content.length>1000)return toast('Ton commentaire est trop long (1 000 caractères maximum).');
+  try{const user=await requireSocialUser();if(!user)return;const {error}=await museaSupabase.from('post_comments').insert({post_id:id,user_id:user.id,content});if(error)throw error;await refreshNotificationBadge();await renderFeed();document.getElementById('comments-'+id)?.classList.remove('hidden');toast('Commentaire publié.')}catch(e){console.error(e);toast('Impossible de publier le commentaire. Vérifie la configuration Supabase.')}
+}
+async function deleteComment(commentId,postId){
+  if(!confirm('Supprimer ce commentaire ?')) return;
+  try{
+    const user=await requireSocialUser();
+    if(!user) return;
+    const {error}=await museaSupabase.from('post_comments').delete().eq('id',commentId).eq('user_id',user.id);
+    if(error) throw error;
+    await renderFeed();
+    document.getElementById('comments-'+postId)?.classList.remove('hidden');
+    toast('Commentaire supprimé.');
+  }catch(e){console.error(e);toast('Impossible de supprimer ce commentaire.')}
+}
+async function toggleRepost(id){
+  try{const user=await requireSocialUser();if(!user)return;const {data:existing,error:findError}=await museaSupabase.from('post_reposts').select('id').eq('post_id',id).eq('user_id',user.id).maybeSingle();if(findError)throw findError;const result=existing?await museaSupabase.from('post_reposts').delete().eq('id',existing.id):await museaSupabase.from('post_reposts').insert({post_id:id,user_id:user.id});if(result.error)throw result.error;await renderFeed();toast(existing?'Repost retiré.':'Publication repostée sur ton activité.')}catch(e){console.error(e);toast('Impossible d’enregistrer le repost. Vérifie la configuration Supabase.')}
+}
+async function loadRelationshipContext(){
+ const {data,error}=await museaSupabase.auth.getUser();if(error)throw error;
+ myUserId=data.user?.id||null;myFollowIds=new Set();myInterests=[];if(!myUserId)return;
+ const [f,i]=await Promise.all([museaSupabase.from('follows').select('followed_id').eq('follower_id',myUserId),museaSupabase.from('profile_interests').select('interest').eq('user_id',myUserId)]);
+ if(f.error)throw f.error;if(i.error)throw i.error;myFollowIds=new Set((f.data||[]).map(x=>x.followed_id));myInterests=(i.data||[]).map(x=>x.interest);
+}
+async function toggleFollow(targetId){
+ try{const {data,error}=await museaSupabase.auth.getUser();if(error)throw error;if(!data.user){toast('Connecte-toi pour suivre un créateur.');return}if(targetId===data.user.id)return;
+ const exists=myFollowIds.has(targetId),r=exists?await museaSupabase.from('follows').delete().eq('follower_id',data.user.id).eq('followed_id',targetId):await museaSupabase.from('follows').insert({follower_id:data.user.id,followed_id:targetId});if(r.error)throw r.error;
+ if(exists)myFollowIds.delete(targetId);else myFollowIds.add(targetId);toast(exists?'Tu ne suis plus ce créateur.':'Créateur ajouté à ton cercle.');
+ if(document.getElementById('screen-home')?.classList.contains('active'))renderFeed();if(document.getElementById('screen-discover')?.classList.contains('active'))renderCreatorDirectory();if(document.getElementById('screen-profile')?.classList.contains('active'))renderProfile();
+ }catch(e){console.error(e);toast('Impossible de modifier cet abonnement. Vérifie la migration de l’étape 8.')}
+}
+const museaInterestOptions=['Art digital','Fantasy','Photographie','3D','Design','Sciences','Technologie','Architecture','Cinéma','Mode','Écriture','Musique'];
+function renderInterestPicker(){const box=document.getElementById('interestPicker');if(!box)return;box.innerHTML=museaInterestOptions.map(t=>'<button class="chip '+(myInterests.includes(t)?'selected':'')+'" onclick="toggleInterest(\''+t+'\')">'+t+'</button>').join('');const s=document.getElementById('interestStatus');if(s)s.textContent=myInterests.length?myInterests.length+' univers choisis · synchronisés sur ton compte.':'Choisis jusqu’à 5 univers pour personnaliser les passerelles.'}
+async function toggleInterest(tag){
+ try{const {data,error}=await museaSupabase.auth.getUser();if(error)throw error;if(!data.user){toast('Connecte-toi pour enregistrer tes univers.');return}
+ const remove=myInterests.includes(tag),next=remove?myInterests.filter(x=>x!==tag):myInterests.length<5?[...myInterests,tag]:null;if(!next){toast('Choisis au maximum 5 univers.');return}
+ const r=remove?await museaSupabase.from('profile_interests').delete().eq('user_id',data.user.id).eq('interest',tag):await museaSupabase.from('profile_interests').insert({user_id:data.user.id,interest:tag});if(r.error)throw r.error;myInterests=next;renderInterestPicker();toast('Tes univers créatifs sont à jour.');renderFeed();
+ }catch(e){console.error(e);toast('Impossible d’enregistrer tes univers. Vérifie la migration de l’étape 8.')}
+}
+async function renderCreatorDirectory(){
+ const box=document.getElementById('creatorResults');if(!box)return;const q=(document.getElementById('creatorSearch')?.value||'').trim().replace(/^@/,'');if(!q){box.innerHTML='<p class="small muted">Saisis un pseudo pour découvrir son univers et choisir de le suivre.</p>';return}
+ box.innerHTML='<p class="small muted">Recherche des créateurs…</p>';
+ try{const {data:user,error:userError}=await museaSupabase.auth.getUser();if(userError)throw userError;if(!user){box.innerHTML='<p class="small muted">Connecte-toi pour rechercher des créateurs.</p>';return}await loadRelationshipContext();
+ const [p,b]=await Promise.all([museaSupabase.from('profiles').select('id,username,bio').ilike('username','%'+q+'%').neq('id',user.id).limit(25),museaSupabase.from('direct_message_blocks').select('blocker_id,blocked_id').or('blocker_id.eq.'+user.id+',blocked_id.eq.'+user.id)]);if(p.error)throw p.error;if(b.error)throw b.error;
+ const blocked=new Set((b.data||[]).flatMap(x=>[x.blocker_id,x.blocked_id]).filter(x=>x!==user.id)),list=(p.data||[]).filter(x=>!blocked.has(x.id));
+ box.innerHTML=list.length?list.map(x=>'<div class="switchrow"><div style="flex:1;min-width:0"><strong>@'+escapeHtml(x.username)+'</strong><div class="small muted">'+escapeHtml((x.bio||'Créateur MUSEA').slice(0,100))+'</div></div><button class="btn '+(myFollowIds.has(x.id)?'':'primary')+'" onclick="toggleFollow(\''+x.id+'\')">'+(myFollowIds.has(x.id)?'Abonné ✓':'Suivre ＋')+'</button></div>').join(''):'<p class="small muted">Aucun créateur trouvé pour ce pseudo.</p>';
+ }catch(e){console.error(e);box.innerHTML='<p class="notice">Recherche indisponible. Vérifie la migration de l’étape 8.</p>'}
+}
 
-  renderStories();
+let feedbackPendingPostId=null,activeFeedbackRequestId=null;
+async function attachCreativeFeedback(posts){
+ const ids=posts.filter(p=>p.remote).map(p=>p.id);if(!ids.length)return posts;
+ try{const {data,error}=await museaSupabase.from('creative_feedback_requests').select('id,post_id,owner_id,question_kind,question,status').in('post_id',ids);if(error)throw error;const map=new Map((data||[]).map(x=>[x.post_id,x]));return posts.map(p=>({...p,feedback_request:map.get(p.id)||null}))}
+ catch(e){console.warn('Regards créatifs indisponibles :',e);return posts}
+}
+function openFeedbackComposer(postId){feedbackPendingPostId=postId;document.getElementById('feedbackQuestionKind').value='impression';document.getElementById('feedbackQuestion').value='';document.getElementById('feedbackComposeModal').classList.remove('hidden')}
+function closeFeedbackComposer(){document.getElementById('feedbackComposeModal').classList.add('hidden');feedbackPendingPostId=null}
+async function createFeedbackRequest(){
+ const question=document.getElementById('feedbackQuestion').value.trim(),kind=document.getElementById('feedbackQuestionKind').value;
+ if(!feedbackPendingPostId)return toast('Choisis une création avant de continuer.');
+ if(question.length<12||question.length>180)return toast('Ta question doit contenir entre 12 et 180 caractères.');
+ try{
+  const user=await requireSocialUser();if(!user)return;const post=museaPostCache.get(String(feedbackPendingPostId));
+  if(!post||post.author_id!==user.id)return toast('Tu peux demander un regard uniquement sur ta propre publication.');
+  const {data,error}=await museaSupabase.from('creative_feedback_requests').insert({post_id:feedbackPendingPostId,owner_id:user.id,question_kind:kind,question}).select('id').single();
+  if(error){if(error.code==='23505')return toast('Cette création possède déjà une demande de Regards.');throw error}
+  closeFeedbackComposer();await renderFeedbackHub();await openFeedbackRequest(data.id);toast('Ta question est ouverte à la communauté.');
+ }catch(e){console.error(e);toast('Impossible d’ouvrir les Regards : '+e.message)}
+}
+async function renderFeedbackHub(){
+ const community=document.getElementById('feedbackRequestList'),mine=document.getElementById('myFeedbackRequests');if(!community||!mine)return;
+ community.innerHTML=mine.innerHTML='<p class="small muted">Chargement…</p>';
+ try{
+  const user=await requireSocialUser();if(!user){community.innerHTML=mine.innerHTML='<p class="small muted">Connecte-toi pour participer aux Regards.</p>';return}
+  const {data:requests,error}=await museaSupabase.from('creative_feedback_requests').select('id,post_id,owner_id,question_kind,question,status,created_at,updated_at').order('updated_at',{ascending:false}).limit(100);if(error)throw error;
+  const rows=requests||[],postIds=[...new Set(rows.map(x=>x.post_id))],ownerIds=[...new Set(rows.map(x=>x.owner_id))];let posts=[],profiles=[],responses=[];
+  if(postIds.length){const r=await museaSupabase.from('posts').select('id,user_id,caption,style').in('id',postIds).eq('visibility','public');if(r.error)throw r.error;posts=r.data||[]}
+  if(ownerIds.length){const r=await museaSupabase.from('profiles').select('id,username').in('id',ownerIds);if(r.error)throw r.error;profiles=r.data||[]}
+  const requestIds=rows.map(x=>x.id);if(requestIds.length){const r=await museaSupabase.from('creative_feedback_responses').select('request_id').in('request_id',requestIds);if(r.error)throw r.error;responses=r.data||[]}
+  const counts=new Map();responses.forEach(x=>counts.set(x.request_id,(counts.get(x.request_id)||0)+1));
+  const card=r=>{const p=posts.find(x=>x.id===r.post_id);if(!p)return '';const own=r.owner_id===user.id,name=profiles.find(x=>x.id===r.owner_id)?.username||'créateur';return '<article class="notice" style="margin-top:10px"><div class="row between"><strong>@'+escapeHtml(name)+'</strong><span class="chip">'+(r.status==='open'?'Ouvert':'Fermé')+'</span></div><p style="margin:8px 0"><strong>'+escapeHtml(r.question)+'</strong></p><p class="small muted">'+escapeHtml((p.caption||'Création').slice(0,110))+'</p><div class="row between wrap"><span class="small muted">'+(counts.get(r.id)||0)+' regard(s) · '+(r.question_kind==='impression'?'Première impression':r.question_kind==='intention'?'Intention':'Exploration')+'</span><button class="btn '+(own?'':'primary')+'" onclick="openFeedbackRequest(\''+r.id+'\')">'+(own?'Gérer':'Découvrir')+'</button></div></article>'};
+  const openRows=rows.filter(x=>x.status==='open'&&x.owner_id!==user.id),ownRows=rows.filter(x=>x.owner_id===user.id);
+  document.getElementById('feedbackOpenCount').textContent=String(openRows.length);
+  community.innerHTML=openRows.length?openRows.map(card).join(''):'<p class="small muted">Aucune question ouverte pour le moment. Reviens découvrir les prochaines créations qui cherchent un regard.</p>';
+  mine.innerHTML=ownRows.length?ownRows.map(card).join(''):'<p class="small muted">Tu n’as pas encore demandé de regard. Tu peux le faire depuis l’une de tes publications.</p>';
+ }catch(e){console.error('Hub Regards :',e);community.innerHTML=mine.innerHTML='<div class="notice">Impossible de charger les Regards. Vérifie que la migration de l’étape 13 a été exécutée.</div>'}
+}
+async function openFeedbackRequest(id){
+ const detail=document.getElementById('feedbackDetail');if(!detail)return;detail.innerHTML='<div class="card"><p class="small muted">Ouverture de la conversation…</p></div>';
+ try{
+  const user=await requireSocialUser();if(!user)return;
+  const {data:r,error}=await museaSupabase.from('creative_feedback_requests').select('id,post_id,owner_id,question_kind,question,status,created_at').eq('id',id).single();if(error)throw error;
+  const {data:p,error:postError}=await museaSupabase.from('posts').select('id,user_id,caption,style,image_url').eq('id',r.post_id).eq('visibility','public').single();if(postError)throw postError;
+  const {data:responses,error:responseError}=await museaSupabase.from('creative_feedback_responses').select('id,author_id,perspective,content,created_at').eq('request_id',id).order('created_at',{ascending:true});if(responseError)throw responseError;
+  const profileIds=[...new Set([r.owner_id,p.user_id,...(responses||[]).map(x=>x.author_id)])];let profiles=[];
+  if(profileIds.length){const pr=await museaSupabase.from('profiles').select('id,username').in('id',profileIds);if(pr.error)throw pr.error;profiles=pr.data||[]}
+  const own=r.owner_id===user.id,existing=(responses||[]).find(x=>x.author_id===user.id),ownerName=profiles.find(x=>x.id===r.owner_id)?.username||'créateur',postName=profiles.find(x=>x.id===p.user_id)?.username||ownerName;
+  const post={id:p.id,author_id:p.user_id,remote:true,user:postName,avatar:postName[0]?.toUpperCase()||'M',title:(p.caption||'Création').slice(0,60),desc:p.caption||'',image_url:p.image_url,style:p.style||'Création',kind:'art',art:'a4',tag:'#MaCreation',feedback_request:{id:r.id,status:r.status}};
+  const responseMarkup=(responses||[]).map(x=>{const name=profiles.find(y=>y.id===x.author_id)?.username||'Membre',lens=x.perspective==='emotion'?'Émotion':x.perspective==='clarity'?'Lisibilité':'Piste à explorer';return '<article class="notice" style="margin-top:9px"><div class="row between"><strong>@'+escapeHtml(name)+'</strong><span class="chip">'+lens+'</span></div><p style="margin:8px 0">'+escapeHtml(x.content)+'</p><div class="row between"><span class="small muted">'+escapeHtml(new Date(x.created_at).toLocaleDateString('fr-FR'))+'</span>'+(x.author_id===user.id?'<button class="iconbtn" onclick="deleteFeedbackResponse(\''+x.id+'\',\''+id+'\')">Supprimer mon regard</button>':'')+'</div></article>'}).join('');
+  const form=!own&&r.status==='open'&&!existing?'<div class="card"><h3 class="h3">Apporter ton regard</h3><p class="small muted">Parle de la création, pas de la personne. Un seul retour par membre ; tu peux le supprimer si tu souhaites le reformuler.</p><label class="label" for="feedbackPerspective">Ton angle</label><select class="field" id="feedbackPerspective"><option value="emotion">Émotion · ce que l’œuvre me fait ressentir</option><option value="clarity">Lisibilité · ce que je comprends ou remarque</option><option value="possibility">Piste à explorer · une direction possible</option></select><label class="label" for="feedbackResponseText">Ton regard (20 à 500 caractères)</label><textarea class="field" id="feedbackResponseText" maxlength="500" rows="3" placeholder="J’ai remarqué… Cela me fait penser à…"></textarea><button class="btn primary full" onclick="submitFeedbackResponse(\''+id+'\')">Partager mon regard</button></div>':'';
+  const ownerControls=own?'<div class="row wrap"><button class="btn" onclick="setFeedbackStatus(\''+id+'\',\''+(r.status==='open'?'closed':'open')+'\')">'+(r.status==='open'?'Clore les Regards':'Rouvrir les Regards')+'</button><button class="btn danger" onclick="deleteFeedbackRequest(\''+id+'\')">Supprimer la demande</button></div>':'';
+  detail.innerHTML='<div class="card"><div class="row between"><div><div class="eyebrow">Regards · '+(r.status==='open'?'Échange ouvert':'Échange clôturé')+'</div><h2 class="h1">'+escapeHtml(r.question)+'</h2><p class="small muted">Demandé par @'+escapeHtml(ownerName)+' · '+(r.question_kind==='impression'?'Première impression':r.question_kind==='intention'?'Intention':'Exploration')+'</p></div><button class="iconbtn" onclick="document.getElementById(\'feedbackDetail\').innerHTML=\'\';activeFeedbackRequestId=null">✕</button></div>'+postMarkup(post)+'<div class="line"></div><h3 class="h3">Les regards partagés · '+(responses||[]).length+'</h3>'+(responseMarkup||'<p class="small muted">Aucun regard pour le moment. Le premier peut ouvrir une nouvelle perspective.</p>')+form+ownerControls+'</div>';
+  activeFeedbackRequestId=id;
+ }catch(e){console.error('Ouverture Regards :',e);detail.innerHTML='<div class="notice">Impossible d’ouvrir cet échange. Il a peut-être été fermé ou rendu inaccessible.</div>'}
+}
+async function submitFeedbackResponse(id){
+ const content=document.getElementById('feedbackResponseText')?.value.trim(),perspective=document.getElementById('feedbackPerspective')?.value;
+ if(!content||content.length<20||content.length>500)return toast('Ton regard doit contenir entre 20 et 500 caractères.');
+ try{const user=await requireSocialUser();if(!user)return;const {error}=await museaSupabase.from('creative_feedback_responses').insert({request_id:id,author_id:user.id,perspective,content});if(error){if(error.code==='23505')return toast('Tu as déjà partagé un regard sur cette création.');throw error}await openFeedbackRequest(id);await renderFeedbackHub();toast('Ton regard a été partagé.')}
+ catch(e){console.error(e);toast('Impossible de partager ton regard : '+e.message)}
+}
+async function deleteFeedbackResponse(responseId,requestId){
+ if(!confirm('Supprimer ton regard ?'))return;
+ try{const user=await requireSocialUser();if(!user)return;const {error}=await museaSupabase.from('creative_feedback_responses').delete().eq('id',responseId).eq('author_id',user.id);if(error)throw error;await openFeedbackRequest(requestId);await renderFeedbackHub();toast('Ton regard a été supprimé.')}
+ catch(e){console.error(e);toast('Suppression impossible.')}
+}
+async function setFeedbackStatus(id,status){
+ try{const user=await requireSocialUser();if(!user)return;const {error}=await museaSupabase.from('creative_feedback_requests').update({status}).eq('id',id).eq('owner_id',user.id);if(error)throw error;await openFeedbackRequest(id);await renderFeedbackHub();toast(status==='closed'?'Les Regards sont clôturés.':'Les Regards sont de nouveau ouverts.')}
+ catch(e){console.error(e);toast('Impossible de modifier cette demande.')}
+}
+async function deleteFeedbackRequest(id){
+ if(!confirm('Supprimer cette demande et les regards associés ?'))return;
+ try{const user=await requireSocialUser();if(!user)return;const {error}=await museaSupabase.from('creative_feedback_requests').delete().eq('id',id).eq('owner_id',user.id);if(error)throw error;activeFeedbackRequestId=null;document.getElementById('feedbackDetail').innerHTML='';await renderFeedbackHub();toast('Demande supprimée.')}
+ catch(e){console.error(e);toast('Suppression impossible.')}
+}
+
+async function renderFeed(){
+ const feed=document.getElementById('feed');if(!feed)return;feed.innerHTML='<p class="muted small">MUSEA compose ton fil…</p>';const explanation=document.getElementById('feedExplanation');
+ try{
+  await loadRelationshipContext();
+  const {data:rows,error}=await museaSupabase.from('posts').select('id,user_id,caption,style,visibility,image_url,created_at').eq('visibility','public').order('created_at',{ascending:false}).limit(120);if(error)throw error;
+  const ids=[...new Set((rows||[]).map(p=>p.user_id))];let profiles=[],interestRows=[];
+  if(ids.length){const [p,i]=await Promise.all([museaSupabase.from('profiles').select('id,username').in('id',ids),museaSupabase.from('profile_interests').select('user_id,interest').in('user_id',ids)]);if(p.error)throw p.error;if(i.error)throw i.error;profiles=p.data||[];interestRows=i.data||[]}
+  let blocked=new Set();if(myUserId){const {data,error}=await museaSupabase.from('direct_message_blocks').select('blocker_id,blocked_id').or('blocker_id.eq.'+myUserId+',blocked_id.eq.'+myUserId);if(error)throw error;blocked=new Set((data||[]).flatMap(x=>[x.blocker_id,x.blocked_id]).filter(x=>x!==myUserId))}
+  const posts=(rows||[]).filter(x=>!blocked.has(x.user_id)).map(row=>{
+   const username=profiles.find(p=>p.id===row.user_id)?.username||'Utilisateur',creatorInterests=interestRows.filter(x=>x.user_id===row.user_id).map(x=>x.interest),shared=myInterests.filter(x=>creatorInterests.includes(x)),followed=myFollowIds.has(row.user_id);
+   const bridge=!followed&&shared.length>0&&!shared.some(x=>(row.style||'').toLowerCase().includes(x.toLowerCase()));
+   return {id:row.id,author_id:row.user_id,remote:true,user:username,avatar:username[0]?.toUpperCase()||'M',title:(row.caption||'Publication').slice(0,60),desc:row.caption||'',image_url:row.image_url,style:row.style||'Création',kind:'art',art:'a4',tag:'#MaCreation',feed_score:(followed?6:0)+(shared.length?3:0),bridge_label:bridge?'Passerelle via '+shared[0]:null};
+  });
+  let selected=posts;if(feedKind==='circle')selected=posts.filter(p=>myFollowIds.has(p.author_id)||p.author_id===myUserId);if(feedKind==='bridges')selected=posts.filter(p=>p.bridge_label);selected.sort((a,b)=>b.feed_score-a.feed_score);
+  if(!selected.length)feed.innerHTML=feedKind==='circle'?'<div class="card"><strong>Ton cercle commence ici.</strong><p class="small muted">Recherche des créateurs dans Explorer et suis ceux dont les univers te parlent.</p><button class="btn primary" onclick="navigate(\'discover\')">Découvrir des créateurs</button></div>':feedKind==='bridges'?'<div class="card"><strong>Pas encore de passerelle à te proposer.</strong><p class="small muted">Choisis quelques univers dans Explorer. MUSEA cherchera des créateurs qui partagent tes centres d’intérêt mais explorent d’autres styles.</p><button class="btn primary" onclick="navigate(\'discover\')">Choisir mes univers</button></div>':'<div class="card muted">Aucune publication publique pour le moment. Les premières créations feront vivre ton fil.</div>';
+  else{const withLineage=await attachRemixMetadata(selected);const withJournals=await attachCreationJournals(withLineage);const withInteractions=await attachPostInteractions(withJournals);const enriched=await attachCreativeFeedback(withInteractions);feed.innerHTML=enriched.map(p=>(p.bridge_label?'<div class="small muted" style="margin:0 0 7px 5px">✦ '+escapeHtml(p.bridge_label)+' · un univers commun, une autre approche</div>':'')+postMarkup(p)).join('')}
+  if(explanation)explanation.textContent=feedKind==='circle'?'Les créations des personnes que tu suis, dans ton cercle.':feedKind==='bridges'?'Des créateurs que tu ne suis pas encore, reliés à tes intérêts mais actifs dans d’autres styles.':'Un mélange pondéré entre ton cercle et des découvertes reliées à tes intérêts.';
+ }catch(e){console.error('Fil MUSEA:',e);feed.innerHTML='<div class="notice">Impossible de composer le fil. Vérifie la connexion et la migration de l’étape 8.</div>'}
+ renderStories();
 }
 function setFeed(k,b){feedKind=k;document.querySelectorAll('#screen-home .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderFeed()}
-function toggleLike(id){if(state.liked.includes(id)){state.liked=state.liked.filter(x=>x!==id)}else{state.liked.push(id);state.notifications.unshift({type:'Activité',text:'Ta réaction a été enregistrée dans le prototype.',time:'À l’instant',read:false})}save();renderFeed();renderProfile();renderNotifications()}
+
+let activeAtlasId=null,atlasPendingPostId=null;
+async function renderAtlases(){
+  const mine=document.getElementById('myAtlasList'),publicList=document.getElementById('publicAtlasList'),detail=document.getElementById('atlasDetail');
+  if(!mine||!publicList)return;
+  detail.innerHTML='';
+  mine.innerHTML=publicList.innerHTML='<p class="small muted">Chargement des Atlas…</p>';
+  try{
+    const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+    if(userError)throw userError;
+    if(!userData.user){
+      mine.innerHTML='<p class="small muted">Connecte-toi pour créer et gérer tes Atlas.</p>';
+      publicList.innerHTML='<p class="small muted">Connecte-toi pour découvrir les Atlas publics.</p>';
+      document.getElementById('myAtlasCount').textContent='0';return;
+    }
+    const {data:rows,error}=await museaSupabase.from('creative_atlases').select('id,owner_id,title,description,visibility,created_at,updated_at').order('updated_at',{ascending:false}).limit(80);
+    if(error)throw error;
+    const atlases=rows||[],mineRows=atlases.filter(a=>a.owner_id===userData.user.id),publicRows=atlases.filter(a=>a.visibility==='public'&&a.owner_id!==userData.user.id);
+    const ids=atlases.map(a=>a.id);let itemRows=[];
+    if(ids.length){const result=await museaSupabase.from('creative_atlas_items').select('atlas_id').in('atlas_id',ids);if(!result.error)itemRows=result.data||[]}
+    const counts=new Map();itemRows.forEach(x=>counts.set(x.atlas_id,(counts.get(x.atlas_id)||0)+1));
+    let owners=[];const ownerIds=[...new Set(publicRows.map(a=>a.owner_id))];
+    if(ownerIds.length){const result=await museaSupabase.from('profiles').select('id,username').in('id',ownerIds);if(!result.error)owners=result.data||[]}
+    const card=(a,own)=>'<article class="notice" style="margin-top:10px"><div class="row between"><strong>'+escapeHtml(a.title)+'</strong><span class="chip">'+(a.visibility==='public'?'Public':'Privé')+'</span></div><p class="small">'+escapeHtml(a.description||'Aucun fil conducteur ajouté.')+'</p><div class="row between wrap"><span class="small muted">'+(own?'Ton Atlas':'Par @'+escapeHtml(owners.find(x=>x.id===a.owner_id)?.username||'créateur'))+' · '+(counts.get(a.id)||0)+' création(s)</span><div class="row wrap"><button class="btn" onclick="openAtlas(\''+a.id+'\')">Explorer</button>'+(own?'<button class="btn danger" onclick="deleteAtlas(\''+a.id+'\')">Supprimer</button>':'')+'</div></div></article>';
+    document.getElementById('myAtlasCount').textContent=String(mineRows.length);
+    mine.innerHTML=mineRows.length?mineRows.map(a=>card(a,true)).join(''):'<p class="small muted">Ton premier Atlas peut commencer avec une seule idée.</p>';
+    publicList.innerHTML=publicRows.length?publicRows.map(a=>card(a,false)).join(''):'<p class="small muted">Aucun Atlas public pour le moment. Le tien peut ouvrir la voie.</p>';
+  }catch(e){
+    console.error('Atlas :',e);
+    mine.innerHTML=publicList.innerHTML='<div class="notice">Impossible de charger les Atlas. Vérifie que la migration de l’étape 11 a été exécutée dans Supabase.</div>';
+  }
+}
+async function createAtlas(){
+  const title=document.getElementById('atlasTitle').value.trim(),description=document.getElementById('atlasDescription').value.trim(),visibility=document.getElementById('atlasVisibility').value;
+  if(title.length<3||title.length>60)return toast('Le titre doit contenir entre 3 et 60 caractères.');
+  if(description.length>240)return toast('Le fil conducteur est limité à 240 caractères.');
+  const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+  if(userError||!userData.user)return toast('Connecte-toi pour créer un Atlas.');
+  const {data,error}=await museaSupabase.from('creative_atlases').insert({owner_id:userData.user.id,title,description,visibility}).select('id').single();
+  if(error){console.error(error);return toast('Création impossible : '+error.message)}
+  document.getElementById('atlasTitle').value='';document.getElementById('atlasDescription').value='';
+  await renderAtlases();await openAtlas(data.id);toast('Ton Atlas est créé. Ajoute-y des créations depuis le fil ou Explorer.');
+}
+async function openAtlas(id){
+  const detail=document.getElementById('atlasDetail');if(!detail)return;
+  detail.innerHTML='<div class="card"><p class="muted small">Ouverture de l’Atlas…</p></div>';
+  try{
+    const {data:atlas,error}=await museaSupabase.from('creative_atlases').select('id,owner_id,title,description,visibility').eq('id',id).single();
+    if(error)throw error;
+    const {data:me}=await museaSupabase.auth.getUser(),isOwner=!!me.user&&me.user.id===atlas.owner_id;
+    const {data:items,error:itemError}=await museaSupabase.from('creative_atlas_items').select('id,post_id,note,position,created_at').eq('atlas_id',id).order('position',{ascending:true}).order('created_at',{ascending:true});
+    if(itemError)throw itemError;
+    const postIds=(items||[]).map(x=>x.post_id);let posts=[],profiles=[];
+    if(postIds.length){
+      const result=await museaSupabase.from('posts').select('id,user_id,caption,style,image_url,created_at').in('id',postIds);
+      if(result.error)throw result.error;posts=result.data||[];
+      const ownerIds=[...new Set(posts.map(p=>p.user_id))];
+      if(ownerIds.length){const pr=await museaSupabase.from('profiles').select('id,username').in('id',ownerIds);if(!pr.error)profiles=pr.data||[]}
+    }
+    const cards=(items||[]).map(item=>{
+      const p=posts.find(x=>x.id===item.post_id);if(!p)return '';
+      const username=profiles.find(x=>x.id===p.user_id)?.username||'Utilisateur';
+      const cardPost={id:p.id,author_id:p.user_id,remote:true,user:username,avatar:username[0]?.toUpperCase()||'M',title:(p.caption||'Publication').slice(0,60),desc:p.caption||'',image_url:p.image_url,style:p.style||'Création',kind:'art',art:'a4',tag:'#MaCreation'};
+      return '<div class="card"><div class="row between"><span class="small muted">Étape '+(item.position+1)+' du parcours</span>'+(isOwner?'<div class="row"><button class="iconbtn" aria-label="Monter" onclick="moveAtlasItem(\''+id+'\',\''+item.id+'\',-1)">↑</button><button class="iconbtn" aria-label="Descendre" onclick="moveAtlasItem(\''+id+'\',\''+item.id+'\',1)">↓</button><button class="iconbtn danger" onclick="removeAtlasItem(\''+id+'\',\''+item.id+'\')">Retirer</button></div>':'')+'</div>'+(item.note?'<p class="notice small">✦ '+escapeHtml(item.note)+'</p>':'')+postMarkup(cardPost)+'</div>';
+    }).filter(Boolean);
+    activeAtlasId=id;
+    detail.innerHTML='<div class="card"><div class="row between"><div><div class="eyebrow">Atlas '+(atlas.visibility==='public'?'public':'privé')+'</div><h2 class="h1">'+escapeHtml(atlas.title)+'</h2></div><button class="btn" onclick="document.getElementById(\'atlasDetail\').innerHTML=\'\';activeAtlasId=null">Fermer</button></div><p class="muted">'+escapeHtml(atlas.description||'Un parcours d’inspiration sans commentaire général.')+'</p><div class="small muted">'+items.length+' création(s) · ordre éditorial choisi par le créateur</div></div>'+(cards.length?cards.join(''):'<div class="card"><p class="muted small">Cet Atlas est encore vide. Ajoute des créations publiques depuis le fil ou Explorer.</p></div>');
+    detail.scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){console.error('Ouverture Atlas :',e);detail.innerHTML='<div class="notice">Cet Atlas ne peut pas être affiché. Il a peut-être été supprimé ou son contenu n’est plus public.</div>'}
+}
+async function openAtlasPicker(postId){
+  const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+  if(userError||!userData.user)return toast('Connecte-toi pour organiser tes inspirations.');
+  const {data:atlases,error}=await museaSupabase.from('creative_atlases').select('id,title').eq('owner_id',userData.user.id).order('updated_at',{ascending:false});
+  if(error)return toast('Impossible de charger tes Atlas.');
+  if(!atlases?.length){toast('Crée d’abord ton premier Atlas.');navigate('atlas');return}
+  atlasPendingPostId=postId;
+  document.getElementById('atlasTargetSelect').innerHTML=atlases.map(a=>'<option value="'+a.id+'">'+escapeHtml(a.title)+'</option>').join('');
+  document.getElementById('atlasItemNote').value='';
+  document.getElementById('atlasAddModal').classList.remove('hidden');
+}
+function closeAtlasPicker(){document.getElementById('atlasAddModal').classList.add('hidden');atlasPendingPostId=null}
+async function savePostToAtlas(){
+  const atlasId=document.getElementById('atlasTargetSelect').value,note=document.getElementById('atlasItemNote').value.trim();
+  if(!atlasPendingPostId||!atlasId)return toast('Choisis un Atlas.');
+  if(note.length>240)return toast('La note est limitée à 240 caractères.');
+  const {data:existing,error:existingError}=await museaSupabase.from('creative_atlas_items').select('id').eq('atlas_id',atlasId).eq('post_id',atlasPendingPostId).maybeSingle();
+  if(existingError)return toast('Vérification impossible : '+existingError.message);
+  if(existing)return toast('Cette création est déjà dans cet Atlas.');
+  const {data:positions,error:positionError}=await museaSupabase.from('creative_atlas_items').select('position').eq('atlas_id',atlasId).order('position',{ascending:false}).limit(1);
+  if(positionError)return toast('Impossible de préparer l’ordre de l’Atlas.');
+  const position=(positions?.[0]?.position??-1)+1;
+  const {error}=await museaSupabase.from('creative_atlas_items').insert({atlas_id:atlasId,post_id:atlasPendingPostId,note,position});
+  if(error)return toast('Ajout impossible : '+error.message);
+  await museaSupabase.from('creative_atlases').update({updated_at:new Date().toISOString()}).eq('id',atlasId);
+  closeAtlasPicker();await renderAtlases();toast('Création ajoutée à ton Atlas.');
+  if(activeAtlasId===atlasId)await openAtlas(atlasId);
+}
+async function moveAtlasItem(atlasId,itemId,direction){
+  const {data:items,error}=await museaSupabase.from('creative_atlas_items').select('id,position').eq('atlas_id',atlasId).order('position',{ascending:true});
+  if(error)return toast('Impossible de réorganiser cet Atlas.');
+  const index=items.findIndex(x=>x.id===itemId),other=items[index+direction];
+  if(index<0||!other)return;
+  const current=items[index];
+  const first=await museaSupabase.from('creative_atlas_items').update({position:other.position}).eq('id',current.id);
+  if(first.error)return toast('Déplacement impossible.');
+  const second=await museaSupabase.from('creative_atlas_items').update({position:current.position}).eq('id',other.id);
+  if(second.error)return toast('Ordre partiellement modifié. Recharge l’Atlas.');
+  await museaSupabase.from('creative_atlases').update({updated_at:new Date().toISOString()}).eq('id',atlasId);
+  await openAtlas(atlasId);await renderAtlases();
+}
+async function removeAtlasItem(atlasId,itemId){
+  if(!confirm('Retirer cette création de ton Atlas ?'))return;
+  const {error}=await museaSupabase.from('creative_atlas_items').delete().eq('id',itemId);
+  if(error)return toast('Retrait impossible : '+error.message);
+  await museaSupabase.from('creative_atlases').update({updated_at:new Date().toISOString()}).eq('id',atlasId);
+  await openAtlas(atlasId);await renderAtlases();toast('Création retirée de l’Atlas.');
+}
+async function deleteAtlas(id){
+  if(!confirm('Supprimer cet Atlas et son organisation ? Les publications originales ne seront pas supprimées.'))return;
+  const {error}=await museaSupabase.from('creative_atlases').delete().eq('id',id);
+  if(error)return toast('Suppression impossible : '+error.message);
+  if(activeAtlasId===id){activeAtlasId=null;document.getElementById('atlasDetail').innerHTML=''}
+  await renderAtlases();toast('Atlas supprimé.');
+}
+
 function toggleSave(id){if(state.saved.includes(id)){state.saved=state.saved.filter(x=>x!==id)}else{state.saved.push(id)}save();renderFeed();renderProfile();toast(state.saved.includes(id)?'Ajouté à tes collections.':'Retiré de tes collections.')}
-function commentPost(id){let txt=prompt('Écris un commentaire de démonstration :');if(txt&&txt.trim()){state.comments[id]=state.comments[id]||[];state.comments[id].push(txt.trim());state.notifications.unshift({type:'Activité',text:'Commentaire ajouté sur une publication.',time:'À l’instant',read:false});save();renderFeed();toast('Commentaire ajouté au prototype.')} }
+
 function translatePost(id){let p=defaultPosts.find(x=>x.id===id);let lang=document.getElementById('language')?.value||'Français';toast('Traduction IA simulée vers '+lang+' : la connexion au service de traduction reste à faire.');}
-function renderDiscover(){let q=(document.getElementById('searchInput')?.value||'').toLowerCase();let list=defaultPosts.filter(p=>(discoverKind==='Tout'||p.style===discoverKind)&&(`${p.user} ${p.title} ${p.desc} ${p.style} ${p.tag}`).toLowerCase().includes(q));document.getElementById('discoverResults').innerHTML=list.length?list.map(postMarkup).join(''):'<div class="card muted">Aucun résultat. Essaie un autre mot-clé.</div>'}
+async function renderDiscover(){const target=document.getElementById('discoverResults');if(!target)return;const q=(document.getElementById('searchInput')?.value||'').toLowerCase();target.innerHTML='<p class="muted small">Recherche des créations…</p>';let realPosts=[];try{const {data:rows,error}=await museaSupabase.from('posts').select('id,user_id,caption,style,visibility,image_url,created_at').eq('visibility','public').order('created_at',{ascending:false}).limit(60);if(error)throw error;const ids=[...new Set((rows||[]).map(p=>p.user_id))];let profiles=[];if(ids.length){const result=await museaSupabase.from('profiles').select('id,username').in('id',ids);if(!result.error)profiles=result.data||[]}realPosts=(rows||[]).map(row=>{const username=profiles.find(p=>p.id===row.user_id)?.username||'Utilisateur';return{id:row.id,author_id:row.user_id,remote:true,user:username,avatar:username[0]?.toUpperCase()||'M',title:(row.caption||'Publication').slice(0,60),desc:row.caption||'',image_url:row.image_url,style:row.style||'Création',kind:'art',art:'a4',tag:'#MaCreation'}})}catch(error){console.warn('Recherche distante indisponible :',error)}const all=[...realPosts,...defaultPosts];const list=all.filter(p=>(discoverKind==='Tout'||p.style===discoverKind)&&(`${p.user} ${p.title} ${p.desc} ${p.style} ${p.tag}`).toLowerCase().includes(q));if(list.length){try{const withLineage=await attachRemixMetadata(list);const withJournals=await attachCreationJournals(withLineage);const withInteractions=await attachPostInteractions(withJournals);const enriched=await attachCreativeFeedback(withInteractions);target.innerHTML=enriched.map(postMarkup).join()}catch(e){console.warn('Interactions Supabase indisponibles',e);target.innerHTML=list.map(postMarkup).join()+'<p class="notice">Active le schéma social Supabase pour utiliser les interactions.</p>'}}else target.innerHTML='<div class="card muted">Aucun résultat. Essaie un autre mot-clé.</div>'}
 function setDiscover(k,b){discoverKind=k;document.querySelectorAll('#screen-discover .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderDiscover()}
-function renderStories(){let names=[...state.stories,...state.ownStories];let html=names.map((s,i)=>`<button class="story" style="border:0;background:transparent;color:var(--ink)" onclick="viewStory('${escapeHtml(s)}')"><div class="story-ring"><div>${s==='Ta story'?'＋':escapeHtml(s[0].toUpperCase())}</div></div>${escapeHtml(s)}</button>`).join('');document.getElementById('storyRow').innerHTML=html;let all=document.getElementById('allStories');if(all)all.innerHTML=html}
-function viewStory(s){toast('Story de '+s+' — contenu fictif dans cette démo.')}
-function addStory(){let s=document.getElementById('storyText').value.trim();if(!s)return toast('Ajoute un texte pour ta story.');state.ownStories.unshift('Ta story');state.points+=2;save();document.getElementById('storyText').value='';renderStories();toast('Story ajoutée localement. Pas de téléversement réel.')}
+function formatStoryAge(value){
+  const minutes=Math.max(0,Math.floor((Date.now()-new Date(value).getTime())/60000));
+  if(minutes<1)return 'À l’instant';
+  if(minutes<60)return 'Il y a '+minutes+' min';
+  return 'Il y a '+Math.floor(minutes/60)+' h';
+}
+function storyMediaMarkup(story,preview=false){
+  if(!story.media_url)return '';
+  const url=escapeHtml(story.media_url);
+  if(story.media_type==='video')return '<video class="'+(preview?'story-preview-media':'story-media')+'" src="'+url+'" controls playsinline preload="metadata"></video>';
+  return '<img class="'+(preview?'story-preview-media':'story-media')+'" src="'+url+'" alt="Story de '+escapeHtml(story.username||'MUSEA')+'">';
+}
+async function renderStories(){
+  const home=document.getElementById('storyRow'),all=document.getElementById('allStories');
+  if(home)home.innerHTML='<p class="muted small">Chargement…</p>';
+  if(all)all.innerHTML='<p class="muted small">Chargement…</p>';
+  try{
+    const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+    if(userError)throw userError;
+    if(!userData.user){
+      const html='<p class="muted small">Connecte-toi pour voir et publier des Stories.</p>';
+      if(home)home.innerHTML=html;if(all)all.innerHTML=html;return;
+    }
+    const now=new Date().toISOString();
+    const {data:rows,error}=await museaSupabase.from('stories')
+      .select('id,user_id,caption,media_path,media_type,created_at,expires_at')
+      .gt('expires_at',now).order('created_at',{ascending:false}).limit(200);
+    if(error)throw error;
+    const ids=[...new Set((rows||[]).map(x=>x.user_id))];
+    let profiles=[];
+    if(ids.length){
+      const result=await museaSupabase.from('profiles').select('id,username').in('id',ids);
+      if(result.error)throw result.error;profiles=result.data||[];
+    }
+    const {data:blocks,error:blockError}=await museaSupabase.from('direct_message_blocks').select('blocker_id,blocked_id').or('blocker_id.eq.'+userData.user.id+',blocked_id.eq.'+userData.user.id);
+    if(blockError)throw blockError;
+    const blockedIds=new Set((blocks||[]).flatMap(b=>[b.blocker_id,b.blocked_id]).filter(id=>id!==userData.user.id));
+    const visible=await Promise.all((rows||[]).filter(x=>!blockedIds.has(x.user_id)).map(async x=>{
+      let mediaUrl=null;
+      if(x.media_path){
+        const {data:signed,error:signedError}=await museaSupabase.storage.from('musea-stories').createSignedUrl(x.media_path,3600);
+        if(signedError)console.warn('URL Story indisponible :',signedError);
+        else mediaUrl=signed.signedUrl;
+      }
+      return {...x,media_url:mediaUrl,username:profiles.find(p=>p.id===x.user_id)?.username||'Utilisateur'};
+    }));
+    storyItems=visible;
+    const groups=[...new Map(visible.map(x=>[x.user_id,{user_id:x.user_id,username:x.username,latest:x}])).values()];
+    const renderGroup=g=>'<button class="story" style="border:0;background:transparent;color:var(--ink)" onclick="viewStoryGroup(\''+g.user_id+'\')"><div class="story-ring has-story"><div>'+escapeHtml((g.username||'M')[0].toUpperCase())+'</div></div>'+escapeHtml(g.user_id===userData.user.id?'Ta Story':'@'+g.username)+'</button>';
+    const ownExists=groups.some(g=>g.user_id===userData.user.id);
+    const ownButton='<button class="story" style="border:0;background:transparent;color:var(--ink)" onclick="'+(ownExists?'viewStoryGroup(\''+userData.user.id+'\')':'document.getElementById(\'storyText\').focus();navigate(\'stories\')')+'"><div class="story-ring '+(ownExists?'has-story':'no-story')+'"><div>'+(ownExists?'＋':'＋')+'</div></div>Ta Story</button>';
+    const html=ownButton+groups.filter(g=>g.user_id!==userData.user.id).map(renderGroup).join('');
+    if(home)home.innerHTML=html;
+    if(all)all.innerHTML=html||'<p class="muted small">Aucune Story pour le moment. Lance la première !</p>';
+    if(!activeStoriesChannel){
+      activeStoriesChannel=museaSupabase.channel('musea-stories-live')
+        .on('postgres_changes',{event:'*',schema:'public',table:'stories'},()=>{if(document.getElementById('screen-home')?.classList.contains('active')||document.getElementById('screen-stories')?.classList.contains('active'))renderStories()})
+        .subscribe();
+    }
+  }catch(e){
+    console.error('Stories :',e);
+    const msg='<div class="notice">Impossible de charger les Stories. Vérifie que la migration de cette étape a été exécutée dans Supabase.</div>';
+    if(home)home.innerHTML=msg;if(all)all.innerHTML=msg;
+  }
+}
+async function viewStoryGroup(userId){
+  activeStoryUserId=userId;
+  activeStoryGroup=storyItems.filter(x=>x.user_id===userId).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  if(!activeStoryGroup.length)return toast('Cette Story a expiré ou n’est plus disponible.');
+  activeStoryIndex=0;
+  document.getElementById('storyViewer').classList.remove('hidden');
+  await showCurrentStory();
+}
+async function showCurrentStory(){
+  const story=activeStoryGroup[activeStoryIndex];if(!story)return closeStoryViewer();
+  document.getElementById('storyViewerUser').textContent='@'+story.username;
+  document.getElementById('storyViewerTime').textContent=formatStoryAge(story.created_at);
+  document.getElementById('storyViewerCaption').textContent=story.caption||'';
+  document.getElementById('storyViewerMedia').innerHTML=storyMediaMarkup(story);
+  document.getElementById('storyPrevBtn').disabled=activeStoryIndex===0;
+  document.getElementById('storyNextBtn').disabled=activeStoryIndex===activeStoryGroup.length-1;
+  const own=await museaSupabase.auth.getUser();
+  const isOwn=own.data?.user?.id===story.user_id;
+  document.getElementById('deleteStoryBtn').classList.toggle('hidden',!isOwn);
+  document.getElementById('storyViewerViews').textContent='';
+  if(!isOwn){
+    const {data:viewer,error}=await museaSupabase.auth.getUser();
+    if(!error&&viewer.user){
+      const {error:viewError}=await museaSupabase.from('story_views').upsert({story_id:story.id,viewer_id:viewer.user.id},{onConflict:'story_id,viewer_id',ignoreDuplicates:true});
+      if(viewError)console.warn('Vue Story non enregistrée :',viewError);
+    }
+  }else{
+    const {count,error}=await museaSupabase.from('story_views').select('id',{count:'exact',head:true}).eq('story_id',story.id);
+    if(!error)document.getElementById('storyViewerViews').textContent=(count||0)+' vue(s)';
+  }
+}
+function stepStory(direction){
+  const next=activeStoryIndex+direction;
+  if(next<0||next>=activeStoryGroup.length)return;
+  activeStoryIndex=next;showCurrentStory();
+}
+function closeStoryViewer(){
+  const media=document.querySelector('#storyViewerMedia video');
+  if(media)media.pause();
+  document.getElementById('storyViewer').classList.add('hidden');
+}
+async function addStory(){
+  const button=document.getElementById('publishStoryBtn'),caption=document.getElementById('storyText').value.trim(),input=document.getElementById('storyMedia'),file=input?.files?.[0];
+  if(!caption&&!file)return toast('Ajoute une légende ou choisis une photo/vidéo.');
+  if(caption.length>240)return toast('La légende est limitée à 240 caractères.');
+  if(file){
+    const allowed=['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm'];
+    if(!allowed.includes(file.type))return toast('Format non pris en charge. Utilise JPG, PNG, WEBP, GIF, MP4 ou WEBM.');
+    if(file.size>20*1024*1024)return toast('Le fichier dépasse la limite de 20 Mo.');
+  }
+  const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+  if(userError||!userData.user)return toast('Connecte-toi pour publier une Story.');
+  button.disabled=true;button.textContent='Publication…';
+  let mediaPath=null,mediaUrl=null,mediaType=null;
+  try{
+    if(file){
+      const extension=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'');
+      mediaPath='stories/'+userData.user.id+'/'+Date.now()+'.'+extension;
+      const {error:uploadError}=await museaSupabase.storage.from('musea-stories').upload(mediaPath,file,{cacheControl:'3600',upsert:false,contentType:file.type});
+      if(uploadError)throw uploadError;
+      const {data:publicData}=museaSupabase.storage.from('musea-posts').getPublicUrl(mediaPath);
+      mediaUrl=publicData.publicUrl;mediaType=file.type.startsWith('video/')?'video':'image';
+    }
+    const {data:created,error}=await museaSupabase.from('stories').insert({
+      user_id:userData.user.id,caption:caption||null,media_url:mediaUrl,media_path:mediaPath,media_type:mediaType,
+      created_at:new Date().toISOString(),expires_at:new Date(Date.now()+24*60*60*1000).toISOString()
+    }).select('id').single();
+    if(error)throw error;
+    document.getElementById('storyText').value='';if(input)input.value='';
+    const preview=document.getElementById('storyPreview');preview.innerHTML='';preview.classList.add('hidden');
+    if(storyPreviewUrl){URL.revokeObjectURL(storyPreviewUrl);storyPreviewUrl=null}
+    await renderStories();toast('Ta Story est publiée pour 24 heures.');
+  }catch(e){
+    console.error('Publication Story :',e);
+    if(mediaPath)try{await museaSupabase.storage.from('musea-stories').remove([mediaPath])}catch(cleanupError){console.warn(cleanupError)}
+    toast('Publication impossible : '+(e.message||'erreur Supabase'));
+  }finally{button.disabled=false;button.textContent='＋ Publier ma Story'}
+}
+async function deleteCurrentStory(){
+  const story=activeStoryGroup[activeStoryIndex];if(!story)return;
+  if(!confirm('Supprimer définitivement cette Story ?'))return;
+  try{
+    const {error}=await museaSupabase.from('stories').delete().eq('id',story.id).eq('user_id',story.user_id);
+    if(error)throw error;
+    if(story.media_path){const {error:storageError}=await museaSupabase.storage.from('musea-stories').remove([story.media_path]);if(storageError)console.warn('Fichier Story à nettoyer :',storageError)}
+    closeStoryViewer();await renderStories();toast('Story supprimée.');
+  }catch(e){console.error(e);toast('Impossible de supprimer cette Story.')}
+}
+document.getElementById('storyMedia')?.addEventListener('change',event=>{
+  const file=event.target.files?.[0],preview=document.getElementById('storyPreview');
+  if(storyPreviewUrl){URL.revokeObjectURL(storyPreviewUrl);storyPreviewUrl=null}
+  preview.innerHTML='';preview.classList.add('hidden');
+  if(!file)return;
+  if(file.size>20*1024*1024){event.target.value='';return toast('Le fichier dépasse la limite de 20 Mo.')}
+  storyPreviewUrl=URL.createObjectURL(file);
+  const media=file.type.startsWith('video/')?'<video class="story-preview-media" controls playsinline src="'+storyPreviewUrl+'"></video>':'<img class="story-preview-media" src="'+storyPreviewUrl+'" alt="Aperçu de la Story">';
+  preview.innerHTML=media;preview.classList.remove('hidden');
+});
 function renderLeaderboard(){let entries=[{n:'luna.creative',p:1840,r:'Créateur vedette'},{n:'noah.visuals',p:1420,r:'Mise en avant'},{n:'aya.studio',p:980,r:'Crédits IA bonus'},{n:state.username,p:state.points,r:'Continue à créer'}].sort((a,b)=>b.p-a.p);document.getElementById('leaderboard').innerHTML=entries.map((e,i)=>`<div class="card"><div class="row"><div class="avatar">${i+1}</div><div style="flex:1"><strong>${escapeHtml(e.n)}</strong><div class="small muted">${e.p.toLocaleString('fr-FR')} points</div></div><span class="chip">#${i+1}</span></div><div class="small muted" style="margin-top:9px">Récompense possible : ${e.r}</div></div>`).join('')}
-function renderMessages(){document.getElementById('conversationList').innerHTML=`<button class="btn soft full" onclick="openChat('Luna Creative')">◉ Luna Creative <span class="muted">· en ligne (démo)</span></button><button class="btn full" style="margin-top:7px" onclick="openChat('Noah Visuals')">◉ Noah Visuals <span class="muted">· vu récemment (démo)</span></button>`;document.getElementById('chatName').textContent=currentChat;document.getElementById('chatStatus').textContent=state.prefs.online?'Statut fictif visible':'Statut masqué selon tes préférences';document.getElementById('chatLog').innerHTML=state.messages.map(m=>`<div style="display:flex;justify-content:${m.mine?'flex-end':'flex-start'};margin:8px 0"><div style="max-width:85%;background:${m.mine?'var(--accent2)':'var(--bg)'};padding:10px 12px;border-radius:13px">${escapeHtml(m.text)}<div class="small muted">${m.mine?'Toi':escapeHtml(m.who)}</div></div></div>`).join('')}
-function openChat(n){currentChat=n;renderMessages()}
-function sendMessage(){let el=document.getElementById('messageInput'),v=el.value.trim();if(!v)return;state.messages.push({who:'Toi',text:v,mine:true});el.value='';save();renderMessages();toast('Message enregistré localement dans la démo.')}
-function createGroup(){let n=document.getElementById('groupName').value.trim();if(!n)return toast('Donne un nom au groupe.');state.groups.push(n);save();document.getElementById('groupName').value='';document.getElementById('groups').innerHTML=state.groups.map(g=>`<div class="notice" style="margin-top:8px">👥 ${escapeHtml(g)} · groupe de démonstration</div>`).join('');toast('Groupe créé localement.')}
-function renderNotifications(){document.getElementById('notifCount').textContent=state.notifications.filter(n=>!n.read).length;document.getElementById('notificationList').innerHTML=state.notifications.map((n,i)=>`<div class="switchrow" style="align-items:flex-start"><div style="flex:1"><div class="row wrap"><strong>${escapeHtml(n.type)}</strong>${n.read?'':'<span class="tag">Nouveau</span>'}</div><div>${escapeHtml(n.text)}</div><div class="small muted">${escapeHtml(n.time)}</div></div><button class="iconbtn" onclick="state.notifications[${i}].read=true;save();renderNotifications()">✓</button></div>`).join('')||'<p class="muted">Aucune notification.</p>';let types=['Likes et commentaires','Mentions','Messages','Nouveaux abonnés','Recommandations Pour toi','Tendances hebdomadaires'];document.getElementById('notificationSettings').innerHTML=types.map(t=>`<div class="switchrow"><span>${t}</span><input type="checkbox" checked onchange="toast('Préférence enregistrée pour cette démo.')"></div>`).join('')}
-function markRead(){state.notifications.forEach(n=>n.read=true);save();renderNotifications();toast('Notifications marquées comme lues.')}
+async function renderMessages(){
+  const list=document.getElementById('conversationList');
+  if(!list)return;
+  list.innerHTML='<p class="muted small">Chargement des conversations…</p>';
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user){
+      list.innerHTML='<div class="notice">Connecte-toi à ton compte MUSEA pour utiliser la messagerie privée.</div>';
+      document.getElementById('chatLog').innerHTML='<p class="muted small">La messagerie est réservée aux comptes connectés.</p>';
+      document.getElementById('messageSendBtn').disabled=true;
+      return;
+    }
+    const user=data.user;
+    const {data:conversations,error:conversationError}=await museaSupabase
+      .from('direct_conversations')
+      .select('id,user_one,user_two,updated_at')
+      .or('user_one.eq.'+user.id+',user_two.eq.'+user.id)
+      .order('updated_at',{ascending:false})
+      .limit(100);
+    if(conversationError)throw conversationError;
+    const rows=conversations||[];
+    if(!rows.length){
+      list.innerHTML='<p class="muted small">Aucune conversation pour le moment. Recherche un pseudonyme ci-dessus pour envoyer ton premier message.</p>';
+    }else{
+      const peerIds=[...new Set(rows.map(c=>c.user_one===user.id?c.user_two:c.user_one))];
+      const {data:profiles,error:profileError}=await museaSupabase.from('profiles').select('id,username').in('id',peerIds);
+      if(profileError)throw profileError;
+      const {data:recentMessages,error:recentError}=await museaSupabase.from('direct_messages').select('id,conversation_id,sender_id,content,created_at,read_at').in('conversation_id',rows.map(c=>c.id)).order('created_at',{ascending:false}).limit(200);
+      if(recentError)throw recentError;
+      const lastByConversation={};
+      (recentMessages||[]).forEach(m=>{if(!lastByConversation[m.conversation_id])lastByConversation[m.conversation_id]=m});
+      list.innerHTML=rows.map(c=>{
+        const peerId=c.user_one===user.id?c.user_two:c.user_one;
+        const peer=(profiles||[]).find(p=>p.id===peerId);
+        const name=peer?.username||'Utilisateur';
+        const last=lastByConversation[c.id];
+        const preview=last?(last.sender_id===user.id?'Toi : ':'')+last.content:'Conversation créée';
+        const unread=(recentMessages||[]).some(m=>m.conversation_id===c.id&&m.sender_id!==user.id&&!m.read_at);
+        return '<button class="switchrow" style="width:100%;text-align:left;cursor:pointer" onclick="openDirectConversation(\''+escapeHtml(c.id)+'\',\''+escapeHtml(peerId)+'\')"><div class="avatar">'+escapeHtml(name[0]?.toUpperCase()||'M')+'</div><div style="flex:1;min-width:0"><strong>'+escapeHtml(name)+'</strong><div class="small muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escapeHtml(preview)+'</div></div>'+(unread?'<span class="tag">Nouveau</span>':'')+'</button>';
+      }).join('');
+    }
+    if(activeConversationId&&activeConversationPeer){
+      const peerName=activeConversationPeer.username||'Utilisateur';
+      document.getElementById('chatName').textContent='@'+peerName;
+      document.getElementById('chatStatus').textContent='Conversation privée';
+      document.getElementById('messageSendBtn').disabled=false;
+    }
+  }catch(e){
+    console.error('Chargement messagerie :',e);
+    list.innerHTML='<div class="notice">Impossible de charger les conversations. Vérifie que la migration de messagerie a été exécutée dans Supabase.</div>';
+  }
+}
+async function searchMessageContacts(){
+  const input=document.getElementById('contactSearch'),target=document.getElementById('contactResults');
+  const query=(input?.value||'').trim().replace(/^@/,'');
+  if(query.length<2){target.innerHTML='<p class="small muted">Saisis au moins 2 caractères.</p>';return}
+  target.innerHTML='<p class="small muted">Recherche…</p>';
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user){target.innerHTML='<p class="small muted">Connecte-toi pour rechercher des utilisateurs.</p>';return}
+    const {data:users,error:searchError}=await museaSupabase.from('profiles').select('id,username,allow_messages').eq('allow_messages',true).ilike('username','%'+query+'%').neq('id',data.user.id).limit(20);
+    if(searchError)throw searchError;
+    const {data:blocks,error:blockError}=await museaSupabase.from('direct_message_blocks').select('blocker_id,blocked_id').or('blocker_id.eq.'+data.user.id+',blocked_id.eq.'+data.user.id);
+    if(blockError)throw blockError;
+    const blockedIds=new Set((blocks||[]).map(b=>b.blocker_id===data.user.id?b.blocked_id:b.blocker_id));
+    const visibleUsers=(users||[]).filter(u=>!blockedIds.has(u.id)).slice(0,12);
+    if(!visibleUsers.length){target.innerHTML='<p class="small muted">Aucun utilisateur disponible trouvé pour « '+escapeHtml(query)+' ».</p>';return}
+    target.innerHTML=visibleUsers.map(u=>'<div class="switchrow"><div class="avatar">'+escapeHtml(u.username?.[0]?.toUpperCase()||'M')+'</div><div style="flex:1"><strong>@'+escapeHtml(u.username||'Utilisateur')+'</strong></div><button class="btn primary" onclick="startDirectConversation(\''+escapeHtml(u.id)+'\')">Message</button></div>').join('');
+  }catch(e){console.error(e);target.innerHTML='<p class="small muted">La recherche est indisponible. Vérifie la configuration du profil Supabase.</p>'}
+}
+async function startDirectConversation(peerId){
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user){toast('Connecte-toi pour démarrer une conversation.');return}
+    if(peerId===data.user.id)return;
+    const pair=[data.user.id,peerId].sort();
+    let {data:conversation,error:findError}=await museaSupabase.from('direct_conversations').select('id').eq('user_one',pair[0]).eq('user_two',pair[1]).maybeSingle();
+    if(findError)throw findError;
+    if(!conversation){
+      const created=await museaSupabase.from('direct_conversations').insert({user_one:pair[0],user_two:pair[1]}).select('id').single();
+      if(created.error){
+        // Une création concurrente peut avoir gagné la contrainte d'unicité.
+        const retry=await museaSupabase.from('direct_conversations').select('id').eq('user_one',pair[0]).eq('user_two',pair[1]).maybeSingle();
+        if(retry.error||!retry.data)throw created.error;
+        conversation=retry.data;
+      }else conversation=created.data;
+    }
+    document.getElementById('contactResults').innerHTML='';
+    document.getElementById('contactSearch').value='';
+    await openDirectConversation(conversation.id,peerId);
+    await renderMessages();
+  }catch(e){console.error(e);toast('Impossible de créer cette conversation. Vérifie la migration Supabase.')}
+}
+async function openDirectConversation(conversationId,peerId){
+  const {data:peer,error:peerError}=await museaSupabase.from('profiles').select('id,username,allow_messages').eq('id',peerId).maybeSingle();
+  if(peerError)throw peerError;
+  const peerName=peer?.username||'Utilisateur';
+  activeConversationId=conversationId;
+  activeConversationPeer={id:peerId,username:peerName};
+  document.getElementById('chatName').textContent='@'+peerName;
+  document.getElementById('chatStatus').textContent='Conversation privée';
+  document.getElementById('messageSendBtn').disabled=false;
+  if(activeMessageChannel){try{await museaSupabase.removeChannel(activeMessageChannel)}catch(e){}activeMessageChannel=null}
+  await refreshActiveConversation();
+  const {data:sessionData,error:sessionError}=await museaSupabase.auth.getUser();
+  if(sessionError)throw sessionError;
+  const myUserId=sessionData.user?.id;
+  if(!myUserId)return;
+  const {data:myProfile,error:myProfileError}=await museaSupabase.from('profiles').select('allow_messages,show_online').eq('id',myUserId).maybeSingle();
+  if(myProfileError)throw myProfileError;
+  if(myProfile){state.prefs.dm=myProfile.allow_messages!==false;state.prefs.online=myProfile.show_online!==false;save()}
+  activeMessageChannel=museaSupabase.channel('musea-dm-'+conversationId,{config:{private:true,presence:{key:myUserId}}})
+    .on('presence',{event:'sync'},()=>updatePeerPresence())
+    .on('postgres_changes',{event:'*',schema:'public',table:'direct_messages',filter:'conversation_id=eq.'+conversationId},payload=>{
+      if(payload.new?.conversation_id===activeConversationId||payload.old?.conversation_id===activeConversationId)refreshActiveConversation();
+    })
+    .on('postgres_changes',{event:'*',schema:'public',table:'direct_message_blocks'},payload=>{
+      const row=payload.new?.blocker_id?payload.new:payload.old;
+      if(row&&(row.blocker_id===activeConversationPeer?.id||row.blocked_id===activeConversationPeer?.id))refreshActiveConversation();
+    }).subscribe(async status=>{
+      if(status==='SUBSCRIBED'){
+        await syncMyPresence();
+        updatePeerPresence();
+      }
+    });
+}
+function updatePeerPresence(){
+  if(!activeConversationPeer)return;
+  const status=document.getElementById('chatStatus');
+  if(activeConversationStatus.blockedByPeer){status.textContent='Ce compte t’a bloqué.';return}
+  if(activeConversationStatus.blockedByMe){status.textContent='Tu as bloqué ce compte.';return}
+  if(!activeConversationStatus.peerAllowsMessages){status.textContent='Cet utilisateur n’accepte pas les nouveaux messages.';return}
+  const presence=activeMessageChannel?.presenceState?.()||{};
+  const online=!!presence[activeConversationPeer.id]?.length;
+  status.textContent=online?'En ligne':'Hors ligne ou statut masqué';
+}
+async function syncMyPresence(){
+  if(!activeMessageChannel)return;
+  try{
+    if(state.prefs.online){
+      const {data,error}=await museaSupabase.auth.getUser();
+      if(error)throw error;
+      if(data.user)await activeMessageChannel.track({user_id:data.user.id,username:state.username,online:true});
+    }else await activeMessageChannel.untrack();
+  }catch(e){console.warn('Présence en ligne indisponible',e)}
+}
+async function refreshActiveConversation(){
+  if(!activeConversationId)return;
+  if(messageRefreshBusy){messageRefreshQueued=true;return;}
+  messageRefreshBusy=true;
+  const conversationId=activeConversationId;
+  try{
+    const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+    if(userError)throw userError;
+    if(!userData.user)return;
+    const {data:messages,error}=await museaSupabase.from('direct_messages').select('id,sender_id,content,created_at,read_at').eq('conversation_id',conversationId).order('created_at',{ascending:true}).limit(500);
+    if(error)throw error;
+    if(conversationId!==activeConversationId)return;
+    const userId=userData.user.id;
+    const peerId=activeConversationPeer?.id;
+    const [blockResult,peerResult]=await Promise.all([
+      museaSupabase.from('direct_message_blocks').select('blocker_id,blocked_id').or('blocker_id.eq.'+userId+',blocked_id.eq.'+userId),
+      peerId?museaSupabase.from('profiles').select('allow_messages').eq('id',peerId).maybeSingle():Promise.resolve({data:null,error:null})
+    ]);
+    if(blockResult.error)throw blockResult.error;
+    if(peerResult.error)throw peerResult.error;
+    const blockRow=(blockResult.data||[]).find(b=>(b.blocker_id===userId&&b.blocked_id===peerId)||(b.blocked_id===userId&&b.blocker_id===peerId));
+    const blockedByMe=!!blockRow&&blockRow.blocker_id===userId;
+    const blockedByPeer=!!blockRow&&blockRow.blocker_id===peerId;
+    const peerAllowsMessages=peerResult.data?.allow_messages!==false;
+    const canSend=!blockRow&&peerAllowsMessages;
+    activeConversationStatus={blockedByMe,blockedByPeer,peerAllowsMessages};
+    const sendButton=document.getElementById('messageSendBtn');
+    activeConversationCanSend=canSend;
+    sendButton.disabled=!canSend;
+    const blockButton=document.getElementById('blockUserBtn');
+    blockButton.disabled=blockedByPeer;
+    blockButton.textContent=blockedByPeer?'Bloqué par ce compte':(blockedByMe?'Débloquer':'Bloquer');
+    updatePeerPresence();
+    const log=document.getElementById('chatLog');
+    log.innerHTML=(messages||[]).map(m=>{
+      const mine=m.sender_id===userId;
+      const status=mine?(m.read_at?'Lu':'Envoyé'):'';
+      return '<div style="display:flex;justify-content:'+(mine?'flex-end':'flex-start')+';margin:8px 0"><div style="max-width:88%;white-space:pre-wrap;overflow-wrap:anywhere;background:'+(mine?'var(--accent2)':'var(--bg)')+';padding:10px 12px;border-radius:13px"><div>'+escapeHtml(m.content)+'</div><div class="small muted" style="text-align:right;margin-top:5px">'+escapeHtml(new Date(m.created_at).toLocaleString('fr-FR'))+(status?' · '+status:'')+'</div></div></div>';
+    }).join('')||'<p class="muted small">Début de la conversation. Envoie ton premier message.</p>';
+    const unreadIds=(messages||[]).filter(m=>m.sender_id!==userId&&!m.read_at).map(m=>m.id);
+    if(unreadIds.length){
+      const {error:readError}=await museaSupabase.from('direct_messages').update({read_at:new Date().toISOString()}).in('id',unreadIds);
+      if(readError)console.warn('Accusés de lecture indisponibles',readError);
+    }
+    log.scrollTop=log.scrollHeight;
+    await renderMessages();
+  }catch(e){console.error('Actualisation conversation :',e);document.getElementById('chatLog').innerHTML='<p class="notice">Impossible de charger les messages de cette conversation.</p>'}
+  finally{messageRefreshBusy=false;if(messageRefreshQueued){messageRefreshQueued=false;refreshActiveConversation()}}
+}
+async function sendMessage(){
+  const input=document.getElementById('messageInput'),content=(input?.value||'').trim();
+  if(!content)return;
+  if(content.length>4000){toast('Ton message dépasse 4 000 caractères.');return}
+  if(!activeConversationId){toast('Choisis une conversation avant d’envoyer un message.');return}
+  const button=document.getElementById('messageSendBtn');button.disabled=true;
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user){toast('Connecte-toi pour envoyer un message.');return}
+    const {error:insertError}=await museaSupabase.from('direct_messages').insert({conversation_id:activeConversationId,sender_id:data.user.id,content});
+    if(insertError)throw insertError;
+    input.value='';
+    await refreshActiveConversation();
+  }catch(e){console.error(e);toast('Message non envoyé. Vérifie ta connexion et la configuration Supabase.')}
+  finally{button.disabled=!activeConversationId||!activeConversationCanSend}
+}
+async function closeActiveConversation(){
+  activeConversationId=null;activeConversationPeer=null;activeConversationCanSend=false;activeConversationStatus={blockedByMe:false,blockedByPeer:false,peerAllowsMessages:true};
+  if(activeMessageChannel){try{await museaSupabase.removeChannel(activeMessageChannel)}catch(e){}activeMessageChannel=null}
+  document.getElementById('chatName').textContent='Sélectionne une conversation';
+  document.getElementById('chatStatus').textContent='Tes messages resteront privés.';
+  document.getElementById('chatLog').innerHTML='<p class="muted small">Choisis une conversation ou recherche un utilisateur pour commencer.</p>';
+  document.getElementById('messageSendBtn').disabled=true;
+  document.getElementById('blockUserBtn').disabled=true;
+  document.getElementById('blockUserBtn').textContent='Bloquer';
+}
+async function toggleDirectMessageBlock(){
+  if(!activeConversationPeer||!activeConversationId)return;
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user)return;
+    const peerId=activeConversationPeer.id;
+    const {data:existing,error:findError}=await museaSupabase.from('direct_message_blocks').select('blocker_id,blocked_id').eq('blocker_id',data.user.id).eq('blocked_id',peerId).maybeSingle();
+    if(findError)throw findError;
+    if(existing){
+      const {error:deleteError}=await museaSupabase.from('direct_message_blocks').delete().eq('blocker_id',data.user.id).eq('blocked_id',peerId);
+      if(deleteError)throw deleteError;
+      toast('Utilisateur débloqué.');
+    }else{
+      if(!confirm('Bloquer cet utilisateur ? Les nouveaux messages seront désactivés entre vos deux comptes.'))return;
+      const {error:insertError}=await museaSupabase.from('direct_message_blocks').insert({blocker_id:data.user.id,blocked_id:peerId});
+      if(insertError)throw insertError;
+      toast('Utilisateur bloqué. Tu peux le débloquer à tout moment.');
+    }
+    await refreshActiveConversation();
+    await renderMessages();
+  }catch(e){console.error(e);toast('Impossible de modifier ce blocage.')}
+}
+function createGroup(){toast('Les groupes seront ajoutés dans une prochaine étape avec leurs invitations et leurs règles de confidentialité.')}
+function notificationTime(value){
+  const date=new Date(value),now=Date.now(),diff=Math.max(0,now-date.getTime());
+  if(diff<60000)return "À l’instant";
+  if(diff<3600000)return "Il y a "+Math.floor(diff/60000)+" min";
+  if(diff<86400000)return "Il y a "+Math.floor(diff/3600000)+" h";
+  return date.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+}
+function notificationLabel(type,actor){
+  const who=actor?'@'+actor:'Un utilisateur';
+  const labels={like:who+' a aimé ta publication.',comment:who+' a commenté ta publication.',repost:who+' a reposté ta publication.',message:who+' t’a envoyé un message.'};
+  return labels[type]||'Nouvelle activité sur MUSEA.';
+}
+async function refreshNotificationBadge(){
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user){document.getElementById('notifCount').textContent='0';return}
+    const {count,error:countError}=await museaSupabase.from('notifications').select('id',{count:'exact',head:true}).eq('recipient_id',data.user.id).is('read_at',null);
+    if(countError)throw countError;
+    document.getElementById('notifCount').textContent=count>99?'99+':String(count||0);
+  }catch(e){console.warn('Compteur de notifications indisponible',e)}
+}
+async function setupNotificationRealtime(userId){
+  if(activeNotificationUserId===userId&&activeNotificationsChannel)return;
+  if(activeNotificationsChannel){try{await museaSupabase.removeChannel(activeNotificationsChannel)}catch(e){}activeNotificationsChannel=null}
+  activeNotificationUserId=userId;
+  if(!userId){document.getElementById('notifCount').textContent='0';return}
+  activeNotificationsChannel=museaSupabase.channel('musea-notifications-'+userId)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'recipient_id=eq.'+userId},payload=>{
+      refreshNotificationBadge();
+      if(document.getElementById('screen-notifications')?.classList.contains('active'))renderNotifications();
+      toast('Tu as une nouvelle notification.');
+    }).subscribe();
+}
+async function loadNotificationPreferences(userId){
+  const {data,error}=await museaSupabase.from('notification_preferences').select('likes,comments,reposts,messages').eq('user_id',userId).maybeSingle();
+  if(error)throw error;
+  notificationPrefs={likes:data?.likes!==false,comments:data?.comments!==false,reposts:data?.reposts!==false,messages:data?.messages!==false};
+}
+async function saveNotificationPreference(category,enabled){
+  if(!['likes','comments','reposts','messages'].includes(category))return;
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user){toast('Connecte-toi pour enregistrer tes préférences.');return}
+    notificationPrefs={...notificationPrefs,[category]:!!enabled};
+    const {error:saveError}=await museaSupabase.from('notification_preferences').upsert({
+      user_id:data.user.id,likes:notificationPrefs.likes,comments:notificationPrefs.comments,
+      reposts:notificationPrefs.reposts,messages:notificationPrefs.messages
+    },{onConflict:'user_id'});
+    if(saveError)throw saveError;
+    toast('Préférence enregistrée.');
+  }catch(e){console.error(e);toast('Impossible d’enregistrer cette préférence.');renderNotifications()}
+}
+async function openNotificationTarget(notification){
+  try{
+    await markNotificationRead(notification.id,false);
+    if(notification.type==='message'){
+      const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+      if(userError)throw userError;
+      const {data:conversation,error}=await museaSupabase.from('direct_conversations').select('id,user_one,user_two').eq('id',notification.target_id).maybeSingle();
+      if(error)throw error;
+      if(!conversation||!userData.user)return toast('Cette conversation n’est plus disponible.');
+      const peerId=conversation.user_one===userData.user.id?conversation.user_two:conversation.user_one;
+      navigate('messages');
+      await openDirectConversation(conversation.id,peerId);
+      return;
+    }
+    navigate('discover');
+    setTimeout(()=>{const card=Array.from(document.querySelectorAll('[data-post-id]')).find(el=>el.dataset.postId===String(notification.target_id));card?.scrollIntoView({behavior:'smooth',block:'center'})},450);
+  }catch(e){console.error(e);toast('Impossible d’ouvrir cette activité.')}
+}
+async function markNotificationRead(id,refresh=true){
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user)return;
+    const {error:updateError}=await museaSupabase.from('notifications').update({read_at:new Date().toISOString()}).eq('id',id).eq('recipient_id',data.user.id).is('read_at',null);
+    if(updateError)throw updateError;
+    if(refresh){await refreshNotificationBadge();await renderNotifications()}
+  }catch(e){console.error(e);toast('Impossible de mettre à jour la notification.')}
+}
+async function markRead(){
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(!data.user)return toast('Connecte-toi pour consulter tes notifications.');
+    const {error:updateError}=await museaSupabase.from('notifications').update({read_at:new Date().toISOString()}).eq('recipient_id',data.user.id).is('read_at',null);
+    if(updateError)throw updateError;
+    await renderNotifications();await refreshNotificationBadge();toast('Toutes les notifications sont marquées comme lues.');
+  }catch(e){console.error(e);toast('Impossible de marquer les notifications comme lues.')}
+}
+async function renderNotifications(){
+  const list=document.getElementById('notificationList'),settings=document.getElementById('notificationSettings');
+  if(!list||!settings)return;
+  list.innerHTML='<p class="muted small">Chargement des notifications…</p>';
+  try{
+    const {data:userData,error:userError}=await museaSupabase.auth.getUser();
+    if(userError)throw userError;
+    if(!userData.user){
+      list.innerHTML='<div class="notice">Connecte-toi à ton compte MUSEA pour retrouver tes notifications.</div>';
+      settings.innerHTML='<p class="muted small">Les préférences seront disponibles après connexion.</p>';
+      document.getElementById('notifCount').textContent='0';
+      return;
+    }
+    const userId=userData.user.id;
+    const [rowsResult,prefsResult]=await Promise.all([
+      museaSupabase.from('notifications').select('id,type,actor_id,actor_username,target_type,target_id,created_at,read_at').eq('recipient_id',userId).order('created_at',{ascending:false}).limit(60),
+      museaSupabase.from('notification_preferences').select('likes,comments,reposts,messages').eq('user_id',userId).maybeSingle()
+    ]);
+    if(rowsResult.error)throw rowsResult.error;
+    if(prefsResult.error)throw prefsResult.error;
+    notificationPrefs={likes:prefsResult.data?.likes!==false,comments:prefsResult.data?.comments!==false,reposts:prefsResult.data?.reposts!==false,messages:prefsResult.data?.messages!==false};
+    const rows=rowsResult.data||[];
+    list.innerHTML=rows.map(n=>{
+      const read=!!n.read_at,actor=escapeHtml(n.actor_username||'Utilisateur');
+      const label=notificationLabel(n.type,n.actor_username);
+      return '<div class="switchrow" style="align-items:flex-start;gap:9px"><div class="avatar">'+(n.type==='message'?'✉':n.type==='like'?'♡':n.type==='comment'?'▤':'↻')+'</div><div style="flex:1;min-width:0"><div class="row wrap"><strong>'+escapeHtml(n.type==='message'?'Message':n.type==='like'?'J’aime':n.type==='comment'?'Commentaire':'Repost')+'</strong>'+(read?'':'<span class="tag">Nouveau</span>')+'</div><div>'+escapeHtml(label)+'</div><div class="small muted">'+escapeHtml(notificationTime(n.created_at))+'</div><button class="btn soft" style="margin-top:7px" onclick="openNotificationTarget('+JSON.stringify({id:n.id,type:n.type,target_id:n.target_id}).replace(/"/g,'&quot;')+')">Voir</button></div>'+(read?'':'<button class="iconbtn" aria-label="Marquer comme lu" onclick="markNotificationRead(\''+n.id+'\')">✓</button>')+'</div>';
+    }).join('')||'<p class="muted">Aucune notification pour le moment.</p>';
+    settings.innerHTML=[
+      ['likes','J’aime reçus'],['comments','Commentaires reçus'],['reposts','Reposts reçus'],['messages','Nouveaux messages']
+    ].map(([key,label])=>'<div class="switchrow"><span>'+label+'</span><input type="checkbox" '+(notificationPrefs[key]?'checked':'')+' onchange="saveNotificationPreference(\''+key+'\',this.checked)"></div>').join('');
+    await refreshNotificationBadge();
+  }catch(e){
+    console.error('Chargement des notifications :',e);
+    list.innerHTML='<div class="notice">Impossible de charger les notifications. Vérifie que la migration de cette étape a bien été exécutée dans Supabase.</div>';
+    settings.innerHTML='<p class="muted small">Préférences indisponibles.</p>';
+  }
+}
+async function renderMyCircle(){
+ const followingBox=document.getElementById('followingList'),followersBox=document.getElementById('followerList');if(!followingBox||!followersBox)return;
+ try{
+  const {data:user,error:userError}=await museaSupabase.auth.getUser();if(userError)throw userError;if(!user.user){followingBox.innerHTML=followersBox.innerHTML='<p class="small muted">Connecte-toi pour gérer ton cercle.</p>';return}
+  await loadRelationshipContext();
+  const [following,followers]=await Promise.all([
+   museaSupabase.from('follows').select('followed_id,created_at').eq('follower_id',user.user.id).order('created_at',{ascending:false}),
+   museaSupabase.from('follows').select('follower_id,created_at').eq('followed_id',user.user.id).order('created_at',{ascending:false})
+  ]);
+  if(following.error)throw following.error;if(followers.error)throw followers.error;
+  const ids=[...new Set([...(following.data||[]).map(x=>x.followed_id),...(followers.data||[]).map(x=>x.follower_id)])];let profiles=[];
+  if(ids.length){const p=await museaSupabase.from('profiles').select('id,username,bio').in('id',ids);if(p.error)throw p.error;profiles=p.data||[]}
+  const name=id=>profiles.find(x=>x.id===id)?.username||'Utilisateur';
+  followingBox.innerHTML=(following.data||[]).length?(following.data||[]).map(x=>'<div class="switchrow"><div style="flex:1"><strong>@'+escapeHtml(name(x.followed_id))+'</strong></div><button class="btn" onclick="toggleFollow(\''+x.followed_id+'\')">Ne plus suivre</button></div>').join(''):'<p class="small muted">Tu ne suis encore personne. Explore pour trouver tes premiers créateurs.</p>';
+  followersBox.innerHTML=(followers.data||[]).length?(followers.data||[]).map(x=>'<div class="switchrow"><div style="flex:1"><strong>@'+escapeHtml(name(x.follower_id))+'</strong></div><button class="btn '+(myFollowIds.has(x.follower_id)?'':'primary')+'" onclick="toggleFollow(\''+x.follower_id+'\')">'+(myFollowIds.has(x.follower_id)?'Abonné ✓':'Suivre en retour')+'</button></div>').join(''):'<p class="small muted">Tes premiers abonnés apparaîtront ici.</p>';
+ }catch(e){console.error('Cercle:',e);followingBox.innerHTML=followersBox.innerHTML='<p class="notice">Impossible de charger ton cercle. Vérifie la migration de l’étape 8.</p>'}
+}
 async function renderProfile(){
   document.getElementById('profileName').textContent='@'+state.username;
   document.getElementById('profileBio').textContent=state.bio;
@@ -290,6 +1280,7 @@ async function renderProfile(){
   document.getElementById('bio').value=state.bio;
   document.getElementById('pointsStat').textContent=state.points;
   document.getElementById('likesStat').textContent=state.liked.length;
+  try{const {data}=await museaSupabase.auth.getUser();if(data.user){const [count,profile]=await Promise.all([museaSupabase.from('post_likes').select('id',{count:'exact',head:true}).eq('user_id',data.user.id),museaSupabase.from('profiles').select('allow_messages,show_online').eq('id',data.user.id).maybeSingle()]);if(!count.error)document.getElementById('likesStat').textContent=count.count||0;if(!profile.error&&profile.data){state.prefs.dm=profile.data.allow_messages!==false;state.prefs.online=profile.data.show_online!==false;document.getElementById('prefDM').checked=state.prefs.dm;document.getElementById('prefOnline').checked=state.prefs.online;save()}}}catch(e){console.warn('Préférences ou compteur indisponibles',e)}
   document.getElementById('privacyTag').textContent=state.prefs.private?'Privé':'Visible';
 
   let items=[];
@@ -311,7 +1302,50 @@ async function renderProfile(){
       ? '<div class="notice">Ton profil est privé. Ton activité n’est pas affichée publiquement.</div>'
       : items.join('')||'<p class="muted small">Tes réactions et collections apparaîtront ici selon tes préférences.</p>';
 
-  document.getElementById('followersStat').textContent=24+state.following.length;
+  // Les reposts sont chargés depuis Supabase et affichés dans l'activité du profil.
+  if(!state.prefs.private){
+    try{
+      const {data:profileUser,error:profileUserError}=await museaSupabase.auth.getUser();
+      if(profileUserError) throw profileUserError;
+      if(profileUser.user){
+        const {data:repostRows,error:repostError}=await museaSupabase
+          .from('post_reposts')
+          .select('id,post_id,created_at')
+          .eq('user_id',profileUser.user.id)
+          .order('created_at',{ascending:false})
+          .limit(30);
+        if(repostError) throw repostError;
+        const repostIds=[...new Set((repostRows||[]).map(r=>r.post_id))];
+        if(repostIds.length){
+          const {data:repostPosts,error:repostPostsError}=await museaSupabase
+            .from('posts')
+            .select('id,user_id,caption,style,image_url,created_at')
+            .in('id',repostIds);
+          if(repostPostsError) throw repostPostsError;
+          const ownerIds=[...new Set((repostPosts||[]).map(p=>p.user_id))];
+          let repostProfiles=[];
+          if(ownerIds.length){
+            const profilesResult=await museaSupabase.from('profiles').select('id,username').in('id',ownerIds);
+            if(!profilesResult.error) repostProfiles=profilesResult.data||[];
+          }
+          const repostCards=repostRows.map(repost=>{
+            const p=(repostPosts||[]).find(item=>item.id===repost.post_id);
+            if(!p) return null;
+            const username=repostProfiles.find(x=>x.id===p.user_id)?.username||'Utilisateur';
+            return {id:p.id,remote:true,user:username,avatar:username[0]?.toUpperCase()||'M',title:(p.caption||'Publication').slice(0,60),desc:p.caption||'',image_url:p.image_url,style:p.style||'Création',kind:'art',art:'a4',tag:'#MaCreation',reposted:true,repostDate:repost.created_at};
+          }).filter(Boolean);
+          const enrichedReposts=await attachPostInteractions(repostCards);
+          const repostMarkup=enrichedReposts.map(p=>'<div class="small muted" style="margin:14px 0 6px">↻ Tu as reposté cette publication · '+escapeHtml(new Date(p.repostDate).toLocaleDateString('fr-FR'))+'</div>'+postMarkup(p)).join('');
+          if(repostMarkup){
+            const activity=document.getElementById('profileActivity');
+            activity.insertAdjacentHTML('beforeend','<h3 style="margin-top:18px">Mes reposts</h3>'+repostMarkup);
+          }
+        }
+      }
+    }catch(repostLoadError){console.warn('Chargement des reposts du profil indisponible',repostLoadError)}
+  }
+
+  try{const {data:me}=await museaSupabase.auth.getUser();if(me.user){const [followers,following]=await Promise.all([museaSupabase.from('follows').select('follower_id',{count:'exact',head:true}).eq('followed_id',me.user.id),museaSupabase.from('follows').select('followed_id',{count:'exact',head:true}).eq('follower_id',me.user.id)]);if(!followers.error)document.getElementById('followersStat').textContent=followers.count||0;const fs=document.getElementById('followingStat');if(fs&&!following.error)fs.textContent=following.count||0}}catch(e){console.warn('Compteurs du cercle indisponibles',e)};await renderMyCircle()
   document.getElementById('prefLikes').checked=state.prefs.likes;
   document.getElementById('prefCollections').checked=state.prefs.collections;
   document.getElementById('prefOnline').checked=state.prefs.online;
@@ -348,6 +1382,7 @@ async function renderProfile(){
 
     const myPublications=posts.map(p=>({
       id:p.id,
+      author_id:p.user_id,
       user:state.username,
       avatar:state.username[0]?.toUpperCase()||'M',
       title:(p.caption||'Publication').slice(0,60),
@@ -368,45 +1403,226 @@ async function renderProfile(){
     '<p class="muted small">Erreur Supabase : '+escapeHtml(error.message||'Erreur inconnue')+'</p>';
   }
 }function saveProfile(){state.username=document.getElementById('username').value.trim().replace(/^@/,'')||'monprofil';state.bio=document.getElementById('bio').value.trim();save();renderProfile();toast('Profil enregistré localement.')}
-function savePrefs(){state.prefs={likes:document.getElementById('prefLikes').checked,collections:document.getElementById('prefCollections').checked,online:document.getElementById('prefOnline').checked,dm:document.getElementById('prefDM').checked,private:document.getElementById('prefPrivate').checked};save();renderProfile();renderMessages();toast('Préférences mises à jour.')}
+async function savePrefs(){
+  state.prefs={likes:document.getElementById('prefLikes').checked,collections:document.getElementById('prefCollections').checked,online:document.getElementById('prefOnline').checked,dm:document.getElementById('prefDM').checked,private:document.getElementById('prefPrivate').checked};
+  save();
+  await syncMyPresence();
+  try{
+    const {data,error}=await museaSupabase.auth.getUser();
+    if(error)throw error;
+    if(data.user){
+      const {data:updatedProfile,error:updateError}=await museaSupabase.from('profiles').update({allow_messages:state.prefs.dm,show_online:state.prefs.online}).eq('id',data.user.id).select('id').maybeSingle();
+      if(updateError)throw updateError;
+      if(!updatedProfile)throw new Error('Profil utilisateur introuvable');
+      toast('Préférences enregistrées sur ton compte.');
+    }else toast('Préférences enregistrées sur cet appareil. Connecte-toi pour synchroniser les messages.');
+  }catch(e){console.error(e);toast('Préférence locale enregistrée, mais synchronisation serveur impossible.')}
+  renderProfile();renderMessages();
+}
 function renderRewards(){document.getElementById('rewardPoints').textContent=state.points;document.getElementById('wallpaperBtn').textContent=state.wallpaper?'Fond Aurora débloqué ✓':`Débloquer (Premium · 500 pts)`;document.getElementById('wallpaperBtn').disabled=state.wallpaper}
 function redeemWallpaper(){if(state.plan!=='premium')return toast('Le fond exclusif est réservé à Premium. Compare les offres dans ton profil.');if(state.points<500)return toast('Il te faut 500 points. Continue à participer à la communauté.');state.points-=500;state.wallpaper=true;save();renderRewards();renderProfile();toast('Fond Aurora débloqué dans la démo.')}
 function redeemBadge(){if(state.badge)return toast('Tu possèdes déjà ce badge de démonstration.');if(state.points<250)return toast('Il te faut 250 points.');state.points-=250;state.badge=true;save();renderRewards();renderProfile();document.getElementById('rewardStatus').classList.remove('hidden');document.getElementById('rewardStatus').textContent='Badge créateur débloqué. Il ne s’agit pas d’une certification.';toast('Badge cosmétique débloqué.')}
 function requestVerification(){if(state.plan!=='premium')return toast('La demande de certification est réservée aux comptes Premium éligibles.');if(state.points<5000)return toast('Éligibilité non atteinte : 5 000 points minimum, puis vérification indépendante.');toast('Tu peux soumettre une demande. L’approbation reste soumise à une vérification humaine et à des critères d’authenticité.')}
 function generateArt(){let p=document.getElementById('prompt').value.trim();if(!p)return toast('Décris ton idée avant de générer.');if(state.plan==='premium'&&state.points<0)return;document.getElementById('generated').classList.remove('hidden');document.getElementById('generated').innerHTML=`${artMarkup({title:p.slice(0,60),art:'a3'})}<p><strong>${escapeHtml(document.getElementById('artStyle').value)}</strong> · ${escapeHtml(document.getElementById('artFormat').value)}</p><div class="notice">Aperçu décoratif simulé : aucune image n'a été générée par une IA.</div><button class="btn primary full" style="margin-top:10px" onclick="publishDemo()">Publier dans le fil (démo)</button>`}
+
+let museaActiveDraftId=null,museaActiveDraftImagePath=null,museaDraftImageUnchanged=false,museaDraftRemoveImage=false,museaLoadingDraftImage=false;
+function startNewCreativeDraft(){
+  if(museaActiveDraftId&&!confirm('Quitter cette Piste ? Les modifications non enregistrées seront perdues.'))return;
+  if(museaRemixSource)cancelRemix();
+  museaActiveDraftId=null;museaActiveDraftImagePath=null;museaDraftImageUnchanged=false;museaDraftRemoveImage=false;
+  ['draftTitle','prompt','journalIntention','journalChoice','journalDiscovery'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+  document.getElementById('draftStatus').value='seed';
+  document.getElementById('artStyle').selectedIndex=0;document.getElementById('artFormat').selectedIndex=0;
+  const input=document.getElementById('postImage');if(input)input.value='';
+  document.getElementById('imagePreview').innerHTML='';document.getElementById('editorTools').classList.add('hidden');
+  document.getElementById('activeDraftLabel').textContent='Nouvelle création';
+  document.getElementById('draftImageStatus').textContent='Les images des Pistes restent privées et ne sont jamais publiées automatiquement.';
+  museaEditorSource=null;navigate('create');
+}
+async function renderCreativeDrafts(){
+  const list=document.getElementById('creativeDraftList');if(!list)return;
+  list.innerHTML='<p class="small muted">Chargement de tes Pistes…</p>';
+  try{
+    const {data:userData,error:userError}=await museaSupabase.auth.getUser();if(userError)throw userError;
+    if(!userData.user){list.innerHTML='<p class="small muted">Connecte-toi pour retrouver tes Pistes privées.</p>';document.getElementById('creativeDraftCount').textContent='0';return}
+    const {data,error}=await museaSupabase.from('creative_drafts').select('id,title,caption,style,format,status,image_path,updated_at').eq('owner_id',userData.user.id).order('updated_at',{ascending:false}).limit(100);
+    if(error)throw error;
+    const rows=data||[];document.getElementById('creativeDraftCount').textContent=String(rows.length);
+    const labels={seed:'Graine',work:'En cours',ready:'Prête'};
+    const cards=await Promise.all(rows.map(async d=>{
+      let image='';
+      if(d.image_path){
+        const signed=await museaSupabase.storage.from('musea-drafts').createSignedUrl(d.image_path,300);
+        if(!signed.error&&signed.data?.signedUrl)image='<img src="'+escapeHtml(signed.data.signedUrl)+'" alt="Aperçu privé de la Piste" style="width:100%;max-height:190px;object-fit:cover;border-radius:12px;margin:8px 0">';
+      }
+      return '<article class="notice" style="margin-top:10px">'+image+'<div class="row between"><strong>'+escapeHtml(d.title)+'</strong><span class="chip">'+labels[d.status]+'</span></div><p class="small">'+escapeHtml((d.caption||'Idée en cours de formulation').slice(0,180))+'</p><div class="small muted">'+escapeHtml(d.style)+' · '+escapeHtml(d.format)+' · Modifiée le '+escapeHtml(new Date(d.updated_at).toLocaleDateString('fr-FR'))+'</div><div class="row wrap" style="margin-top:8px"><button class="btn primary" onclick="openCreativeDraft(\''+d.id+'\')">Reprendre</button><button class="btn danger" onclick="deleteCreativeDraft(\''+d.id+'\')">Supprimer</button></div></article>';
+    }));
+    list.innerHTML=cards.length?cards.join(''):'<p class="small muted">Aucune Piste pour le moment. Commence par une idée, même incomplète : elle pourra évoluer à ton rythme.</p>';
+  }catch(e){console.error('Pistes :',e);list.innerHTML='<div class="notice">Impossible de charger tes Pistes. Vérifie que la migration de l’étape 12 a été exécutée dans Supabase.</div>'}
+}
+async function saveCreativeDraft(){
+  if(museaRemixSource)return toast('Enregistre d’abord ton Écho comme publication : sa filiation doit rester intacte.');
+  const caption=document.getElementById('prompt').value.trim(),title=(document.getElementById('draftTitle').value.trim()||caption.slice(0,80)).trim();
+  const status=document.getElementById('draftStatus').value;
+  if(title.length<3||title.length>80)return toast('Donne un nom de 3 à 80 caractères à ta Piste.');
+  if(caption.length>500)return toast('La description est limitée à 500 caractères.');
+  const journal={intention:document.getElementById('journalIntention').value.trim(),choice:document.getElementById('journalChoice').value.trim(),discovery:document.getElementById('journalDiscovery').value.trim()};
+  if(Object.values(journal).some(x=>x.length>400))return toast('Chaque fragment du Carnet est limité à 400 caractères.');
+  const {data:userData,error:userError}=await museaSupabase.auth.getUser();if(userError||!userData.user)return toast('Connecte-toi pour conserver une Piste privée.');
+  const imageInput=document.getElementById('postImage');let file=imageInput?.files?.[0]||null;
+  if(file&&museaEditorSource&&!museaDraftImageUnchanged){
+    try{const blob=await canvasBlob();file=new File([blob],museaEditorName.replace(/\.[^.]+$/,'')+'-musea.jpg',{type:'image/jpeg'})}
+    catch(e){return toast(e.message||'Impossible de préparer cette image.')}
+  }
+  if(file&&!museaDraftImageUnchanged){
+    if(!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type))return toast('Format accepté : JPG, PNG, WEBP ou GIF.');
+    if(file.size>5*1024*1024)return toast('Image trop volumineuse : 5 Mo maximum.');
+  }
+  const payload={owner_id:userData.user.id,title,caption,style:document.getElementById('artStyle').value,format:document.getElementById('artFormat').value,status,journal_intention:journal.intention,journal_choice:journal.choice,journal_discovery:journal.discovery};
+  let row,dbError;
+  if(museaActiveDraftId){
+    const result=await museaSupabase.from('creative_drafts').update(payload).eq('id',museaActiveDraftId).eq('owner_id',userData.user.id).select('id,image_path').single();row=result.data;dbError=result.error;
+  }else{
+    const result=await museaSupabase.from('creative_drafts').insert(payload).select('id,image_path').single();row=result.data;dbError=result.error;
+  }
+  if(dbError||!row){console.error(dbError);return toast('Impossible d’enregistrer cette Piste : '+(dbError?.message||'erreur inconnue'))}
+  const draftId=row.id,oldPath=museaActiveDraftImagePath||row.image_path||null;let nextPath=oldPath;
+  if(file&&!museaDraftImageUnchanged){
+    const ext=({ 'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif'})[file.type],path=userData.user.id+'/'+draftId+'/'+Date.now()+'.'+ext;
+    const upload=await museaSupabase.storage.from('musea-drafts').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});
+    if(upload.error){console.error(upload.error);museaActiveDraftId=draftId;return toast('Texte sauvegardé, mais image non enregistrée : '+upload.error.message)}
+    const update=await museaSupabase.from('creative_drafts').update({image_path:path}).eq('id',draftId).eq('owner_id',userData.user.id);
+    if(update.error){await museaSupabase.storage.from('musea-drafts').remove([path]);console.error(update.error);return toast('Piste sauvegardée, mais impossible de lier son image.')}
+    nextPath=path;
+  }else if(museaDraftRemoveImage&&oldPath){
+    const update=await museaSupabase.from('creative_drafts').update({image_path:null}).eq('id',draftId).eq('owner_id',userData.user.id);
+    if(update.error)return toast('Piste sauvegardée, mais impossible de retirer son image.');
+    nextPath=null;
+  }
+  if(oldPath&&oldPath!==nextPath)await museaSupabase.storage.from('musea-drafts').remove([oldPath]);
+  museaActiveDraftId=draftId;museaActiveDraftImagePath=nextPath;museaDraftImageUnchanged=!!nextPath&&!museaDraftRemoveImage;museaDraftRemoveImage=false;
+  document.getElementById('activeDraftLabel').textContent='Piste enregistrée · '+title;
+  document.getElementById('draftImageStatus').textContent=nextPath?'Image conservée dans un espace privé.':'Piste enregistrée sans image.';
+  await renderCreativeDrafts();toast('Ta Piste est enregistrée en privé. Tu pourras la reprendre quand tu veux.');
+}
+async function openCreativeDraft(id){
+  try{
+    if(museaActiveDraftId&&museaActiveDraftId!==id&&!confirm('Quitter la Piste actuelle ? Les modifications non enregistrées seront perdues.'))return;
+    const {data:userData,error:userError}=await museaSupabase.auth.getUser();if(userError||!userData.user)return toast('Connecte-toi pour ouvrir cette Piste.');
+    const {data:d,error}=await museaSupabase.from('creative_drafts').select('*').eq('id',id).eq('owner_id',userData.user.id).single();if(error)throw error;
+    museaActiveDraftId=d.id;museaActiveDraftImagePath=d.image_path||null;museaDraftImageUnchanged=!!d.image_path;museaDraftRemoveImage=false;
+    document.getElementById('draftTitle').value=d.title;document.getElementById('prompt').value=d.caption||'';
+    document.getElementById('artStyle').value=d.style;document.getElementById('artFormat').value=d.format;document.getElementById('draftStatus').value=d.status;
+    document.getElementById('journalIntention').value=d.journal_intention||'';document.getElementById('journalChoice').value=d.journal_choice||'';document.getElementById('journalDiscovery').value=d.journal_discovery||'';
+    const input=document.getElementById('postImage');input.value='';document.getElementById('imagePreview').innerHTML='';document.getElementById('editorTools').classList.add('hidden');museaEditorSource=null;
+    if(d.image_path){
+      const result=await museaSupabase.storage.from('musea-drafts').download(d.image_path);
+      if(result.error)throw result.error;
+      const ext=d.image_path.split('.').pop().toLowerCase(),mime=({jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif'})[ext]||'image/jpeg';
+      const file=new File([result.data],'piste-'+d.id+'.'+ext,{type:mime}),transfer=new DataTransfer();transfer.items.add(file);input.files=transfer.files;
+      museaLoadingDraftImage=true;previewPostImage({target:input});museaLoadingDraftImage=false;museaDraftImageUnchanged=true;
+      document.getElementById('draftImageStatus').textContent='Image privée chargée dans le Studio.';
+    }else document.getElementById('draftImageStatus').textContent='Cette Piste ne contient pas encore d’image.';
+    document.getElementById('activeDraftLabel').textContent='Reprise · '+d.title;navigate('create');
+  }catch(e){museaLoadingDraftImage=false;console.error(e);toast('Impossible d’ouvrir cette Piste : '+e.message)}
+}
+function clearDraftImage(){
+  const input=document.getElementById('postImage');if(input)input.value='';
+  previewPostImage({target:input});museaDraftRemoveImage=true;museaDraftImageUnchanged=false;
+  document.getElementById('draftImageStatus').textContent='L’image sera retirée de la Piste lors du prochain enregistrement.';
+}
+async function deleteCreativeDraft(id){
+  if(!confirm('Supprimer définitivement cette Piste privée ?'))return;
+  try{
+    const {data:d,error:readError}=await museaSupabase.from('creative_drafts').select('image_path').eq('id',id).single();if(readError)throw readError;
+    const {error}=await museaSupabase.from('creative_drafts').delete().eq('id',id);if(error)throw error;
+    if(d.image_path){const rm=await museaSupabase.storage.from('musea-drafts').remove([d.image_path]);if(rm.error)console.warn('Image privée à nettoyer :',rm.error)}
+    if(museaActiveDraftId===id){museaActiveDraftId=null;museaActiveDraftImagePath=null;museaDraftImageUnchanged=false}
+    await renderCreativeDrafts();toast('Piste supprimée. Aucune publication n’a été touchée.');
+  }catch(e){console.error(e);toast('Impossible de supprimer cette Piste.')}
+}
+
+let museaEditorSource = null;
+let museaEditorName = 'musea-creation.jpg';
+function editorValues(){
+  return {
+    brightness:Number(document.getElementById('editBrightness')?.value||100),
+    contrast:Number(document.getElementById('editContrast')?.value||100),
+    saturation:Number(document.getElementById('editSaturation')?.value||100)
+  };
+}
+function drawEditor(){
+  const canvas=document.getElementById('editorCanvas');
+  if(!canvas||!museaEditorSource)return;
+  const maxSide=1800,scale=Math.min(1,maxSide/Math.max(museaEditorSource.naturalWidth,museaEditorSource.naturalHeight));
+  canvas.width=Math.round(museaEditorSource.naturalWidth*scale);
+  canvas.height=Math.round(museaEditorSource.naturalHeight*scale);
+  const v=editorValues(),ctx=canvas.getContext('2d');
+  ctx.filter='brightness('+v.brightness+'%) contrast('+v.contrast+'%) saturate('+v.saturation+'%)';
+  ctx.drawImage(museaEditorSource,0,0,canvas.width,canvas.height);
+  ctx.filter='none';
+  document.getElementById('brightnessValue').textContent=v.brightness+' %';
+  document.getElementById('contrastValue').textContent=v.contrast+' %';
+  document.getElementById('saturationValue').textContent=v.saturation+' %';
+}
+function updateEditor(){if(museaActiveDraftId)museaDraftImageUnchanged=false;drawEditor()}
+function resetEditor(userInitiated=false){
+  if(userInitiated&&museaActiveDraftId)museaDraftImageUnchanged=false;
+  ['editBrightness','editContrast','editSaturation'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=100});
+  drawEditor();
+}
+function canvasBlob(){
+  return new Promise((resolve,reject)=>{
+    const canvas=document.getElementById('editorCanvas');
+    if(!canvas)return reject(new Error('Aucune image à exporter.'));
+    canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Export impossible.')),'image/jpeg',0.9);
+  });
+}
+async function downloadEditedImage(){
+  try{
+    const blob=await canvasBlob(),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download=museaEditorName.replace(/\.[^.]+$/,'')+'-musea.jpg';
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+    toast('Image retouchée exportée.');
+  }catch(e){toast(e.message||'Impossible d’exporter cette image.')}
+}
 function previewPostImage(event) {
-  const file = event.target.files[0];
-  const preview = document.getElementById('imagePreview');
-
-  if (!file) {
-    preview.innerHTML = '';
-    return;
-  }
-
-  if (!file.type.startsWith('image/')) {
-    toast('Choisis un fichier image.');
-    event.target.value = '';
-    return;
-  }
-
-  if (file.size > 5 * 1024 * 1024) {
-    toast('Image trop volumineuse : 5 Mo maximum.');
-    event.target.value = '';
-    return;
-  }
-
-  const url = URL.createObjectURL(file);
-
-  preview.innerHTML = `
-    <img src="${url}" alt="Aperçu de ta publication"
-      style="width:100%;max-height:300px;object-fit:contain;border-radius:14px">
-  `;
+  if(!museaLoadingDraftImage){museaDraftImageUnchanged=false;museaDraftRemoveImage=false}
+  const file=event.target.files[0],preview=document.getElementById('imagePreview'),tools=document.getElementById('editorTools');
+  if(!file){preview.innerHTML='';tools?.classList.add('hidden');museaEditorSource=null;return}
+  if(!file.type.startsWith('image/')){toast('Choisis un fichier image.');event.target.value='';return}
+  if(file.size>5*1024*1024){toast('Image trop volumineuse : 5 Mo maximum.');event.target.value='';return}
+  const url=URL.createObjectURL(file),img=new Image();
+  img.onload=()=>{
+    museaEditorSource=img;museaEditorName=file.name||'musea-creation.jpg';
+    preview.innerHTML='<canvas id="editorCanvas" style="width:100%;max-height:420px;object-fit:contain;border-radius:14px;background:var(--bg)"></canvas>';
+    tools?.classList.remove('hidden');resetEditor();URL.revokeObjectURL(url);
+  };
+  img.onerror=()=>{URL.revokeObjectURL(url);toast('Cette image ne peut pas être ouverte.')};
+  img.src=url;
 }
 async function publishDemo() {
   const prompt = document.getElementById('prompt').value.trim();
   const style = document.getElementById('artStyle').value;
+  const remixSource = museaRemixSource;
+  const remixNote = document.getElementById('remixNote')?.value.trim() || '';
+  const journal = {
+    intention:document.getElementById('journalIntention')?.value.trim()||'',
+    choice:document.getElementById('journalChoice')?.value.trim()||'',
+    discovery:document.getElementById('journalDiscovery')?.value.trim()||''
+  };
+  const journalValues=Object.values(journal).filter(Boolean);
+  if(journalValues.some(value=>value.length>400))return toast('Chaque fragment du Carnet est limité à 400 caractères.');
+
+  if(remixSource && (remixNote.length < 10 || remixNote.length > 500)) return toast('Explique ton interprétation en 10 à 500 caractères.');
   const imageInput = document.getElementById('postImage');
-  const file = imageInput?.files[0];
+  let file = imageInput?.files[0];
+  if(file && museaEditorSource){
+    try{
+      const editedBlob=await canvasBlob();
+      file=new File([editedBlob],museaEditorName.replace(/\.[^.]+$/,'')+'-musea.jpg',{type:'image/jpeg'});
+    }catch(e){toast(e.message||'Impossible de préparer l’image retouchée.');return}
+  }
 
   if (!prompt) {
     toast('Ajoute une description avant de publier.');
@@ -460,33 +1676,84 @@ async function publishDemo() {
     imageUrl = publicData.publicUrl;
   }
 
-  const { data: post, error } = await museaSupabase
-    .from('posts')
-    .insert({
-      user_id: userData.user.id,
-      caption: prompt.slice(0, 500),
-      style: style,
-      visibility: 'public',
-      image_url: imageUrl,
-      image_path: imagePath
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error(error);
-    toast('Erreur lors de la publication : ' + error.message);
-    return;
+  let post=null;
+  if(remixSource){
+    const {data:remixId,error}=await museaSupabase.rpc('musea_publish_remix',{
+      p_caption:prompt.slice(0,500),
+      p_style:style,
+      p_image_url:imageUrl,
+      p_image_path:imagePath,
+      p_source_post_id:remixSource.id,
+      p_note:remixNote
+    });
+    if(error){
+      console.error('Publication Écho :',error);
+      if(imagePath)try{await museaSupabase.storage.from('musea-posts').remove([imagePath])}catch(cleanupError){console.warn('Nettoyage média Écho impossible',cleanupError)}
+      toast('Écho non publié : '+error.message);
+      return;
+    }
+    post={id:remixId};
+  }else{
+    const {data:createdPost,error}=await museaSupabase
+      .from('posts')
+      .insert({
+        user_id:userData.user.id,
+        caption:prompt.slice(0,500),
+        style:style,
+        visibility:'public',
+        image_url:imageUrl,
+        image_path:imagePath
+      })
+      .select()
+      .single();
+    if(error){
+      console.error(error);
+      if(imagePath)try{await museaSupabase.storage.from('musea-posts').remove([imagePath])}catch(cleanupError){console.warn('Nettoyage média impossible',cleanupError)}
+      toast('Erreur lors de la publication : '+error.message);
+      return;
+    }
+    post=createdPost;
   }
 
+  let journalSaved=true;
+  if(journalValues.length){
+    const {error:journalError}=await museaSupabase.rpc('musea_save_creation_journal',{
+      p_post_id:post.id,
+      p_intention:journal.intention||null,
+      p_choice:journal.choice||null,
+      p_discovery:journal.discovery||null
+    });
+    if(journalError){
+      journalSaved=false;
+      console.error('Carnet non enregistré :',journalError);
+    }
+  }
+
+  if(museaActiveDraftId){
+    const finishedId=museaActiveDraftId,finishedImage=museaActiveDraftImagePath;
+    const removed=await museaSupabase.from('creative_drafts').delete().eq('id',finishedId).eq('owner_id',userData.user.id);
+    if(!removed.error&&finishedImage){const cleanup=await museaSupabase.storage.from('musea-drafts').remove([finishedImage]);if(cleanup.error)console.warn('Image de Piste à nettoyer :',cleanup.error)}
+    if(removed.error)console.warn('Piste publiée mais non supprimée :',removed.error);
+    museaActiveDraftId=null;museaActiveDraftImagePath=null;museaDraftImageUnchanged=false;museaDraftRemoveImage=false;
+  }
   state.points += 10;
   save();
 
-  toast('Publication enregistrée sur Supabase !');
+  document.getElementById('draftTitle').value='';
   document.getElementById('prompt').value = '';
+  ['journalIntention','journalChoice','journalDiscovery'].forEach(id=>{const field=document.getElementById(id);if(field)field.value='';});
+  const journalDetails=document.getElementById('journalIntention')?.closest('details');if(journalDetails)journalDetails.open=false;
   if (imageInput) imageInput.value = '';
+  museaDraftImageUnchanged=false;museaDraftRemoveImage=false;
+  document.getElementById('activeDraftLabel').textContent='Nouvelle création';
+  document.getElementById('draftImageStatus').textContent='Les images des Pistes restent privées et ne sont jamais publiées automatiquement.';
   document.getElementById('imagePreview').innerHTML = '';
+  document.getElementById('editorTools')?.classList.add('hidden');
+  museaEditorSource=null;
+  document.getElementById('generated').classList.add('hidden');
+  if(remixSource){museaRemixSource=null;document.getElementById('remixContext').classList.add('hidden');document.getElementById('cancelRemixBtn').classList.add('hidden');document.getElementById('remixNoteWrap').classList.add('hidden');document.getElementById('remixNote').value='';document.getElementById('prompt').placeholder='Ex. : une cité flottante au-dessus des nuages, au coucher du soleil…'}
 
+  toast(journalValues.length&&!journalSaved?'Création publiée, mais le Carnet n’a pas été enregistré. Tu peux réessayer plus tard.':remixSource?'Ton Écho est publié : l’œuvre d’origine reste créditée.':'Publication enregistrée sur Supabase !');
   navigate('home');
 }
 function quickWeb(url){document.getElementById('urlInput').value=url;openWeb()}
@@ -563,9 +1830,12 @@ async function museaRefreshAccount() {
     .classList.toggle('hidden', !user);
 
   if (!user) {
+    await setupNotificationRealtime(null);
     document.getElementById('profileName').textContent = '@monprofil';
     return;
   }
+  await setupNotificationRealtime(user.id);
+  await refreshNotificationBadge();
 
   const {data: profile, error} = await museaSupabase
     .from('profiles')
@@ -575,6 +1845,7 @@ async function museaRefreshAccount() {
 
   if (error) return museaMessage(error.message);
 
+  try{await loadNotificationPreferences(user.id)}catch(notificationPrefsError){console.warn('Préférences de notification indisponibles',notificationPrefsError)}
   if (profile) {
     state.username = profile.username;
     state.bio = profile.bio || '';
