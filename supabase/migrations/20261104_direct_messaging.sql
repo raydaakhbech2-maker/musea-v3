@@ -53,6 +53,8 @@ for each row execute function public.musea_touch_conversation();
 
 alter table public.profiles
   add column if not exists allow_messages boolean not null default true;
+alter table public.profiles
+  add column if not exists show_online boolean not null default true;
 
 create table if not exists public.direct_message_blocks (
   blocker_id uuid not null references auth.users(id) on delete cascade,
@@ -82,7 +84,7 @@ using (auth.uid() = blocker_id);
 revoke insert on public.direct_message_blocks from authenticated;
 grant select, delete on public.direct_message_blocks to authenticated;
 grant insert (blocker_id, blocked_id) on public.direct_message_blocks to authenticated;
-grant update (allow_messages) on public.profiles to authenticated;
+grant update (allow_messages, show_online) on public.profiles to authenticated;
 
 drop policy if exists "Users can update their own messaging preference" on public.profiles;
 create policy "Users can update their own messaging preference"
@@ -176,7 +178,33 @@ grant select on public.direct_messages to authenticated;
 grant insert (conversation_id, sender_id, content) on public.direct_messages to authenticated;
 grant update (read_at) on public.direct_messages to authenticated;
 
-do $$
+-- Les canaux privés Realtime n'autorisent que les deux participants à voir
+-- et publier la présence de leur conversation.
+drop policy if exists "DM participants can read presence" on realtime.messages;
+create policy "DM participants can read presence"
+on realtime.messages for select to authenticated
+using (
+  extension = 'presence'
+  and exists (
+    select 1 from public.direct_conversations c
+    where c.id::text = replace(realtime.topic(), 'musea-dm-', '')
+      and (auth.uid() = c.user_one or auth.uid() = c.user_two)
+  )
+);
+
+drop policy if exists "DM participants can publish presence" on realtime.messages;
+create policy "DM participants can publish presence"
+on realtime.messages for insert to authenticated
+with check (
+  extension = 'presence'
+  and exists (
+    select 1 from public.direct_conversations c
+    where c.id::text = replace(realtime.topic(), 'musea-dm-', '')
+      and (auth.uid() = c.user_one or auth.uid() = c.user_two)
+  )
+);
+
+do $
 begin
   if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
     if not exists (
