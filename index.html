@@ -3151,7 +3151,7 @@ async function runMuseaSignal(){
   try{
     const {data,error}=await window.museaSupabase.auth.getSession();
     if(error)throw error;
-    add('Session du compte',data?.session?'Session présente':'Aucune session active','Lecture locale de la session ; aucune requête de connexion au serveur.',data?.session?'good':'warn');
+    add('Session du compte',data?.session?'Session présente':'Aucune session active','Lecture de l’état de session par Supabase ; aucun rapport n’est envoyé.',data?.session?'good':'warn');
   }catch(error){add('Session du compte','Lecture impossible',error?.message||'Client non disponible.','bad');}
   try{
     const key='musea_signal_probe';
