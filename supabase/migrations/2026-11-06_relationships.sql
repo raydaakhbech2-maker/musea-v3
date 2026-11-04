@@ -102,3 +102,23 @@ begin
     end if;
   end if;
 end $$;
+
+create or replace function public.musea_search_creators(p_query text)
+returns table(id uuid,username text,bio text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.id,p.username,p.bio
+  from public.profiles p
+  where (select auth.uid()) is not null
+    and p.id<>(select auth.uid())
+    and char_length(trim(coalesce(p_query,''))) between 2 and 40
+    and p.username ilike ('%' || left(trim(p_query),40) || '%')
+    and public.musea_story_is_visible(p.id)
+  order by p.username
+  limit 25;
+$$;
+revoke all on function public.musea_search_creators(text) from public,anon;
+grant execute on function public.musea_search_creators(text) to authenticated;
