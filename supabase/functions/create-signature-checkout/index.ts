@@ -63,6 +63,7 @@ Deno.serve(async (req) => {
   }
 
   let checkoutCreated = false;
+  let checkoutRequestStarted = false;
   try {
     const stripe = new Stripe(stripeKey);
     const configuredPrice = await stripe.prices.retrieve(priceId);
@@ -111,6 +112,7 @@ Deno.serve(async (req) => {
       return json({ error: "Un abonnement ou une régularisation existe déjà. Utilise le portail de facturation." }, 409);
     }
 
+    checkoutRequestStarted = true;
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
@@ -131,7 +133,7 @@ Deno.serve(async (req) => {
   } finally {
     // En cas d'échec, libère immédiatement le verrou. En cas de succès, il reste
     // réservé jusqu'à l'expiration de la session Checkout (30 minutes).
-    if (!checkoutCreated) {
+    if (!checkoutCreated && !checkoutRequestStarted) {
       await admin.rpc("musea_release_billing_checkout", {
         p_user_id: user.id,
         p_lock_token: lockToken,
