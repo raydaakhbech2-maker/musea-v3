@@ -709,6 +709,25 @@ window.museaSupabase = window.supabase.createClient(
     <button class="btn soft full hidden" id="deleteStoryBtn" style="margin-top:9px" onclick="deleteCurrentStory()">Supprimer ma Story</button>
   </div>
 </div>
+<section class="screen" id="screen-atlas">
+  <div class="card atlas-hero"><div class="eyebrow">MUSEA / PARCOURS D'INSPIRATION</div><h1 class="h1">Les Atlas créatifs.</h1><p class="muted">Assemble des créations publiques autour d'une idée, d'une ambiance ou d'une question. Tu choisis l'ordre et le sens du parcours.</p></div>
+  <div class="card">
+    <div class="eyebrow">NOUVEL ATLAS</div><h2 class="h2">Composer un parcours</h2>
+    <label class="label" for="atlasTitle">Titre</label><input class="field" id="atlasTitle" maxlength="60" placeholder="Ex. : Villes imaginaires">
+    <label class="label" for="atlasDescription">Intention du parcours</label><textarea class="field" id="atlasDescription" rows="2" maxlength="240" placeholder="Qu'est-ce qui relie ces créations ?"></textarea>
+    <label class="label" for="atlasVisibility">Visibilité</label><select class="field" id="atlasVisibility"><option value="private">Privé — uniquement moi</option><option value="public">Public — visible par la communauté</option></select>
+    <button class="btn primary full" style="margin-top:10px" onclick="createAtlas()">Créer mon Atlas</button>
+  </div>
+  <div class="card"><h2 class="h2">Mes Atlas</h2><div id="atlasMine"><p class="small muted">Chargement…</p></div></div>
+  <div class="card"><h2 class="h2">Explorer les Atlas publics</h2><div id="atlasCommunity"><p class="small muted">Chargement…</p></div></div>
+  <div id="atlasDetail"></div>
+</section>
+<section class="screen" id="screen-feedback">
+  <div class="card feedback-hero"><div class="eyebrow">MUSEA / REGARDS CROISÉS</div><h1 class="h1">Les Regards.</h1><p>Pose une question précise sur une création et reçois des perspectives constructives. Aucun score, aucune note et aucun classement.</p></div>
+  <div class="card"><h2 class="h2">Mes demandes</h2><div id="myFeedbackRequests"><p class="small muted">Chargement…</p></div></div>
+  <div class="card"><h2 class="h2">Questions ouvertes à la communauté</h2><div id="feedbackRequestList"><p class="small muted">Chargement…</p></div></div>
+  <div id="feedbackDetail"></div>
+</section>
 <section class="screen" id="screen-messages">
   <div class="message-hero"><div class="eyebrow">MUSEA / LIENS CRÉATIFS</div><h1 class="h1">Les idées circulent mieux ensemble.</h1><p>Échange en privé, partage une création ou transforme une discussion en atelier collectif.</p><div class="message-hero-mark" aria-hidden="true">✳</div></div>
   <div class="message-workspace">
@@ -789,6 +808,12 @@ window.museaSupabase = window.supabase.createClient(
     </div>
   </div>
 
+  <div class="card creator-tools-hub">
+    <div class="eyebrow">MUSEA / OUTILS DE CRÉATEUR</div>
+    <h2 class="h3">Organiser et faire évoluer tes créations</h2>
+    <p class="small muted">Construis des parcours d'inspiration et demande des retours ciblés à la communauté.</p>
+    <div class="row wrap"><button class="btn" onclick="navigate('atlas')">✧ Mes Atlas créatifs</button><button class="btn" onclick="navigate('feedback')">◌ Les Regards</button></div>
+  </div>
   <section class="card creator-pulse-card" aria-labelledby="creatorPulseTitle">
     <div class="row between wrap"><div><div class="eyebrow">MUSEA / RETOUR DE CRÉATION</div><h2 class="h2" id="creatorPulseTitle">Mon Pulse créateur</h2></div><span class="chip">Privé · visible par toi</span></div>
     <p class="small muted">Comprends comment tes créations déclenchent des échanges, sans réduire ton travail à un compteur de vues.</p>
@@ -896,6 +921,30 @@ window.museaSupabase = window.supabase.createClient(
   <label class="label" for="contentReportReason">Motif</label><select class="field" id="contentReportReason"><option value="harassment">Harcèlement ou intimidation</option><option value="hate">Propos haineux</option><option value="sexual">Contenu sexuel inapproprié</option><option value="violence">Contenu violent</option><option value="spam">Spam ou arnaque</option><option value="copyright">Droits d'auteur</option><option value="privacy">Atteinte à la vie privée</option><option value="other">Autre</option></select>
   <label class="label" for="contentReportDetails">Contexte utile (facultatif)</label><textarea class="field" id="contentReportDetails" rows="3" maxlength="500" placeholder="Explique brièvement ce qui te semble problématique."></textarea>
   <div class="row wrap" style="justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeContentReport()">Annuler</button><button class="btn primary" onclick="submitContentReport()">Envoyer le signalement</button></div>
+  </div>
+</div>
+<div id="journalModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="journalModalTitle" onclick="if(event.target===this)closeJournalComposer()">
+  <div class="modalbox"><div class="row between"><h2 class="h2" id="journalModalTitle">Les Carnets</h2><button class="iconbtn" onclick="closeJournalComposer()" aria-label="Fermer">✕</button></div>
+    <p class="small muted">Raconte une partie de ta démarche. Ces fragments restent liés à ta publication publique, sans remplacer l'œuvre.</p>
+    <label class="label" for="journalIntention">L'étincelle — qu'est-ce qui a lancé l'idée ?</label><textarea class="field" id="journalIntention" rows="2" maxlength="400"></textarea>
+    <label class="label" for="journalChoice">Le choix — quelle décision a compté ?</label><textarea class="field" id="journalChoice" rows="2" maxlength="400"></textarea>
+    <label class="label" for="journalDiscovery">La découverte — qu'as-tu appris en créant ?</label><textarea class="field" id="journalDiscovery" rows="2" maxlength="400"></textarea>
+    <div class="row wrap"><button class="btn primary" onclick="saveCreationJournal()">Enregistrer</button><button class="btn danger" id="journalDeleteButton" onclick="deleteCreationJournal()">Supprimer le Carnet</button></div>
+  </div>
+</div>
+<div id="atlasAddModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="atlasAddTitle" onclick="if(event.target===this)closeAtlasPicker()">
+  <div class="modalbox"><div class="row between"><h2 class="h2" id="atlasAddTitle">Ajouter à un Atlas</h2><button class="iconbtn" onclick="closeAtlasPicker()" aria-label="Fermer">✕</button></div>
+    <label class="label" for="atlasTargetSelect">Choisir un Atlas</label><select class="field" id="atlasTargetSelect"></select>
+    <label class="label" for="atlasItemNote">Pourquoi cette création ? (facultatif)</label><textarea class="field" id="atlasItemNote" rows="2" maxlength="240" placeholder="Une note pour guider le parcours…"></textarea>
+    <button class="btn primary full" style="margin-top:10px" onclick="savePostToAtlas()">Ajouter cette création</button>
+  </div>
+</div>
+<div id="feedbackComposeModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="feedbackComposeTitle" onclick="if(event.target===this)closeFeedbackComposer()">
+  <div class="modalbox"><div class="row between"><h2 class="h2" id="feedbackComposeTitle">Demander un regard</h2><button class="iconbtn" onclick="closeFeedbackComposer()" aria-label="Fermer">✕</button></div>
+    <p class="small muted">Une bonne question ouvre une conversation. Elle ne demande pas de noter ou de classer ta création.</p>
+    <label class="label" for="feedbackQuestionKind">Quel regard souhaites-tu ?</label><select class="field" id="feedbackQuestionKind"><option value="impression">Première impression</option><option value="intention">Clarté de mon intention</option><option value="exploration">Pistes à explorer</option></select>
+    <label class="label" for="feedbackQuestion">Ta question (12 à 180 caractères)</label><textarea class="field" id="feedbackQuestion" rows="3" minlength="12" maxlength="180" placeholder="Qu'aimerais-tu comprendre ou faire ressentir avec cette création ?"></textarea>
+    <button class="btn primary full" style="margin-top:10px" onclick="createFeedbackRequest()">Ouvrir les Regards</button>
   </div>
 </div>
 <div id="planModal" class="modal hidden"><div class="modalbox"><div class="row between"><div><div class="eyebrow">MUSEA / LES FORMULES</div><h2 class="h1">Créer librement. Aller plus loin, si on le souhaite.</h2></div><button class="iconbtn" onclick="closePlans()" aria-label="Fermer">✕</button></div><p class="muted">La formule gratuite restera utile et complète pour participer à la communauté. Signature ajoutera du confort et des outils créatifs, jamais de visibilité achetée ni de priorité artificielle dans les recommandations.</p><div class="grid"><div class="card" style="margin:0"><span class="chip">GRATUIT</span><h3 class="h3" style="margin-top:12px">MUSEA Libre</h3><div class="price">0 €</div><p class="small muted">Le cœur de MUSEA, sans limite artificielle sur les interactions essentielles.</p><ul class="small"><li>Explorer, publier et interagir</li><li>Profil créateur et portfolio de base</li><li>Messagerie et ateliers collaboratifs</li><li>Repères créatifs privés</li><li>Outils essentiels du Studio</li><li>Accès IA quotidien limité</li></ul><button class="btn full" onclick="choosePlan('free')">Continuer gratuitement</button></div><div class="card" style="margin:0;border:2px solid var(--accent);position:relative"><span class="chip selected">FORMULE ENVISAGÉE</span><h3 class="h3" style="margin-top:12px">MUSEA Signature</h3><div class="price">5,99 €<span style="font-size:13px;font-weight:600">/mois envisagés</span></div><p class="small muted">Une formule de soutien et d'outils avancés, sans acheter sa popularité.</p><ul class="small"><li>Personnalisation approfondie du profil et du portfolio</li><li>Bibliothèque de projets privés plus généreuse</li><li>Outils avancés de présentation et d'export</li><li>Analyses créatives personnelles plus détaillées</li><li>Options de confort pour organiser ses ateliers</li><li>Quota IA quotidien étendu</li></ul><button class="btn primary full" type="button" onclick="openSignatureCheckout()">Tester Signature en environnement sécurisé</button><p class="small muted">Le parcours est limité au mode test Stripe : aucun paiement réel ne peut être lancé par cette version.</p></div></div><div class="card" style="margin-top:14px"><h3 class="h3">Notre règle : pas de pay-to-win</h3><p class="small muted">Aucun abonnement ne donnera de likes, d'abonnés, de certification automatique, de portée garantie ou un meilleur classement dans Explorer. Les fonctions de sécurité, de confidentialité et de signalement resteront gratuites.</p></div><p class="small muted" style="margin-top:14px">5,99 €/mois est un prix de travail à valider. Aucun paiement, renouvellement ou prélèvement n'est actif. Les conditions, le prix final et les modalités de résiliation devront être affichés avant toute future souscription.</p></div></div>
