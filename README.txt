@@ -246,3 +246,36 @@ La branche `final/musea-v3-product-polish` remplace les brouillons locaux par un
 - Taille maximale : 20 Mo ; formats JPG, PNG, WebP, GIF, MP4 et WebM.
 - Migration : `2026-11-06_stories_live.sql`, à appliquer après `2026-11-04_messaging_collaboration.sql`.
 - Limites restantes : audience ouverte aux membres connectés non bloqués (pas encore limitée aux abonnés) ; les anciens fichiers des Stories expirées doivent encore être purgés automatiquement par une tâche serveur planifiée.
+
+
+## Modules créatifs et sociaux — remise à niveau
+
+La branche `final/musea-v3-product-polish` réintègre des modules qui existaient dans l'ancienne branche de travail et les adapte au schéma actuel (notamment `public.user_blocks`, et non `direct_message_blocks`) :
+
+- Relations : abonnements persistants, recherche de créateurs filtrée par blocage, centres d'intérêt publics limités à cinq et fil « Mon cercle ».
+- Carnets : trois fragments facultatifs liés à une publication publique, modifiables et supprimables par leur auteur.
+- Atlas : parcours de créations publiques, annotations, ordre éditorial, visibilité publique/privée, 50 Atlas maximum par compte et 100 créations maximum par Atlas.
+- Regards : questions créatives guidées, réponses constructives, une réponse par membre et par demande, fermeture/réouverture par l'auteur, sans note ni classement.
+- Stories : texte, photo et vidéo, espace privé, liens signés et expiration à 24 heures.
+
+### Ordre des nouvelles migrations
+
+Toutes les migrations historiques de `main` doivent d'abord être appliquées, en particulier `2026-11-04_messaging_collaboration.sql` (table `user_blocks`) et les migrations de profils/publications. Ensuite :
+
+1. `2026-11-06_stories_live.sql`
+2. `2026-11-06_relationships.sql`
+3. `2026-11-06_creation_journals.sql`
+4. `2026-11-06_creative_atlases.sql`
+5. `2026-11-06_creative_feedback.sql`
+6. `2026-11-06_ai_usage_limits.sql`
+
+Les nouvelles migrations ne sont pas encore appliquées au projet Supabase et les nouvelles Edge Functions ne sont pas encore déployées. Les contrôles réalisés jusqu'ici sont des contrôles statiques du code, pas des tests d'intégration sur la base réelle.
+
+### Fonctions encore à finaliser avant une vraie mise en production
+
+- Purge planifiée des fichiers médias des Stories expirées.
+- Validation de bout en bout de la confidentialité des profils privés, des publications, des images et des interactions à partir des politiques RLS réellement installées.
+- Parcours complet des appels audio/vidéo : non activé, car il exige une infrastructure de signalisation, TURN, des contrôles de confidentialité et une modération adaptés.
+- Navigateur intégré natif : une PWA ne peut pas remplacer un WebView Android/iOS complet ; la version web ouvre les sites dans le navigateur de l'appareil.
+- Facturation réelle : interdite dans cette branche ; seul Stripe test est autorisé.
+- IA : intégration prête côté code, mais activation bloquée jusqu'au déploiement, à la configuration des secrets et à la validation du budget par le titulaire responsable.
