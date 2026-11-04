@@ -13,6 +13,13 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;transition:background .2s,color .2s}button,input,textarea,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}a{color:var(--accent)}.app{max-width:1180px;margin:auto;min-height:100dvh;padding-bottom:82px}.top{position:sticky;top:0;z-index:5;background:var(--nav);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:12px}.brand{display:flex;align-items:center;gap:9px;font-weight:900;font-size:19px;letter-spacing:1.4px}.logo{width:38px;height:38px;border-radius:13px;background:linear-gradient(135deg,#b9aaff,#7660ed);display:grid;place-items:center;color:#211d32;font-size:20px}.top .spacer{flex:1}.pill{border:1px solid var(--line);border-radius:99px;padding:7px 11px;background:var(--card);color:var(--ink);font-size:12px;font-weight:700}.main{padding:16px;max-width:780px;margin:auto}.wide{max-width:1000px}.screen{display:none}.screen.active{display:block}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow);margin:0 0 14px}.hero{background:linear-gradient(135deg,#211a3b,#40316c 55%,#7867dc);color:#fff;border:0;padding:22px}.hero p{color:#e3ddff}.eyebrow{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}.hero .eyebrow{color:#d8ceff}.h1{font-size:clamp(24px,5vw,36px);line-height:1.1;margin:8px 0}.h2{font-size:21px;margin:0 0 12px}.h3{font-size:16px;margin:0 0 8px}.muted{color:var(--muted)}.small{font-size:12px}.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 14px;border-radius:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:7px}.btn.primary{background:var(--accent);border-color:var(--accent);color:#1c1830}.btn.soft{background:var(--accent2);border-color:transparent}.btn.danger{color:var(--danger)}.btn.full{width:100%}.btn:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:center;gap:10px}.wrap{flex-wrap:wrap}.between{justify-content:space-between}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px;color:var(--ink)}textarea.field{resize:vertical;min-height:90px}.label{display:block;font-weight:750;font-size:13px;margin:12px 0 6px}.chip{display:inline-flex;border:1px solid var(--line);border-radius:99px;padding:6px 10px;font-size:12px;background:var(--bg);color:var(--ink)}.chip.selected{background:var(--accent2);border-color:var(--accent);font-weight:750}.art{height:225px;border-radius:15px;background:linear-gradient(135deg,#251e49,#6e50a8 40%,#e09cc4);position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;text-align:center;padding:18px}.art:before,.art:after{content:"";position:absolute;border-radius:50%;filter:blur(1px);opacity:.8}.art:before{width:190px;height:190px;background:radial-gradient(circle at 35% 30%,#ffe4fd,#a69aff 35%,transparent 70%);left:10%;top:10%}.art:after{width:220px;height:220px;background:radial-gradient(circle,#ffb0c8,#ee7fa7 25%,transparent 70%);right:-20px;bottom:-90px}.art span{z-index:1;font-size:27px;font-weight:900;text-shadow:0 2px 18px #1b153a}.art.a2{background:linear-gradient(135deg,#122e36,#39817b,#f2d6a1)}.art.a3{background:linear-gradient(135deg,#10182f,#3d70ba,#c2e4f3)}.art.a4{background:linear-gradient(135deg,#3a182e,#b34d74,#f6bb91)}.post-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}.avatar{width:38px;height:38px;border-radius:50%;background:var(--accent2);display:grid;place-items:center;font-weight:900;color:var(--ink);flex-shrink:0}.post-title{font-weight:850;font-size:17px;margin:10px 0 3px}.post-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.iconbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:8px 10px}.iconbtn.on{background:var(--accent2);border-color:var(--accent)}.bottom{position:fixed;bottom:0;left:0;right:0;z-index:8;background:var(--nav);border-top:1px solid var(--line);padding:7px max(6px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:2px}.bottom button{flex:1;max-width:105px;border:0;background:transparent;color:var(--muted);padding:7px 3px;border-radius:12px;font-size:10px;font-weight:700}.bottom button b{display:block;font-size:20px;line-height:1.3}.bottom button.active{background:var(--accent2);color:var(--ink)}.notice{padding:12px;border-radius:12px;background:var(--accent2);font-size:13px}.storyrow{display:flex;gap:12px;overflow:auto;padding:4px 0 12px}.story{text-align:center;min-width:67px;font-size:11px}.story-ring{width:60px;height:60px;border-radius:50%;padding:3px;background:linear-gradient(135deg,#ffad7c,#8d7cf6,#e78ec5);margin:auto auto 5px}.story-ring>div{height:100%;border-radius:50%;border:3px solid var(--card);background:var(--accent2);display:grid;place-items:center;font-size:21px}.stat{background:var(--bg);border-radius:13px;padding:12px;flex:1;min-width:90px}.stat strong{display:block;font-size:21px}.line{height:1px;background:var(--line);margin:14px 0}.switchrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}input[type=checkbox]{accent-color:var(--accent);width:18px;height:18px}.toast{position:fixed;left:50%;bottom:94px;transform:translateX(-50%);z-index:20;background:#252035;color:white;padding:12px 16px;border-radius:13px;box-shadow:var(--shadow);max-width:90%;font-size:13px}.hidden{display:none!important}.browserbar{display:flex;gap:7px}.browserbar input{min-width:0}.browserframe{width:100%;height:360px;border:1px solid var(--line);border-radius:14px;background:var(--card)}.modal{position:fixed;inset:0;background:#0008;z-index:30;display:grid;place-items:center;padding:18px}.modalbox{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;max-width:520px;width:100%;max-height:90dvh;overflow:auto}.price{font-size:34px;font-weight:900;letter-spacing:-1px}.tag{background:#d9f5e6;color:#175d3c;border-radius:8px;padding:4px 7px;font-size:11px;font-weight:800}.premium-wall{background:linear-gradient(135deg,#211a3b,#5b4797,#c0a6ff);color:white;border-radius:16px;padding:20px}.footer-note{text-align:center;color:var(--muted);font-size:11px;padding:14px}
 @media(min-width:720px){.main{padding:22px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bottom{top:66px;bottom:0;left:auto;right:auto;width:78px;display:flex;flex-direction:column;justify-content:flex-start;padding:12px 6px;border-top:0;border-right:1px solid var(--line)}.bottom button{width:100%;flex:none;padding:12px 3px}.app{padding-left:78px;padding-bottom:0}.main{max-width:900px}.browserframe{height:440px}}
 @media(max-width:430px){.top{padding:10px}.main{padding:11px}.card{padding:13px}.art{height:195px}.pill{padding:6px 8px}.grid{gap:8px}}
+
+.social-comments{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface,transparent)}
+.social-comments-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}
+.social-comment{padding:9px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.social-comment-list{max-height:300px;overflow:auto}
+.social-comment-form{display:flex;gap:8px;margin:12px 0}
+.social-comment-form input{min-width:0;flex:1;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -205,55 +212,84 @@ function artMarkup(p){
   }
   return `<div class="art ${p.art}"><span>${escapeHtml(p.title)}</span></div>`;
 }function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function postMarkup(p){let liked=state.liked.includes(p.id),saved=state.saved.includes(p.id);return `<article class="card"><div class="post-head"><div class="avatar">${p.avatar||'✦'}</div><div style="flex:1"><strong>${escapeHtml(p.user)}</strong><div class="small muted">${escapeHtml(p.style)} · ${p.tag}</div></div><button class="iconbtn" onclick="toast('Options de publication : signaler, bloquer, masquer (démo).')">•••</button></div>${artMarkup(p)}<div class="post-title">${escapeHtml(p.title)}</div><div>${escapeHtml(p.desc)}</div><div class="row wrap" style="margin-top:9px"><span class="chip">${p.tag}</span><button class="chip" onclick="translatePost(${p.id})">文 Traduire</button></div><div class="post-actions"><button class="iconbtn ${liked?'on':''}" onclick="toggleLike(${p.id})">♡ ${p.likes+(liked?1:0)}</button><button class="iconbtn" onclick="commentPost(${p.id})">▢ ${state.comments[p.id]?.length||0}</button><button class="iconbtn ${saved?'on':''}" onclick="toggleSave(${p.id})">☆ ${saved?'Enregistré':'Enregistrer'}</button><button class="iconbtn" onclick="toast('Repost simulé. Un vrai repost doit afficher la source originale.')">⟳ Reposter</button></div><div id="comments-${p.id}"></div></article>`}
+function postMarkup(p){
+  const id=String(p.id), liked=!!p.isLiked, saved=!!p.isSaved, reposted=!!p.isReposted;
+  return `<article class="card"><div class="post-head"><div class="avatar">${escapeHtml(p.avatar||'✦')}</div><div style="flex:1"><strong>${escapeHtml(p.user)}</strong><div class="small muted">${escapeHtml(p.style)} · ${escapeHtml(p.tag||'#MaCreation')}</div></div><button class="iconbtn" onclick="toast('Les options de signalement et de modération seront intégrées dans une étape dédiée.')">•••</button></div>${artMarkup(p)}<div class="post-title">${escapeHtml(p.title)}</div><div>${escapeHtml(p.desc)}</div><div class="row wrap" style="margin-top:9px"><span class="chip">${escapeHtml(p.tag||'#MaCreation')}</span></div>
+  <div class="post-actions">
+    <button class="iconbtn ${liked?'on':''}" aria-label="Aimer" onclick="toggleLike('${id}')">♡ ${p.likesCount||0}</button>
+    <button class="iconbtn" aria-label="Commentaires" onclick="commentPost('${id}')">▢ ${p.commentsCount||0}</button>
+    <button class="iconbtn ${saved?'on':''}" aria-label="Enregistrer" onclick="toggleSave('${id}')">☆ ${saved?'Enregistré':'Enregistrer'}</button>
+    <button class="iconbtn ${reposted?'on':''}" aria-label="Reposter" onclick="toggleRepost('${id}')">⟳ ${p.repostsCount||0}</button>
+  </div>
+  <div id="comments-${id}" class="social-comments" ${window.openCommentPostId===id?'':'hidden'}></div></article>`;
+}
 let communityPosts = [];
 
+let communityPosts = [];
+window.openCommentPostId = window.openCommentPostId || null;
+window.replyTargets = window.replyTargets || {};
+
 async function loadCommunityPosts(){
-  const {data: rows,error} = await museaSupabase
-    .from('posts')
+  const {data: rows,error} = await museaSupabase.from('posts')
     .select('id,user_id,caption,style,visibility,image_url,created_at')
-    .eq('visibility','public')
-    .order('created_at',{ascending:false})
-    .limit(100);
-
+    .eq('visibility','public').order('created_at',{ascending:false}).limit(100);
   if(error) throw error;
-
-  const userIds = [...new Set((rows||[]).map(row=>row.user_id).filter(Boolean))];
-  let profiles = [];
-
+  const postIds=(rows||[]).map(r=>r.id);
+  const userIds=[...new Set((rows||[]).map(r=>r.user_id).filter(Boolean))];
+  let profiles=[], likes=[], comments=[], reposts=[], saves=[];
+  const {data:userData}=await museaSupabase.auth.getUser();
+  const currentUser=userData?.user||null;
   if(userIds.length){
-    const {data,error:profileError} = await museaSupabase
-      .from('profiles')
-      .select('id,username')
-      .in('id',userIds);
+    const {data,error:profileError}=await museaSupabase.from('profiles').select('id,username').in('id',userIds);
     if(profileError) console.warn('Profils indisponibles :',profileError);
-    profiles = data||[];
+    profiles=data||[];
   }
-
-  communityPosts = (rows||[]).map(row=>{
-    const profile = profiles.find(item=>item.id===row.user_id);
-    const username = profile?.username || 'Utilisateur';
-    const style = row.style || 'Création';
-    const normalizedStyle = style.toLowerCase();
-    const kind = normalizedStyle.includes('fantasy') ? 'fantasy'
-      : (normalizedStyle.includes('photo') ? 'photo' : 'art');
-
+  if(postIds.length){
+    const results=await Promise.all([
+      museaSupabase.from('post_likes').select('post_id,user_id').in('post_id',postIds),
+      museaSupabase.from('post_comments').select('id,post_id,user_id,parent_comment_id,content,created_at').in('post_id',postIds).order('created_at',{ascending:true}),
+      museaSupabase.from('post_reposts').select('post_id,user_id').in('post_id',postIds)
+    ]);
+    if(results[0].error) console.warn('Likes indisponibles :',results[0].error);
+    else likes=results[0].data||[];
+    if(results[1].error) console.warn('Commentaires indisponibles :',results[1].error);
+    else comments=results[1].data||[];
+    if(results[2].error) console.warn('Reposts indisponibles :',results[2].error);
+    else reposts=results[2].data||[];
+    if(currentUser){
+      const {data,error:saveError}=await museaSupabase.from('saved_posts').select('post_id').eq('user_id',currentUser.id).in('post_id',postIds);
+      if(saveError) console.warn('Collections indisponibles :',saveError);
+      else saves=data||[];
+    }
+  }
+  const commentUserIds=[...new Set(comments.map(c=>c.user_id).filter(Boolean))];
+  let commentProfiles=[];
+  if(commentUserIds.length){
+    const {data}=await museaSupabase.from('profiles').select('id,username').in('id',commentUserIds);
+    commentProfiles=data||[];
+  }
+  state.liked=likes.filter(x=>x.user_id===currentUser?.id).map(x=>x.post_id);
+  state.saved=saves.map(x=>x.post_id);
+  communityPosts=(rows||[]).map(row=>{
+    const profile=profiles.find(x=>x.id===row.user_id);
+    const username=profile?.username||'Utilisateur';
+    const style=row.style||'Création', normalizedStyle=style.toLowerCase();
+    const kind=normalizedStyle.includes('fantasy')?'fantasy':(normalizedStyle.includes('photo')?'photo':'art');
+    const postComments=comments.filter(c=>c.post_id===row.id).map(c=>({
+      ...c,username:commentProfiles.find(p=>p.id===c.user_id)?.username||'Utilisateur'
+    }));
     return {
-      id: row.id,
-      user: username,
-      avatar: username[0]?.toUpperCase() || 'M',
-      title: (row.caption||'Publication').slice(0,60),
-      desc: row.caption||'',
-      image_url: row.image_url,
-      style,
-      kind,
-      art: 'a4',
-      likes: 0,
-      tag: '#MaCreation',
-      created_at: row.created_at
+      id:row.id,user:username,avatar:username[0]?.toUpperCase()||'M',
+      title:(row.caption||'Publication').slice(0,60),desc:row.caption||'',
+      image_url:row.image_url,style,kind,art:'a4',tag:'#MaCreation',
+      created_at:row.created_at,likesCount:likes.filter(x=>x.post_id===row.id).length,
+      commentsCount:postComments.length,repostsCount:reposts.filter(x=>x.post_id===row.id).length,
+      isLiked:likes.some(x=>x.post_id===row.id&&x.user_id===currentUser?.id),
+      isSaved:saves.some(x=>x.post_id===row.id),
+      isReposted:reposts.some(x=>x.post_id===row.id&&x.user_id===currentUser?.id),
+      comments:postComments
     };
   });
-
   return communityPosts;
 }
 
@@ -278,9 +314,99 @@ async function renderFeed(){
   renderStories();
 }
 function setFeed(k,b){feedKind=k;document.querySelectorAll('#screen-home .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderFeed()}
-function toggleLike(id){if(state.liked.includes(id)){state.liked=state.liked.filter(x=>x!==id)}else{state.liked.push(id);state.notifications.unshift({type:'Activité',text:'Ta réaction a été enregistrée dans le prototype.',time:'À l’instant',read:false})}save();renderFeed();renderProfile();renderNotifications()}
-function toggleSave(id){if(state.saved.includes(id)){state.saved=state.saved.filter(x=>x!==id)}else{state.saved.push(id)}save();renderFeed();renderProfile();toast(state.saved.includes(id)?'Ajouté à tes collections.':'Retiré de tes collections.')}
-function commentPost(id){let txt=prompt('Écris un commentaire de démonstration :');if(txt&&txt.trim()){state.comments[id]=state.comments[id]||[];state.comments[id].push(txt.trim());state.notifications.unshift({type:'Activité',text:'Commentaire ajouté sur une publication.',time:'À l’instant',read:false});save();renderFeed();toast('Commentaire ajouté au prototype.')} }
+async function requireSocialUser(){
+  const {data,error}=await museaSupabase.auth.getUser();
+  if(error) throw error;
+  if(!data.user){toast('Connecte-toi pour utiliser les interactions.');return null;}
+  return data.user;
+}
+async function refreshSocialViews(postId=null){
+  const active=document.querySelector('.screen.active')?.id;
+  if(active==='screen-home') await renderFeed();
+  else if(active==='screen-discover') await renderDiscover();
+  if(active==='screen-profile') await renderProfile();
+  if(postId && window.openCommentPostId===postId) await commentPost(postId,true);
+}
+async function toggleLike(id){
+  try{
+    const user=await requireSocialUser(); if(!user)return;
+    const exists=state.liked.includes(id);
+    const result=exists
+      ? await museaSupabase.from('post_likes').delete().eq('post_id',id).eq('user_id',user.id)
+      : await museaSupabase.from('post_likes').upsert({post_id:id,user_id:user.id},{onConflict:'post_id,user_id',ignoreDuplicates:true});
+    if(result.error) throw result.error;
+    await refreshSocialViews(id);
+  }catch(error){console.error(error);toast('Impossible de mettre à jour le like. '+(error.message||''));}
+}
+async function toggleSave(id){
+  try{
+    const user=await requireSocialUser(); if(!user)return;
+    const exists=state.saved.includes(id);
+    const result=exists
+      ? await museaSupabase.from('saved_posts').delete().eq('post_id',id).eq('user_id',user.id)
+      : await museaSupabase.from('saved_posts').upsert({post_id:id,user_id:user.id},{onConflict:'post_id,user_id',ignoreDuplicates:true});
+    if(result.error) throw result.error;
+    toast(exists?'Retiré de tes collections.':'Ajouté à tes collections.');
+    await refreshSocialViews(id);
+  }catch(error){console.error(error);toast('Impossible de modifier ta collection. '+(error.message||''));}
+}
+function commentPost(id,keepOpen=false){
+  window.openCommentPostId=keepOpen?id:(window.openCommentPostId===id?null:id);
+  const post=communityPosts.find(p=>String(p.id)===String(id));
+  const target=document.getElementById('comments-'+id);
+  if(!target)return;
+  if(window.openCommentPostId!==id){target.hidden=true;target.innerHTML='';return;}
+  target.hidden=false;
+  const comments=post?.comments||[];
+  const renderTree=(parent=null,depth=0)=>comments.filter(c=>(c.parent_comment_id||null)===parent).map(c=>
+    `<div class="social-comment" style="margin-left:${Math.min(depth,3)*14}px"><div><strong>@${escapeHtml(c.username)}</strong> <span class="small muted">${new Date(c.created_at).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})}</span></div><div>${escapeHtml(c.content)}</div><button class="chip" onclick="setCommentReply('${id}','${c.id}','@${escapeHtml(c.username)}')">Répondre</button>${renderTree(c.id,depth+1)}</div>`
+  ).join('');
+  const reply=window.replyTargets[id];
+  target.innerHTML=`<div class="social-comments-head"><strong>Conversation</strong><span class="small muted">${comments.length} commentaire(s)</span></div>
+    ${reply?`<div class="small muted">Réponse à ${escapeHtml(reply.label)} <button class="chip" onclick="setCommentReply('${id}',null,'')">Annuler</button></div>`:''}
+    <div class="social-comment-list">${renderTree()||'<p class="small muted">Pas encore de commentaire. Lance la conversation.</p>'}</div>
+    <div class="social-comment-form"><input id="comment-input-${id}" maxlength="2000" placeholder="Partage ton regard sur cette création..." /><button class="btn primary" onclick="submitComment('${id}')">Envoyer</button></div>
+    <div class="small muted">Les échanges constructifs mettent les créations en valeur.</div>`;
+}
+function setCommentReply(postId,commentId,label){
+  if(commentId) window.replyTargets[postId]={id:commentId,label:label||'ce commentaire'};
+  else delete window.replyTargets[postId];
+  commentPost(postId,true);
+}
+async function submitComment(id){
+  try{
+    const user=await requireSocialUser(); if(!user)return;
+    const input=document.getElementById('comment-input-'+id);
+    const content=(input?.value||'').trim();
+    if(!content){toast('Écris un commentaire avant de l’envoyer.');return;}
+    if(content.length>2000){toast('Ton commentaire est trop long.');return;}
+    const parent=window.replyTargets[id]?.id||null;
+    const {error}=await museaSupabase.from('post_comments').insert({
+      post_id:id,user_id:user.id,parent_comment_id:parent,content
+    });
+    if(error) throw error;
+    delete window.replyTargets[id];
+    await loadCommunityPosts();
+    const active=document.querySelector('.screen.active')?.id;
+    if(active==='screen-discover') await renderDiscover(); else await renderFeed();
+    window.openCommentPostId=id;
+    commentPost(id,true);
+    toast('Commentaire publié.');
+  }catch(error){console.error(error);toast('Commentaire non envoyé. '+(error.message||''));}
+}
+async function toggleRepost(id){
+  try{
+    const user=await requireSocialUser(); if(!user)return;
+    const post=communityPosts.find(p=>String(p.id)===String(id));
+    const exists=!!post?.isReposted;
+    const result=exists
+      ? await museaSupabase.from('post_reposts').delete().eq('post_id',id).eq('user_id',user.id)
+      : await museaSupabase.from('post_reposts').upsert({post_id:id,user_id:user.id},{onConflict:'post_id,user_id',ignoreDuplicates:true});
+    if(result.error) throw result.error;
+    toast(exists?'Repost retiré.':'Création repartagée avec attribution à son auteur.');
+    await refreshSocialViews(id);
+  }catch(error){console.error(error);toast('Impossible de modifier le repost. '+(error.message||''));}
+}
 function translatePost(id){let p=defaultPosts.find(x=>x.id===id);let lang=document.getElementById('language')?.value||'Français';toast('Traduction IA simulée vers '+lang+' : la connexion au service de traduction reste à faire.');}
 async function renderDiscover(){
   const container = document.getElementById('discoverResults');
@@ -329,24 +455,12 @@ async function renderProfile(){
   document.getElementById('likesStat').textContent=state.liked.length;
   document.getElementById('privacyTag').textContent=state.prefs.private?'Privé':'Visible';
 
-  let items=[];
-
-  if(state.prefs.likes){
-    items.push(...defaultPosts.filter(p=>state.liked.includes(p.id)).map(p=>
-      `<div class="row" style="margin:7px 0"><span>♡</span><div><strong>${escapeHtml(p.title)}</strong><div class="small muted">Aimé · ${escapeHtml(p.user)}</div></div></div>`
-    ));
+  const activity=document.getElementById('profileActivity');
+  if(state.prefs.private){
+    activity.innerHTML='<div class="notice">Ton profil est privé. Ton activité n’est pas affichée publiquement.</div>';
+  }else{
+    activity.innerHTML='<p class="muted small">Chargement de ton activité...</p>';
   }
-
-  if(state.prefs.collections){
-    items.push(...defaultPosts.filter(p=>state.saved.includes(p.id)).map(p=>
-      `<div class="row" style="margin:7px 0"><span>☆</span><div><strong>${escapeHtml(p.title)}</strong><div class="small muted">Dans tes collections</div></div></div>`
-    ));
-  }
-
-  document.getElementById('profileActivity').innerHTML=
-    state.prefs.private
-      ? '<div class="notice">Ton profil est privé. Ton activité n’est pas affichée publiquement.</div>'
-      : items.join('')||'<p class="muted small">Tes réactions et collections apparaîtront ici selon tes préférences.</p>';
 
   document.getElementById('followersStat').textContent=24+state.following.length;
   document.getElementById('prefLikes').checked=state.prefs.likes;
@@ -367,9 +481,46 @@ async function renderProfile(){
     if(userError) throw userError;
 
     if(!userData.user){
-      container.innerHTML='<p class="muted small">Connecte-toi pour voir tes publications.</p>';
+      container.innerHTML='<p class="muted small">Connecte-toi pour voir tes publications et ton activité.</p>';
+      activity.innerHTML='<p class="muted small">Connecte-toi pour retrouver tes likes et tes collections.</p>';
+      document.getElementById('likesStat').textContent='—';
       return;
     }
+
+    const [likeRowsResult,saveRowsResult]=await Promise.all([
+      museaSupabase.from('post_likes').select('post_id').eq('user_id',userData.user.id),
+      museaSupabase.from('saved_posts').select('post_id').eq('user_id',userData.user.id)
+    ]);
+    if(likeRowsResult.error) throw likeRowsResult.error;
+    if(saveRowsResult.error) throw saveRowsResult.error;
+    const likedIds=(likeRowsResult.data||[]).map(x=>x.post_id);
+    const savedIds=(saveRowsResult.data||[]).map(x=>x.post_id);
+    state.liked=likedIds; state.saved=savedIds;
+    document.getElementById('likesStat').textContent=likedIds.length;
+    const activityIds=[...new Set([...likedIds,...savedIds])];
+    let activityPosts=[];
+    if(activityIds.length){
+      const {data:activityRows,error:activityError}=await museaSupabase.from('posts')
+        .select('id,user_id,caption,style,visibility').in('id',activityIds);
+      if(activityError) console.warn('Activité partiellement indisponible :',activityError);
+      activityPosts=activityRows||[];
+    }
+    const activityUserIds=[...new Set(activityPosts.map(p=>p.user_id))];
+    let activityProfiles=[];
+    if(activityUserIds.length){
+      const {data}=await museaSupabase.from('profiles').select('id,username').in('id',activityUserIds);
+      activityProfiles=data||[];
+    }
+    const activityItems=activityPosts.map(p=>{
+      const liked=likedIds.includes(p.id), saved=savedIds.includes(p.id);
+      const owner=activityProfiles.find(x=>x.id===p.user_id)?.username||'Utilisateur';
+      return `<div class="row" style="margin:9px 0"><span>${liked?'♡':'☆'}</span><div><strong>${escapeHtml((p.caption||'Publication').slice(0,70))}</strong><div class="small muted">${liked?'Aimé':'Enregistré'} · @${escapeHtml(owner)}${saved?' · Dans tes collections':''}</div></div></div>`;
+    });
+    activity.innerHTML=state.prefs.private
+      ? '<div class="notice">Ton profil est privé. Ton activité n’est pas affichée publiquement.</div>'
+      : (state.prefs.likes||state.prefs.collections)
+        ? (activityItems.join('')||'<p class="muted small">Tes likes et collections apparaîtront ici.</p>')
+        : '<p class="muted small">Ton activité est masquée selon tes préférences.</p>';
 
     const {data:posts,error}=await museaSupabase
       .from('posts')
