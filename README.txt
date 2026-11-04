@@ -209,6 +209,7 @@ Limites explicites : le diagnostic ne réalise pas de test de disponibilité du 
 - Le portail de facturation vérifie que l'identifiant client Stripe appartient bien au compte MUSEA authentifié.
 - La création d'un Checkout est verrouillée par deux variables serveur indépendantes : `MUSEA_BILLING_ENABLED=true` et `MUSEA_MERCHANT_READY=true`. Elles ne doivent être définies qu'après validation du compte marchand par son titulaire légal. Elles ne sont pas configurées dans le dépôt.
 - Le Checkout exige une adresse e-mail confirmée, vérifie le prix côté Stripe (actif, mensuel, EUR, montant positif), associe le client Stripe au compte MUSEA et consulte Stripe pour éviter les abonnements simultanés ou les doubles souscriptions.
+- La migration `2026-11-06_billing_checkout_lock.sql` ajoute un verrou atomique par compte : une seule préparation Checkout peut être ouverte à la fois. Les sessions sont limitées à 30 minutes et un jeton serveur empêche la libération du verrou par une autre tentative.
 - La migration `2026-11-06_billing_hardening.sql` ajoute une réservation atomique des webhooks, un état de traitement, des tentatives et une reprise des événements échoués. Les doublons déjà traités sont acquittés ; un événement toujours en cours n'est pas acquitté prématurément.
 - Les accès Signature restent décidés par la fonction SQL serveur `musea_has_signature_access()`, jamais par un drapeau local ou un paramètre d'URL.
 
