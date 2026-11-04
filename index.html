@@ -397,7 +397,7 @@ async function renderStories(){
     }
     const now=new Date().toISOString();
     const {data:rows,error}=await museaSupabase.from('stories')
-      .select('id,user_id,caption,media_url,media_path,media_type,created_at,expires_at')
+      .select('id,user_id,caption,media_path,media_type,created_at,expires_at')
       .gt('expires_at',now).order('created_at',{ascending:false}).limit(200);
     if(error)throw error;
     const ids=[...new Set((rows||[]).map(x=>x.user_id))];
@@ -409,7 +409,15 @@ async function renderStories(){
     const {data:blocks,error:blockError}=await museaSupabase.from('direct_message_blocks').select('blocker_id,blocked_id').or('blocker_id.eq.'+userData.user.id+',blocked_id.eq.'+userData.user.id);
     if(blockError)throw blockError;
     const blockedIds=new Set((blocks||[]).flatMap(b=>[b.blocker_id,b.blocked_id]).filter(id=>id!==userData.user.id));
-    const visible=(rows||[]).filter(x=>!blockedIds.has(x.user_id)).map(x=>({...x,username:profiles.find(p=>p.id===x.user_id)?.username||'Utilisateur'}));
+    const visible=await Promise.all((rows||[]).filter(x=>!blockedIds.has(x.user_id)).map(async x=>{
+      let mediaUrl=null;
+      if(x.media_path){
+        const {data:signed,error:signedError}=await museaSupabase.storage.from('musea-stories').createSignedUrl(x.media_path,3600);
+        if(signedError)console.warn('URL Story indisponible :',signedError);
+        else mediaUrl=signed.signedUrl;
+      }
+      return {...x,media_url:mediaUrl,username:profiles.find(p=>p.id===x.user_id)?.username||'Utilisateur'};
+    }));
     storyItems=visible;
     const groups=[...new Map(visible.map(x=>[x.user_id,{user_id:x.user_id,username:x.username,latest:x}])).values()];
     const renderGroup=g=>'<button class="story" style="border:0;background:transparent;color:var(--ink)" onclick="viewStoryGroup(\''+g.user_id+'\')"><div class="story-ring has-story"><div>'+escapeHtml((g.username||'M')[0].toUpperCase())+'</div></div>'+escapeHtml(g.user_id===userData.user.id?'Ta Story':'@'+g.username)+'</button>';
@@ -487,7 +495,7 @@ async function addStory(){
     if(file){
       const extension=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'');
       mediaPath='stories/'+userData.user.id+'/'+Date.now()+'.'+extension;
-      const {error:uploadError}=await museaSupabase.storage.from('musea-posts').upload(mediaPath,file,{cacheControl:'3600',upsert:false,contentType:file.type});
+      const {error:uploadError}=await museaSupabase.storage.from('musea-stories').upload(mediaPath,file,{cacheControl:'3600',upsert:false,contentType:file.type});
       if(uploadError)throw uploadError;
       const {data:publicData}=museaSupabase.storage.from('musea-posts').getPublicUrl(mediaPath);
       mediaUrl=publicData.publicUrl;mediaType=file.type.startsWith('video/')?'video':'image';
@@ -503,7 +511,7 @@ async function addStory(){
     await renderStories();toast('Ta Story est publiée pour 24 heures.');
   }catch(e){
     console.error('Publication Story :',e);
-    if(mediaPath)try{await museaSupabase.storage.from('musea-posts').remove([mediaPath])}catch(cleanupError){console.warn(cleanupError)}
+    if(mediaPath)try{await museaSupabase.storage.from('musea-stories').remove([mediaPath])}catch(cleanupError){console.warn(cleanupError)}
     toast('Publication impossible : '+(e.message||'erreur Supabase'));
   }finally{button.disabled=false;button.textContent='＋ Publier ma Story'}
 }
@@ -513,7 +521,7 @@ async function deleteCurrentStory(){
   try{
     const {error}=await museaSupabase.from('stories').delete().eq('id',story.id).eq('user_id',story.user_id);
     if(error)throw error;
-    if(story.media_path){const {error:storageError}=await museaSupabase.storage.from('musea-posts').remove([story.media_path]);if(storageError)console.warn('Fichier Story à nettoyer :',storageError)}
+    if(story.media_path){const {error:storageError}=await museaSupabase.storage.from('musea-stories').remove([story.media_path]);if(storageError)console.warn('Fichier Story à nettoyer :',storageError)}
     closeStoryViewer();await renderStories();toast('Story supprimée.');
   }catch(e){console.error(e);toast('Impossible de supprimer cette Story.')}
 }
