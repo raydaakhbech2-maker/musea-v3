@@ -60,6 +60,27 @@ create table if not exists public.conversation_tasks (
 create index if not exists conversation_tasks_board_idx
   on public.conversation_tasks(conversation_id,status,created_at);
 
+create or replace function public.musea_is_conversation_member(
+  p_conversation_id uuid,
+  p_user_id uuid,
+  p_allowed_statuses text[]
+)
+returns boolean
+language sql
+stable
+security definer
+set search_path=public,pg_temp
+as $
+  select exists(
+    select 1 from public.conversation_members cm
+    where cm.conversation_id=p_conversation_id
+      and cm.user_id=p_user_id
+      and cm.status=any(p_allowed_statuses)
+  );
+$;
+revoke all on function public.musea_is_conversation_member(uuid,uuid,text[]) from public,anon;
+grant execute on function public.musea_is_conversation_member(uuid,uuid,text[]) to authenticated;
+
 alter table public.conversations enable row level security;
 alter table public.conversation_members enable row level security;
 alter table public.messages enable row level security;
@@ -74,12 +95,7 @@ grant insert,update on public.conversation_tasks to authenticated;
 drop policy if exists "Members can read their conversations" on public.conversations;
 create policy "Members can read their conversations"
 on public.conversations for select to authenticated
-using (exists (
-  select 1 from public.conversation_members cm
-  where cm.conversation_id=conversations.id
-    and cm.user_id=auth.uid()
-    and cm.status in ('invited','accepted')
-));
+using (public.musea_is_conversation_member(conversations.id,auth.uid(),array['invited','accepted']));
 
 drop policy if exists "Members can read conversation membership" on public.conversation_members;
 create policy "Members can read conversation membership"
@@ -102,12 +118,7 @@ create policy "Accepted members read conversation messages"
 on public.messages for select to authenticated
 using (
   sender_id=auth.uid()
-  or exists (
-    select 1 from public.conversation_members cm
-    where cm.conversation_id=messages.conversation_id
-      and cm.user_id=auth.uid()
-      and cm.status='accepted'
-  )
+  or public.musea_is_conversation_member(messages.conversation_id,auth.uid(),array['accepted'])
 );
 
 drop policy if exists "Accepted members send messages" on public.messages;
@@ -115,12 +126,7 @@ create policy "Accepted members send messages"
 on public.messages for insert to authenticated
 with check (
   sender_id=auth.uid()
-  and exists (
-    select 1 from public.conversation_members cm
-    where cm.conversation_id=messages.conversation_id
-      and cm.user_id=auth.uid()
-      and cm.status='accepted'
-  )
+  and public.musea_is_conversation_member(messages.conversation_id,auth.uid(),array['accepted'])
   and (
     shared_post_id is null
     or exists (
@@ -134,14 +140,8 @@ drop policy if exists "Accepted project members read tasks" on public.conversati
 create policy "Accepted project members read tasks"
 on public.conversation_tasks for select to authenticated
 using (
-  exists (
-    select 1 from public.conversations c
-    join public.conversation_members cm on cm.conversation_id=c.id
-    where c.id=conversation_tasks.conversation_id
-      and c.kind='project'
-      and cm.user_id=auth.uid()
-      and cm.status='accepted'
-  )
+  exists (select 1 from public.conversations c where c.id=conversation_tasks.conversation_id and c.kind='project')
+  and public.musea_is_conversation_member(conversation_tasks.conversation_id,auth.uid(),array['accepted'])
 );
 
 drop policy if exists "Accepted project members create tasks" on public.conversation_tasks;
