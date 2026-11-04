@@ -150,7 +150,7 @@ window.museaSupabase = window.supabase.createClient(
       <div class="row"><button class="btn" id="blockUserBtn" onclick="toggleDirectMessageBlock()" disabled>Bloquer</button><button class="iconbtn" onclick="closeActiveConversation()" aria-label="Fermer la conversation">×</button></div>
     </div>
     <div class="line"></div>
-    <div id="chatLog" aria-live="polite"><p class="muted small">Choisis une conversation ou recherche un utilisateur pour commencer.</p></div>
+    <div id="chatLog" aria-live="polite" style="max-height:55vh;overflow-y:auto;padding:4px"><p class="muted small">Choisis une conversation ou recherche un utilisateur pour commencer.</p></div>
     <div class="line"></div>
     <label class="label" for="messageInput">Ton message</label>
     <div class="row">
@@ -243,7 +243,7 @@ let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],co
 {type:'Mention',text:'noah.visuals t’a mentionné dans un commentaire.',time:'Il y a 18 min',read:false},
 {type:'Pour toi',text:'Une création pourrait te plaire.',time:'Il y a 1 h',read:false}],
 prefs:{likes:true,collections:true,online:true,dm:true,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
-let feedKind='all',discoverKind='Tout',activeConversationId=null,activeConversationPeer=null,activeMessageChannel=null,messageRefreshBusy=false,activeConversationCanSend=false,customStories=[];
+let feedKind='all',discoverKind='Tout',activeConversationId=null,activeConversationPeer=null,activeMessageChannel=null,messageRefreshBusy=false,messageRefreshQueued=false,activeConversationCanSend=false,customStories=[];
 function load(){try{let s=JSON.parse(localStorage.getItem('museaState')||'null');if(s)state={...state,...s,prefs:{...state.prefs,...s.prefs}}}catch(e){}}
 function save(){try{localStorage.setItem('museaState',JSON.stringify(state))}catch(e){}}
 function toast(msg){let el=document.getElementById('toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.add('hidden'),2800)}
@@ -480,7 +480,8 @@ async function openDirectConversation(conversationId,peerId){
     }).subscribe();
 }
 async function refreshActiveConversation(){
-  if(!activeConversationId||messageRefreshBusy)return;
+  if(!activeConversationId)return;
+  if(messageRefreshBusy){messageRefreshQueued=true;return;}
   messageRefreshBusy=true;
   const conversationId=activeConversationId;
   try{
@@ -523,7 +524,7 @@ async function refreshActiveConversation(){
     log.scrollTop=log.scrollHeight;
     await renderMessages();
   }catch(e){console.error('Actualisation conversation :',e);document.getElementById('chatLog').innerHTML='<p class="notice">Impossible de charger les messages de cette conversation.</p>'}
-  finally{messageRefreshBusy=false}
+  finally{messageRefreshBusy=false;if(messageRefreshQueued){messageRefreshQueued=false;refreshActiveConversation()}}
 }
 async function sendMessage(){
   const input=document.getElementById('messageInput'),content=(input?.value||'').trim();
