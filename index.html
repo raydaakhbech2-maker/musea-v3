@@ -1185,6 +1185,7 @@ async function renderProfile(){
   set('profileHeadlineView',state.headline||'Un espace pour présenter ce que tu imagines.');
   set('profileSignatureView',state.creativeSignature||'Ta signature créative apparaîtra ici.');
   set('username',state.username||'monprofil');
+  const usernameInput=document.getElementById('username');if(usernameInput)usernameInput.value=state.username||'monprofil';
   const displayInput=document.getElementById('displayName');if(displayInput)displayInput.value=state.displayName||'';
   const headlineInput=document.getElementById('profileHeadline');if(headlineInput)headlineInput.value=state.headline||'';
   const bioInput=document.getElementById('bio');if(bioInput)bioInput.value=state.bio||'';
