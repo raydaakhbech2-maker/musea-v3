@@ -1,4 +1,4 @@
-const CACHE = 'musea-filiations-v12';
+const CACHE = 'musea-signal-v13';
 const FILES = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', event => {
