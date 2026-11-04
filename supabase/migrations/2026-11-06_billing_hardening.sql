@@ -3,6 +3,10 @@
 -- Les nouveaux événements sont réservés atomiquement, puis marqués traités ou échoués.
 
 alter table public.billing_webhook_events
+  alter column processed_at drop not null,
+  alter column processed_at drop default;
+
+alter table public.billing_webhook_events
   add column if not exists processing_status text not null default 'processed'
     check (processing_status in ('processing','processed','failed')),
   add column if not exists attempts integer not null default 1 check (attempts >= 1),
@@ -30,8 +34,8 @@ begin
   end if;
 
   insert into public.billing_webhook_events(
-    stripe_event_id,event_type,processing_status,attempts,updated_at
-  ) values (p_stripe_event_id,p_event_type,'processing',1,now())
+    stripe_event_id,event_type,processed_at,processing_status,attempts,updated_at
+  ) values (p_stripe_event_id,p_event_type,null,'processing',1,now())
   on conflict (stripe_event_id) do update
     set event_type=excluded.event_type,
         processing_status='processing',
