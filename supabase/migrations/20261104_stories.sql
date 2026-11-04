@@ -12,7 +12,8 @@ create table if not exists public.stories (
   constraint stories_expiry_after_creation check (expires_at > created_at),
   constraint stories_max_24h check (expires_at <= created_at + interval '24 hours' + interval '1 minute'),
   constraint stories_content_required check (nullif(trim(coalesce(caption,'')),'') is not null or media_path is not null),
-  constraint stories_media_pair check ((media_path is null and media_type is null) or (media_path is not null and media_type is not null))
+  constraint stories_media_pair check ((media_path is null and media_type is null) or (media_path is not null and media_type is not null)),
+  constraint stories_media_owner_path check (media_path is null or media_path like ('stories/' || user_id::text || '/%'))
 );
 
 create index if not exists stories_active_created_idx
@@ -119,6 +120,7 @@ using (
   and exists (
     select 1 from public.stories s
     where s.media_path = storage.objects.name
+      and (storage.foldername(storage.objects.name))[2] = s.user_id::text
       and s.expires_at > now()
       and not exists (
         select 1 from public.direct_message_blocks b
