@@ -103,3 +103,20 @@ Le dépôt ne contient pas d'APK Android ni d'IPA iOS natif. Une publication sur
 - Pas de promesse IA, paiement, certification ou sécurité non réellement opérationnelle.
 - Les profils privés et les contenus masqués doivent rester protégés par les règles serveur, pas seulement par l'interface.
 - Le badge certifié nécessite une vérification indépendante ; les points ne garantissent jamais son obtention.
+
+
+## MUSEA Signature — modèle Premium (étape 22)
+
+L'offre est conçue autour d'outils créatifs et de confort, sans vendre la popularité :
+- la formule gratuite conserve les fonctions sociales essentielles, la sécurité, la confidentialité et les outils de base ;
+- la formule envisagée « MUSEA Signature » vise la personnalisation approfondie du profil/portfolio, une bibliothèque de projets privés plus généreuse, des outils avancés de présentation/export, des analyses créatives personnelles et des options d'organisation des ateliers ;
+- aucun avantage payant ne doit acheter des likes, des abonnés, une certification, une portée ou une priorité dans les recommandations ;
+- le prix de travail affiché est de 5,99 €/mois, non validé commercialement.
+
+L'interface présente cette formule comme étant en préparation. Aucun abonnement n'est vendu, aucun paiement n'est collecté et aucun compte ne peut activer Signature depuis le navigateur. Les avantages listés sont une proposition de produit à implémenter et à vérifier avant commercialisation.
+
+## MUSEA Encaissement — étape 23 prévue
+
+Une étape distincte est réservée à l'intégration d'un prestataire de paiement et au véritable cycle de facturation. Elle devra inclure au minimum : création de session de paiement côté serveur, confirmation exclusivement par webhook signé, gestion des abonnements et de leur état, droits Premium contrôlés côté serveur, factures/reçus, annulation et remboursement, journal de transactions, suivi des frais et des virements, protection contre les doubles événements et tests en environnement sandbox. Aucune clé secrète de paiement ne devra être exposée dans le fichier client.
+
+L'activation commerciale dépendra de la structure juridique, des conditions du prestataire, de la vérification du titulaire du compte et des obligations fiscales applicables. Pour un créateur mineur, le représentant légal devra intervenir selon les règles du prestataire ; aucun contrôle d'âge ou d'identité ne doit être contourné.
