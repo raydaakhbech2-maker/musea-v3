@@ -216,6 +216,48 @@ button:active{transform:scale(.98)}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* MUSEA DESIGN & EXPERIENCE — cohérence finale, confort mobile et accessibilité */
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+html{scrollbar-gutter:stable}
+body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
+.app{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
+.top{padding-top:max(10px,env(safe-area-inset-top))}
+.main{width:100%;min-width:0}
+.screen.active{min-width:0}
+.card,.notice,.modalbox,.message-chat,.message-sidebar,.message-main{min-width:0}
+.card p,.notice,.creator-project-body,.message-bubble,.notification-copy{overflow-wrap:anywhere}
+.btn,.iconbtn,.chip,.bottom button{touch-action:manipulation}
+.btn:focus-visible,.iconbtn:focus-visible,.chip:focus-visible,.bottom button:focus-visible{outline:3px solid var(--accent)!important;outline-offset:3px!important}
+.btn:disabled,.iconbtn:disabled{pointer-events:none;filter:saturate(.5)}
+.field::placeholder{color:var(--muted);opacity:.82}
+.field:disabled{opacity:.65;cursor:not-allowed}
+.card img{max-width:100%}
+#feed .card,#myPosts .card,.creator-public-posts .card{overflow:hidden}
+#feed .post-actions .btn,.post-actions .iconbtn{min-height:40px}
+.bottom{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+.toast{max-width:min(92vw,520px);text-align:center;overflow-wrap:anywhere}
+.modal{padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom))}
+.modalbox{overscroll-behavior:contain}
+@media(min-width:720px){
+  .app{padding-bottom:0}
+  .main{max-width:940px}
+  .screen.active{animation:musea-screen-in 180ms ease both}
+}
+@media(max-width:560px){
+  .top .pill{font-size:10px}
+  .top .iconbtn{min-width:38px;min-height:38px;padding:6px}
+  .main{padding-bottom:18px}
+  .bottom{justify-content:space-around;gap:1px}
+  .bottom button{min-width:0;flex:1;padding-inline:1px;overflow:hidden}
+  .bottom button span{max-width:100%;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+  .creator-profile-top .row.between{align-items:flex-start}
+  .creator-project-actions .btn{flex:1}
+  .message-chat-header{align-items:flex-start;flex-wrap:wrap}
+  .notification-item{padding:11px;gap:9px}
+}
+@media(hover:none){.card:hover,.btn:hover{box-shadow:var(--shadow)}.btn:hover{border-color:var(--line)}}
+@media(prefers-reduced-motion:reduce){.screen.active{animation:none!important}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -237,6 +279,7 @@ window.museaSupabase = window.supabase.createClient(
   <button class="iconbtn" onclick="navigate('profile')" aria-label="Profil">◉</button>
 </header>
 <main class="main" id="main" tabindex="-1">
+  <p id="routeAnnouncement" class="sr-only" aria-live="polite" aria-atomic="true">Accueil ouvert</p>
   <section class="card" id="accountCard">
   <div class="eyebrow">Ton compte MUSEA</div>
   <h2 class="h2">Bienvenue dans ton univers</h2>
@@ -551,7 +594,36 @@ function save(){try{localStorage.setItem('museaState',JSON.stringify(state))}cat
 function toast(msg){let el=document.getElementById('toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.add('hidden'),2800)}
 function setTheme(t){state.theme=t;save();applyTheme();toast('Apparence mise à jour.')}
 function applyTheme(){let t=state.theme;if(t==='system')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]').content=t==='dark'?'#171522':'#f8f6f2'}
-function navigate(name){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));let el=document.getElementById('screen-'+name);if(!el){name='home';el=document.getElementById('screen-home')}el.classList.add('active');document.querySelectorAll('.bottom button').forEach(b=>{const active=b.dataset.go===name;b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});if(name==='home')renderFeed();if(name==='discover')renderDiscover();if(name==='trends')renderLeaderboard();if(name==='messages')renderMessages();if(name==='notifications')renderNotifications();if(name==='moderation')renderModeration();if(name==='profile')renderProfile();if(name==='settings')loadMyModerationCases();if(name==='stories')renderStories();if(name==='rewards')renderRewards();window.scrollTo({top:0,behavior:'smooth'});}
+function navigate(name){
+  const routeNames={home:'Accueil',discover:'Explorer',create:'Créer',trends:'Tendances',messages:'Messages',notifications:'Notifications',moderation:'Modération',profile:'Profil créateur',settings:'Paramètres',stories:'Stories',rewards:'Récompenses',browser:'Navigateur',creator:'Profil créateur'};
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  let el=document.getElementById('screen-'+name);
+  if(!el){name='home';el=document.getElementById('screen-home');}
+  el.classList.add('active');
+  document.querySelectorAll('.bottom button').forEach(b=>{
+    const active=b.dataset.go===name;
+    b.classList.toggle('active',active);
+    if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
+  });
+  const label=routeNames[name]||'MUSEA';
+  document.title=label+' — MUSEA';
+  const announcement=document.getElementById('routeAnnouncement');
+  if(announcement)announcement.textContent=label+' ouvert';
+  const main=document.getElementById('main');
+  if(main)main.setAttribute('aria-label',label);
+  if(name==='home')renderFeed();
+  if(name==='discover')renderDiscover();
+  if(name==='trends')renderLeaderboard();
+  if(name==='messages')renderMessages();
+  if(name==='notifications')renderNotifications();
+  if(name==='moderation')renderModeration();
+  if(name==='profile')renderProfile();
+  if(name==='settings')loadMyModerationCases();
+  if(name==='stories')renderStories();
+  if(name==='rewards')renderRewards();
+  const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({top:0,behavior:reduceMotion?'auto':'smooth'});
+}
 function choosePlan(p){state.plan=p;save();document.getElementById('planModal').classList.add('hidden');updatePlan();toast(p==='premium'?'Premium activé en mode démo. Aucun paiement effectué.':'Offre gratuite sélectionnée.');}
 function showPlans(){document.getElementById('planModal').classList.remove('hidden')}
 function closePlans(){document.getElementById('planModal').classList.add('hidden')}
