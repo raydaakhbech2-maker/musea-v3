@@ -48,8 +48,8 @@ as $$
     );
 $$;
 
-revoke all on function public.musea_story_is_visible(uuid) from public,anon;
-grant execute on function public.musea_story_is_visible(uuid) to authenticated;
+revoke all on function public.musea_story_is_visible(uuid) from public;
+grant execute on function public.musea_story_is_visible(uuid) to anon,authenticated;
 
 drop policy if exists "Members read active unblocked stories" on public.stories;
 create policy "Members read active unblocked stories"
