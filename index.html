@@ -42,6 +42,11 @@
 .creator-pulse-stat{min-width:0;padding:13px;border:1px solid var(--line);border-radius:15px;background:var(--surface)}
 .creator-pulse-stat span,.creator-pulse-stat small{display:block;color:var(--muted);font-size:11px;line-height:1.45}
 .creator-pulse-stat strong{display:block;font-size:clamp(22px,5vw,30px);letter-spacing:-.04em;margin:4px 0;overflow-wrap:anywhere}
+.creator-pulse-echo{padding:14px;border:1px solid var(--line);border-radius:16px;margin:10px 0 12px;background:var(--card)}
+.creator-pulse-bar-row{margin-top:12px;font-size:12px}
+.creator-pulse-bar-row .row strong{font-size:11px;color:var(--muted)}
+.creator-pulse-bar{height:8px;border-radius:99px;background:var(--surface);overflow:hidden;margin-top:6px}
+.creator-pulse-bar span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent-warm))}
 .creator-pulse-highlight{padding:15px;border-radius:16px;background:linear-gradient(135deg,var(--accent2),var(--surface));border:1px solid var(--line)}
 .creator-pulse-highlight strong{display:block;margin:7px 0;font-size:16px;overflow-wrap:anywhere}
 .creator-pulse-highlight p{margin:4px 0 0}
@@ -2136,6 +2141,12 @@ async function renderCreatorPulse(publicPosts){
     const recent=posts.filter(post=>post.created_at&&new Date(post.created_at).getTime()>=since).length;
     const best=rows.slice().sort((a,b)=>b.total-a.total||new Date(b.post.created_at||0)-new Date(a.post.created_at||0))[0];
     const bestTitle=escapeHtml((best?.post.caption||'Création sans titre').slice(0,72));
+    const shares=[
+      {label:'Appréciations',count:totals.likes,percent:totals.total?Math.round(totals.likes/totals.total*100):0},
+      {label:'Conversations',count:totals.comments,percent:totals.total?Math.round(totals.comments/totals.total*100):0},
+      {label:'Recommandations',count:totals.reposts,percent:totals.total?Math.round(totals.reposts/totals.total*100):0}
+    ];
+    const echoBars=shares.map(item=>`<div class="creator-pulse-bar-row"><div class="row between"><span>${item.label}</span><strong>${item.count} · ${item.percent}%</strong></div><div class="creator-pulse-bar" role="progressbar" aria-label="${item.label}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${item.percent}"><span style="width:${item.percent}%"></span></div></div>`).join('');
     target.innerHTML=`<div class="creator-pulse-grid">
       <div class="creator-pulse-stat"><span>Créations publiques</span><strong>${posts.length}</strong><small>${recent} publiée(s) sur les 7 derniers jours</small></div>
       <div class="creator-pulse-stat"><span>Interactions reçues</span><strong>${totals.total}</strong><small>Toutes tes publications publiques</small></div>
@@ -2143,6 +2154,7 @@ async function renderCreatorPulse(publicPosts){
       <div class="creator-pulse-stat"><span>Conversations</span><strong>${totals.comments}</strong><small>Commentaires reçus</small></div>
       <div class="creator-pulse-stat"><span>Reposts</span><strong>${totals.reposts}</strong><small>Créations repartagées</small></div>
     </div>
+    <div class="creator-pulse-echo"><div class="row between wrap"><strong>Ta signature d’écho</strong><span class="small muted">Répartition des interactions</span></div>${echoBars}</div>
     <div class="creator-pulse-highlight"><div class="eyebrow">ÉCHO DU MOMENT</div><strong>${bestTitle}</strong><p class="small muted">${best?.total||0} interaction(s) · ${best?.likes||0} likes · ${best?.comments||0} commentaires · ${best?.reposts||0} reposts</p></div>
     <p class="creator-pulse-note">Données calculées à partir des interactions réellement enregistrées sur tes publications publiques. Les interactions ne sont pas des vues, ne représentent pas des personnes uniques et ne mesurent pas la qualité d’une création.</p>`;
     target.setAttribute('aria-busy','false');
