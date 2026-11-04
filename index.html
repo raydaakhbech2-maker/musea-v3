@@ -401,7 +401,7 @@ window.museaSupabase = window.supabase.createClient(
 <div id="planModal" class="modal hidden"><div class="modalbox"><div class="row between"><div><div class="eyebrow">Bienvenue sur MUSEA</div><h2 class="h1">Choisis ton expérience.</h2></div><button class="iconbtn" onclick="closePlans()">✕</button></div><p class="muted">Tu pourras modifier ton choix ensuite. Aucun paiement ne sera prélevé dans ce prototype.</p><div class="grid"><div class="card" style="margin:0"><span class="chip">GRATUIT</span><h3 class="h3" style="margin-top:12px">Découvrir</h3><div class="price">0 €</div><p class="small muted">Pour commencer et tester la communauté.</p><ul class="small"><li>Fil et profil</li><li>Crédits IA limités</li><li>Likes, commentaires, collections</li><li>Stories et messages de base</li></ul><button class="btn full" onclick="choosePlan('free')">Choisir Gratuit</button></div><div class="card" style="margin:0;border:2px solid var(--accent)"><span class="chip selected">PREMIUM</span><h3 class="h3" style="margin-top:12px">Créer plus</h3><div class="price">5,99 €<span style="font-size:13px;font-weight:600">/mois</span></div><p class="small muted">Prix cible à tester, pas un paiement réel.</p><ul class="small"><li>Plus de crédits IA, avec plafond</li><li>Thèmes exclusifs et options de profil</li><li>Collections avancées</li><li>Outils créatifs supplémentaires</li><li>Éligibilité possible à la vérification</li></ul><button class="btn primary full" onclick="choosePlan('premium')">Choisir Premium</button></div></div><p class="small muted" style="margin-top:14px">Le prix devra être validé avec les coûts d'IA, les commissions des stores, la TVA, l'hébergement et les tests utilisateurs. Aucun abonnement n'est encore vendu.</p></div></div>
 <script>
 const defaultPosts = [];
-let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:['luna.creative','noah.visuals','aya.studio','kai.3d'],ownStories:[],messages:[{who:'Luna Creative',text:'Salut ! J’aime beaucoup tes idées créatives ✨',mine:false}],groups:[],
+let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:[],ownStories:[],messages:[{who:'Luna Creative',text:'Salut ! J’aime beaucoup tes idées créatives ✨',mine:false}],groups:[],
 prefs:{likes:true,collections:true,online:true,dm:false,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
 let feedKind='all',homeFeedMode='affinity',discoverKind='Tout',currentChat='Luna Creative',customStories=[];
 let discoverMode='affinity';
@@ -555,7 +555,7 @@ function renderHomeFeedFromCache(){
     :'Un espace supplémentaire pour les créations récentes et moins exposées.';
   feed.setAttribute('aria-busy','false');
   if(!ordered.length){
-    feed.innerHTML='<div class="home-empty card"><div class="home-empty-icon">✳</div><h3 class="h3">La prochaine idée à découvrir pourrait être la tienne.</h3><p class="muted small">Aucune création ne correspond à cette sélection pour le moment.</p><button class="btn primary" onclick="navigate(\\'create\\')">Proposer une création</button></div>';
+    feed.innerHTML='<div class="home-empty card"><div class="home-empty-icon">✳</div><h3 class="h3">La prochaine idée à découvrir pourrait être la tienne.</h3><p class="muted small">Aucune création ne correspond à cette sélection pour le moment.</p><button class="btn primary" onclick="navigate('create')">Proposer une création</button></div>';
     return;
   }
   feed.innerHTML=ordered.map(post=>{
@@ -866,14 +866,26 @@ async function renderDiscover(){
 }
 function setDiscover(k,b){discoverKind=k;document.querySelectorAll('#discoverCategoryFilters .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderDiscover()}
 function renderStories(){
-  const hasLocalStory=Array.isArray(state.ownStories)&&state.ownStories.length>0;
-  const html='<button class="story story-own" onclick="navigate(\\'stories\\')"><span class="story-ring"><span>＋</span></span><span>Ton instant</span></button>'+
-    (hasLocalStory?'<div class="story story-local"><span class="story-ring"><span>✳</span></span><span>Ton brouillon local</span></div>':'<div class="story story-empty"><span class="story-ring"><span>…</span></span><span>Communauté bientôt</span></div>');
+  const drafts=Array.isArray(state.ownStories)?state.ownStories:[];
+  const hasLocalStory=drafts.length>0;
+  const draftLabel=hasLocalStory?escapeHtml(String(drafts[0]).slice(0,30)):'Communauté bientôt';
+  const html='<button class="story story-own" onclick="navigate(\'stories\')"><span class="story-ring"><span>＋</span></span><span>Ton instant</span></button>'+
+    (hasLocalStory?'<div class="story story-local"><span class="story-ring"><span>✳</span></span><span>'+draftLabel+'</span></div>':'<div class="story story-empty"><span class="story-ring"><span>…</span></span><span>'+draftLabel+'</span></div>');
   const row=document.getElementById('storyRow');if(row)row.innerHTML=html;
   const all=document.getElementById('allStories');if(all)all.innerHTML=html;
 }
 function viewStory(){toast('Les stories sont encore en mode démonstration locale.');}
-function addStory(){let s=document.getElementById('storyText').value.trim();if(!s)return toast('Ajoute un texte pour ta story.');state.ownStories.unshift('Ta story');state.points+=2;save();document.getElementById('storyText').value='';renderStories();toast('Story ajoutée localement. Pas de téléversement réel.')}
+function addStory(){
+  const input=document.getElementById('storyText');
+  const value=input?.value.trim();
+  if(!value)return toast('Ajoute un texte avant de l’enregistrer.');
+  state.ownStories.unshift(value.slice(0,180));
+  state.ownStories=state.ownStories.slice(0,10);
+  save();
+  input.value='';
+  renderStories();
+  toast('Brouillon enregistré sur cet appareil. Il n’est pas publié.');
+}
 function renderLeaderboard(){let entries=[{n:'luna.creative',p:1840,r:'Créateur vedette'},{n:'noah.visuals',p:1420,r:'Mise en avant'},{n:'aya.studio',p:980,r:'Crédits IA bonus'},{n:state.username,p:state.points,r:'Continue à créer'}].sort((a,b)=>b.p-a.p);document.getElementById('leaderboard').innerHTML=entries.map((e,i)=>`<div class="card"><div class="row"><div class="avatar">${i+1}</div><div style="flex:1"><strong>${escapeHtml(e.n)}</strong><div class="small muted">${e.p.toLocaleString('fr-FR')} points</div></div><span class="chip">#${i+1}</span></div><div class="small muted" style="margin-top:9px">Récompense possible : ${e.r}</div></div>`).join('')}
 function renderMessages(){document.getElementById('conversationList').innerHTML=`<button class="btn soft full" onclick="openChat('Luna Creative')">◉ Luna Creative <span class="muted">· en ligne (démo)</span></button><button class="btn full" style="margin-top:7px" onclick="openChat('Noah Visuals')">◉ Noah Visuals <span class="muted">· vu récemment (démo)</span></button>`;document.getElementById('chatName').textContent=currentChat;document.getElementById('chatStatus').textContent=state.prefs.online?'Statut fictif visible':'Statut masqué selon tes préférences';document.getElementById('chatLog').innerHTML=state.messages.map(m=>`<div style="display:flex;justify-content:${m.mine?'flex-end':'flex-start'};margin:8px 0"><div style="max-width:85%;background:${m.mine?'var(--accent2)':'var(--bg)'};padding:10px 12px;border-radius:13px">${escapeHtml(m.text)}<div class="small muted">${m.mine?'Toi':escapeHtml(m.who)}</div></div></div>`).join('')}
 function openChat(n){currentChat=n;renderMessages()}
@@ -1296,7 +1308,7 @@ function openWeb(){let raw=document.getElementById('urlInput').value.trim();if(!
 function bookmarkCurrent(){let u=state.lastUrl||document.getElementById('urlInput').value.trim();if(!u)return toast('Ouvre d’abord une page.');state.bookmarks=state.bookmarks||[];if(!state.bookmarks.includes(u))state.bookmarks.push(u);save();renderBookmarks();toast('Favori enregistré localement.')}
 function renderBookmarks(){let b=document.getElementById('bookmarks');if(!b)return;b.innerHTML=(state.bookmarks||[]).map(u=>`<button class="chip" onclick="quickWeb('${escapeHtml(u)}')">${escapeHtml(new URL(u).hostname)}</button>`).join('')||'<span class="small muted">Aucun favori pour le moment.</span>'}
 function translateDemo(){let lang=document.getElementById('language').value;let el=document.getElementById('translationResult');el.classList.remove('hidden');el.textContent='Simulation : le texte serait traduit en '+lang+' par un service IA. Aucune traduction externe n’a été effectuée.'}
-function init(){load();applyTheme();updatePlan();renderFeed();renderDiscover();renderLeaderboard();renderMessages();renderNotifications();renderProfile();renderBookmarks();if(!state.plan)showPlans();if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(state.theme==='system')applyTheme()})}
+function init(){load();applyTheme();updatePlan();const dailyPrompt=document.getElementById('dailyPromptText');if(dailyPrompt)dailyPrompt.textContent=getDailyCreativePrompt();renderFeed();renderDiscover();renderLeaderboard();renderMessages();renderNotifications();renderProfile();renderBookmarks();if(!state.plan)showPlans();if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(state.theme==='system')applyTheme()})}
 async function museaMessage(text) {
   document.getElementById('authMessage').textContent = text;
 }
