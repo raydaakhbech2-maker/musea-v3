@@ -247,6 +247,7 @@ button:active{transform:scale(.98)}
  .home-mode strong{font-size:11px}
  .home-mode span{font-size:10px}
 }
+.musea-lineage{display:flex;gap:10px;align-items:flex-start;margin:12px 0 4px;padding:12px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:13px;background:var(--bg)}.musea-lineage-mark{font-size:22px;color:var(--accent);font-weight:900;line-height:1}.musea-lineage p{margin:6px 0}.musea-lineage .chip{margin-top:6px}
 /* MUSEA Creator Identity & Portfolio */
 .creator-cover{position:relative;overflow:hidden;min-height:190px;padding:26px 24px;border-radius:26px;background:radial-gradient(circle at 83% 28%,rgba(241,190,166,.26),transparent 25%),linear-gradient(125deg,#211b32,#423466 62%,#735bc1);color:white;display:flex;align-items:center;margin-bottom:13px}
 .creator-cover-copy{position:relative;z-index:1;max-width:78%}.creator-cover .eyebrow{color:#d7caff}.creator-cover .h1{font-size:clamp(27px,5vw,40px);letter-spacing:-.045em;margin:9px 0}.creator-cover-copy p{color:#e9e2f7;margin:0;max-width:46ch}
@@ -367,84 +368,7 @@ body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibi
 @media(max-width:820px){.studio-layout{grid-template-columns:1fr}.studio-side{position:static}.studio-publish-row .btn{min-width:100%}}
 @media(max-width:560px){.studio-hero{padding:17px}.studio-mark{font-size:32px}.studio-canvas-wrap{min-height:180px}.studio-actions .btn{flex:1}.studio-draft .row{align-items:flex-start}}
 </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-/* MUSEA Empreinte — export personnel sous les règles RLS */
-async function exportMyMuseaData(){
-  const button=document.getElementById('museaExportButton');
-  const status=document.getElementById('museaExportStatus');
-  if(button)button.disabled=true;
-  if(status)status.textContent='Préparation de ton dossier…';
-  try{
-    const {data:authData,error:authError}=await museaSupabase.auth.getUser();
-    if(authError)throw authError;
-    const user=authData?.user;
-    if(!user){toast('Connecte-toi pour exporter tes données.');if(status)status.textContent='Connexion nécessaire.';return;}
-    const jobs=[
-      ['profil',()=>museaSupabase.from('profiles').select('*').eq('id',user.id)],
-      ['publications',()=>museaSupabase.from('posts').select('*').eq('user_id',user.id)],
-      ['likes_donnes',()=>museaSupabase.from('post_likes').select('*').eq('user_id',user.id)],
-      ['collections',()=>museaSupabase.from('saved_posts').select('*').eq('user_id',user.id)],
-      ['commentaires_envoyes',()=>museaSupabase.from('post_comments').select('*').eq('user_id',user.id)],
-      ['republications',()=>museaSupabase.from('post_reposts').select('*').eq('user_id',user.id)],
-      ['portfolio',()=>museaSupabase.from('creator_portfolio_items').select('*').eq('user_id',user.id)],
-      ['projets_prives_studio',()=>museaSupabase.from('creator_drafts').select('*').eq('user_id',user.id)],
-      ['notifications_recues',()=>museaSupabase.from('notifications').select('*').eq('recipient_id',user.id)],
-      ['preferences_notifications',()=>museaSupabase.from('notification_preferences').select('*').eq('user_id',user.id)],
-      ['messages_envoyes',()=>museaSupabase.from('messages').select('*').eq('sender_id',user.id)],
-      ['membres_conversations',()=>museaSupabase.from('conversation_members').select('*').eq('user_id',user.id)],
-      ['conversations_accessibles',()=>museaSupabase.from('conversations').select('*')],
-      ['taches_creees_ou_assignees',()=>museaSupabase.from('conversation_tasks').select('*').or('created_by.eq.'+user.id+',assigned_to.eq.'+user.id)],
-      ['comptes_bloques_par_moi',()=>museaSupabase.from('user_blocks').select('*').eq('blocker_id',user.id)],
-      ['signalements_envoyes',()=>museaSupabase.from('user_reports').select('*').eq('reporter_id',user.id)]
-    ];
-    const results=await Promise.all(jobs.map(async ([key,build])=>{
-      try{
-        let rows=[],offset=0,more=true;
-        while(more && offset<20000){
-          const {data,error}=await build().range(offset,offset+499);
-          if(error)throw error;
-          const page=data||[];
-          rows=rows.concat(page);
-          more=page.length===500;
-          offset+=page.length;
-          if(page.length===0)break;
-        }
-        return [key,{status:more?'partiel_limite':'ok',count:rows.length,items:rows}];
-      }catch(error){
-        return [key,{status:'indisponible',count:0,items:[],reason:String(error?.message||'Lecture impossible')}];
-      }
-    }));
-    const sections=Object.fromEntries(results);
-    const unavailable=results.filter(([,value])=>value.status!=='ok').map(([key])=>key);
-    const payload={
-      format:'MUSEA_PERSONAL_DATA_EXPORT',
-      version:1,
-      generated_at:new Date().toISOString(),
-      account:{id:user.id,email:user.email||null,created_at:user.created_at||null},
-      scope:'Données accessibles à ce compte via la session courante et les politiques Row Level Security. Les fichiers binaires ne sont pas inclus.',
-      privacy:{messages:'Seuls les messages envoyés par ce compte sont inclus.',conversations:'Les conversations sont limitées par les règles d’accès du compte.',third_party:'Les données privées d’autres membres ne sont pas exportées.'},
-      sections,
-      export_notes:unavailable.length?['Certaines catégories sont indisponibles ou ont atteint la limite de pagination : '+unavailable.join(', ')+'. Vérifie les migrations et relance un export.']:['Toutes les catégories interrogées ont répondu.']
-    };
-    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
-    const url=URL.createObjectURL(blob);
-    const link=document.createElement('a');
-    link.href=url;
-    link.download='musea-mes-donnees-'+new Date().toISOString().slice(0,10)+'.json';
-    document.body.appendChild(link);link.click();link.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),30000);
-    if(status)status.textContent=unavailable.length?('Export téléchargé · '+unavailable.length+' catégorie(s) à vérifier.'):'Export téléchargé · '+results.reduce((n,[,v])=>n+v.count,0)+' élément(s).';
-    toast('Ton dossier MUSEA a été préparé.');
-  }catch(error){
-    console.error('Export MUSEA impossible :',error);
-    if(status)status.textContent='Export impossible : '+(error?.message||'erreur inconnue');
-    toast('Impossible de préparer ton export.');
-  }finally{
-    if(button)button.disabled=false;
-  }
-}
-
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 window.museaSupabase = window.supabase.createClient(
   "https://dujargvriuxwczkgsyua.supabase.co",
@@ -624,6 +548,18 @@ window.museaSupabase = window.supabase.createClient(
         <div class="row between small muted"><span>Visible avec la publication</span><span id="studioCaptionCount">0 / 500</span></div>
         <label class="label" for="artStyle">Univers créatif</label>
         <select class="field" id="artStyle"><option>Digital art</option><option>Anime</option><option>Fantasy</option><option>Photorealistic</option><option>3D</option><option>Peinture</option><option>Minimaliste</option><option>Architecture</option><option>Mode</option><option>Illustration</option></select>
+        <div class="card" id="museaLineageComposer" style="margin-top:14px">
+          <div class="eyebrow">04 / TRANSMISSION CRÉATIVE</div>
+          <h3 class="h3">Cette création vient-elle d'une autre idée ?</h3>
+          <p class="small muted">Tu peux relier ton œuvre à une création publique MUSEA qui t'a inspiré. Le lien crédite l'origine sans remplacer ta propre création. C'est facultatif.</p>
+          <label class="label" for="lineageSourcePost">Création à l'origine</label>
+          <select class="field" id="lineageSourcePost" onchange="updateLineageSourceStatus()"><option value="">Aucune — une création originale</option></select>
+          <label class="label" for="lineageRelationType">Nature du lien</label>
+          <select class="field" id="lineageRelationType"><option value="inspired_by">Inspirée par — une idée m'a guidé</option><option value="remix">Réinterprétation — j'en propose ma version</option></select>
+          <label class="label" for="lineageNote">Ce que tu as transformé (facultatif)</label>
+          <textarea class="field" id="lineageNote" rows="2" maxlength="240" placeholder="Ex. : j'ai repris le contraste entre nature et architecture, avec un univers différent."></textarea>
+          <p class="small muted" id="lineageSourceStatus" aria-live="polite">Aucun lien sélectionné. Ta publication restera indépendante.</p>
+        </div>
         <label class="label" for="studioNotes">Notes personnelles</label>
         <textarea class="field" id="studioNotes" rows="2" maxlength="2000" placeholder="Sources, étapes à reprendre, idées pour une prochaine version…"></textarea>
         <p class="small muted">Tes notes et ton brief ne sont jamais ajoutés au post public.</p>
@@ -913,6 +849,7 @@ function postMarkup(p){
     ${artMarkup(p)}
     <div class="post-title">${escapeHtml(p.title||'Création')}</div>
     <div class="post-description">${escapeHtml(p.desc||'')}</div>
+    ${p.lineage?'<div class="musea-lineage"><span class="musea-lineage-mark">↳</span><div><strong>'+(p.lineage.relation_type==='remix'?'Réinterprétation de':'Inspirée par')+'</strong><div class="small muted">'+escapeHtml(p.lineage.source_user?'@'+p.lineage.source_user:'une création MUSEA')+(p.lineage.source_title?' · '+escapeHtml(p.lineage.source_title):'')+'</div>'+(p.lineage.note?'<p class="small">'+escapeHtml(p.lineage.note)+'</p>':'')+'<button class="chip" onclick="openLineageSource(\''+escapeHtml(p.lineage.source_post_id)+'\')">Voir la création d’origine</button></div></div>':''}
     <div class="row wrap" style="margin-top:9px"><span class="chip">${escapeHtml(p.tag||'#MaCreation')}</span></div>
     <div class="post-actions">
       <button class="iconbtn ${liked?'on':''}" aria-label="${liked?'Ne plus aimer':'Aimer'} cette création, ${likes} mentions J’aime" aria-pressed="${liked}" onclick="toggleLike('${escapeHtml(id)}')">♡ ${likes}</button>
@@ -990,7 +927,53 @@ async function loadCommunityPosts(){
       comments:postComments
     };
   });
+  const lineageResult=postIds.length
+    ? await museaSupabase.from('creative_lineage').select('derived_post_id,source_post_id,relation_type,note').in('derived_post_id',postIds)
+    : {data:[],error:null};
+  if(lineageResult.error) console.warn('Filiations MUSEA indisponibles :',lineageResult.error);
+  const lineageRows=lineageResult.data||[];
+  const sourceIds=[...new Set(lineageRows.map(x=>x.source_post_id).filter(Boolean))];
+  let sourceRows=[],sourceProfiles=[];
+  if(sourceIds.length){
+    const sourceResult=await museaSupabase.from('posts').select('id,user_id,caption,style').in('id',sourceIds).eq('visibility','public');
+    if(sourceResult.error) console.warn('Origines de création indisponibles :',sourceResult.error);
+    else sourceRows=sourceResult.data||[];
+    const sourceUserIds=[...new Set(sourceRows.map(x=>x.user_id).filter(Boolean))];
+    if(sourceUserIds.length){
+      const profileResult=await museaSupabase.from('profiles').select('id,username').in('id',sourceUserIds);
+      if(!profileResult.error)sourceProfiles=profileResult.data||[];
+    }
+  }
+  communityPosts.forEach(post=>{
+    const link=lineageRows.find(x=>String(x.derived_post_id)===String(post.id));
+    if(!link)return;
+    const source=sourceRows.find(x=>String(x.id)===String(link.source_post_id));
+    post.lineage={...link,source_user:sourceProfiles.find(x=>x.id===source?.user_id)?.username||'Créateur MUSEA',source_title:(source?.caption||'Création d’origine').slice(0,70)};
+  });
+  refreshLineageSourceOptions();
   return communityPosts;
+}
+
+
+function refreshLineageSourceOptions(){
+  const select=document.getElementById('lineageSourcePost');if(!select)return;
+  const selected=select.value;
+  const options=(communityPosts||[]).filter(p=>p.id).map(p=>({id:String(p.id),label:'@'+(p.user||'Créateur')+' · '+(p.title||p.style||'Création').slice(0,54)}));
+  select.innerHTML='<option value="">Aucune — une création originale</option>'+options.map(x=>'<option value="'+escapeHtml(x.id)+'">'+escapeHtml(x.label)+'</option>').join('');
+  if(options.some(x=>x.id===selected))select.value=selected;
+  updateLineageSourceStatus();
+}
+function updateLineageSourceStatus(){
+  const select=document.getElementById('lineageSourcePost'),status=document.getElementById('lineageSourceStatus');
+  if(!select||!status)return;
+  const selected=communityPosts.find(p=>String(p.id)===String(select.value));
+  status.textContent=selected?'Le lien créditera @'+selected.user+' et restera visible avec ta création.':'Aucun lien sélectionné. Ta publication restera indépendante.';
+}
+async function openLineageSource(postId){
+  navigate('home');await renderFeed();
+  const target=document.getElementById('post-'+postId);
+  if(target)target.scrollIntoView({behavior:'smooth',block:'center'});
+  else toast('La création d’origine n’est plus dans les 100 publications chargées. Son lien de filiation reste conservé.');
 }
 
 const dailyCreativePrompts=[
@@ -2873,7 +2856,16 @@ async function publishDemo() {
     return;
   }
 
-  toast('Publication enregistrée sur Supabase !');
+  const lineageSourceId=document.getElementById('lineageSourcePost')?.value||'';
+  if(lineageSourceId){
+    const relationType=document.getElementById('lineageRelationType')?.value||'inspired_by';
+    const lineageNote=(document.getElementById('lineageNote')?.value||'').trim().slice(0,240);
+    const {error:lineageError}=await museaSupabase.from('creative_lineage').insert({
+      derived_post_id:post.id,source_post_id:lineageSourceId,creator_id:userData.user.id,relation_type:relationType,note:lineageNote
+    });
+    if(lineageError){console.warn('Publication créée, mais filiation non enregistrée :',lineageError);toast('Publication créée. Le lien de filiation n’a pas été enregistré : vérifie la migration de l’étape 25.');}
+    else toast('Création publiée et filiation enregistrée.');
+  }else toast('Publication enregistrée sur Supabase !');
   if(studioActiveDraftId){
     const draftId=studioActiveDraftId;
     const draft=studioDraftRows.find(x=>x.id===draftId);
@@ -2882,6 +2874,9 @@ async function publishDemo() {
     else if(studioExistingImagePath)await museaSupabase.storage.from('musea-drafts').remove([studioExistingImagePath]);
   }
   studioClear();
+  const lineageSelect=document.getElementById('lineageSourcePost');if(lineageSelect)lineageSelect.value='';
+  const lineageNote=document.getElementById('lineageNote');if(lineageNote)lineageNote.value='';
+  updateLineageSourceStatus();
   navigate('home');
 }
 function quickWeb(url){document.getElementById('urlInput').value=url;openWeb()}
@@ -3035,6 +3030,82 @@ async function submitModerationAppeal(type,id){
   toast('Ton recours a été transmis. La mesure reste active pendant son examen, sauf décision contraire.');
   await loadMyModerationCases();
 }
+/* MUSEA Empreinte — export personnel sous les règles RLS */
+async function exportMyMuseaData(){
+  const button=document.getElementById('museaExportButton');
+  const status=document.getElementById('museaExportStatus');
+  if(button)button.disabled=true;
+  if(status)status.textContent='Préparation de ton dossier…';
+  try{
+    const {data:authData,error:authError}=await museaSupabase.auth.getUser();
+    if(authError)throw authError;
+    const user=authData?.user;
+    if(!user){toast('Connecte-toi pour exporter tes données.');if(status)status.textContent='Connexion nécessaire.';return;}
+    const jobs=[
+      ['profil',()=>museaSupabase.from('profiles').select('*').eq('id',user.id)],
+      ['publications',()=>museaSupabase.from('posts').select('*').eq('user_id',user.id)],
+      ['likes_donnes',()=>museaSupabase.from('post_likes').select('*').eq('user_id',user.id)],
+      ['collections',()=>museaSupabase.from('saved_posts').select('*').eq('user_id',user.id)],
+      ['commentaires_envoyes',()=>museaSupabase.from('post_comments').select('*').eq('user_id',user.id)],
+      ['republications',()=>museaSupabase.from('post_reposts').select('*').eq('user_id',user.id)],
+      ['portfolio',()=>museaSupabase.from('creator_portfolio_items').select('*').eq('user_id',user.id)],
+      ['projets_prives_studio',()=>museaSupabase.from('creator_drafts').select('*').eq('user_id',user.id)],
+      ['notifications_recues',()=>museaSupabase.from('notifications').select('*').eq('recipient_id',user.id)],
+      ['preferences_notifications',()=>museaSupabase.from('notification_preferences').select('*').eq('user_id',user.id)],
+      ['messages_envoyes',()=>museaSupabase.from('messages').select('*').eq('sender_id',user.id)],
+      ['membres_conversations',()=>museaSupabase.from('conversation_members').select('*').eq('user_id',user.id)],
+      ['conversations_accessibles',()=>museaSupabase.from('conversations').select('*')],
+      ['taches_creees_ou_assignees',()=>museaSupabase.from('conversation_tasks').select('*').or('created_by.eq.'+user.id+',assigned_to.eq.'+user.id)],
+      ['comptes_bloques_par_moi',()=>museaSupabase.from('user_blocks').select('*').eq('blocker_id',user.id)],
+      ['signalements_envoyes',()=>museaSupabase.from('user_reports').select('*').eq('reporter_id',user.id)]
+    ];
+    const results=await Promise.all(jobs.map(async ([key,build])=>{
+      try{
+        let rows=[],offset=0,more=true;
+        while(more && offset<20000){
+          const {data,error}=await build().range(offset,offset+499);
+          if(error)throw error;
+          const page=data||[];
+          rows=rows.concat(page);
+          more=page.length===500;
+          offset+=page.length;
+          if(page.length===0)break;
+        }
+        return [key,{status:more?'partiel_limite':'ok',count:rows.length,items:rows}];
+      }catch(error){
+        return [key,{status:'indisponible',count:0,items:[],reason:String(error?.message||'Lecture impossible')}];
+      }
+    }));
+    const sections=Object.fromEntries(results);
+    const unavailable=results.filter(([,value])=>value.status!=='ok').map(([key])=>key);
+    const payload={
+      format:'MUSEA_PERSONAL_DATA_EXPORT',
+      version:1,
+      generated_at:new Date().toISOString(),
+      account:{id:user.id,email:user.email||null,created_at:user.created_at||null},
+      scope:'Données accessibles à ce compte via la session courante et les politiques Row Level Security. Les fichiers binaires ne sont pas inclus.',
+      privacy:{messages:'Seuls les messages envoyés par ce compte sont inclus.',conversations:'Les conversations sont limitées par les règles d’accès du compte.',third_party:'Les données privées d’autres membres ne sont pas exportées.'},
+      sections,
+      export_notes:unavailable.length?['Certaines catégories sont indisponibles ou ont atteint la limite de pagination : '+unavailable.join(', ')+'. Vérifie les migrations et relance un export.']:['Toutes les catégories interrogées ont répondu.']
+    };
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;
+    link.download='musea-mes-donnees-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
+    if(status)status.textContent=unavailable.length?('Export téléchargé · '+unavailable.length+' catégorie(s) à vérifier.'):'Export téléchargé · '+results.reduce((n,[,v])=>n+v.count,0)+' élément(s).';
+    toast('Ton dossier MUSEA a été préparé.');
+  }catch(error){
+    console.error('Export MUSEA impossible :',error);
+    if(status)status.textContent='Export impossible : '+(error?.message||'erreur inconnue');
+    toast('Impossible de préparer ton export.');
+  }finally{
+    if(button)button.disabled=false;
+  }
+}
+
 function init(){load();applyTheme();updatePlan();document.getElementById('prompt')?.addEventListener('input',()=>{const el=document.getElementById('studioCaptionCount');if(el)el.textContent=document.getElementById('prompt').value.length+' / 500';});const dailyPrompt=document.getElementById('dailyPromptText');if(dailyPrompt)dailyPrompt.textContent=getDailyCreativePrompt();renderFeed();renderDiscover();renderLeaderboard();renderMessages();renderNotifications();renderProfile();renderBookmarks();if(!state.plan)showPlans();if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(state.theme==='system')applyTheme()})}
 async function museaMessage(text) {
   document.getElementById('authMessage').textContent = text;
