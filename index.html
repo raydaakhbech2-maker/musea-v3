@@ -514,7 +514,7 @@ window.museaSupabase = window.supabase.createClient(
 const defaultPosts = [];
 let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:[],ownStories:[],displayName:'',headline:'',creativeSignature:'',specialties:[],messages:[],groups:[],
 prefs:{likes:true,collections:true,online:true,dm:false,projectInvites:true,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
-let feedKind='all',homeFeedMode='affinity',discoverKind='Tout',currentChat='Luna Creative',customStories=[];
+let feedKind='all',homeFeedMode='affinity',discoverKind='Tout',customStories=[];
 let discoverMode='affinity';
 let creativeStyles=['Digital art','Fantasy'];
 let discoveryFeedback=[];
@@ -1127,7 +1127,7 @@ async function startMessageRealtime(userId){
       if(payload.new?.conversation_id===activeConversationId)loadConversationMessages();
       loadMessageWorkspace();
     })
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'conversation_members',filter:'user_id=eq.'+userId},()=>{
+    .on('postgres_changes',{event:'*',schema:'public',table:'conversation_members'},()=>{
       loadMessageWorkspace();
     })
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'conversation_tasks'},payload=>{
