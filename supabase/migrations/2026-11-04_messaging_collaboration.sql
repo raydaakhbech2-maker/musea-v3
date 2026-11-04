@@ -89,7 +89,8 @@ revoke all on public.conversations,public.conversation_members,public.messages,p
 grant select on public.conversations,public.conversation_members,public.messages,public.conversation_tasks to authenticated;
 grant insert on public.messages to authenticated;
 grant update(last_read_at) on public.conversation_members to authenticated;
-grant insert,update on public.conversation_tasks to authenticated;
+grant insert on public.conversation_tasks to authenticated;
+grant update(title,details,status,assigned_to) on public.conversation_tasks to authenticated;
 
 drop policy if exists "Members can read their conversations" on public.conversations;
 create policy "Members can read their conversations"
@@ -244,9 +245,9 @@ begin
   values(v_id,v_user,'owner','accepted',v_user,now());
 
   insert into public.conversation_members(conversation_id,user_id,role,status,invited_by)
-  select v_id,x,'member','invited',v_user
-  from (select distinct unnest(p_participant_ids) as x) ids
-  where x is not null and x<>v_user;
+  select v_id,participant_id,'member','invited',v_user
+  from (select distinct unnest(p_participant_ids) as participant_id) ids
+  where participant_id is not null and participant_id<>v_user;
 
   return v_id;
 end;
