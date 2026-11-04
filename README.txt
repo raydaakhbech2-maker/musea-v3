@@ -38,7 +38,7 @@ Le client utilise une clé publishable côté navigateur. Aucune clé `service_r
 Avant d'activer les fonctionnalités, vérifier dans Supabase :
 1. L'URL de redirection d'authentification : `https://raydaakhbech2-maker.github.io/musea-v3/`.
 2. L'existence des tables de base `profiles`, `posts` et des tables d'interactions sociales utilisées par l'application.
-3. L'application des migrations du dépôt dans un ordre respectant leurs dépendances : notifications, découverte créative, messagerie/collaboration, modération/confiance, équité/recours, profils créateurs/portfolio.
+3. L'application des migrations du dépôt dans un ordre respectant leurs dépendances : notifications, découverte créative, messagerie/collaboration, modération/confiance, équité/recours, profils créateurs/portfolio, puis Studio créatif.
 4. Les politiques Row Level Security (RLS), les fonctions RPC et les rôles de modération côté serveur.
 5. Les règles du bucket Storage utilisé pour les images.
 
