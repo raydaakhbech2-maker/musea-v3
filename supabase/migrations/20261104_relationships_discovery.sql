@@ -18,6 +18,32 @@ create table if not exists public.profile_interests (
   constraint profile_interests_unique unique(user_id, interest)
 );
 create index if not exists profile_interests_user_idx on public.profile_interests(user_id);
+
+create or replace function public.musea_limit_profile_interests()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $
+begin
+  if not exists (
+    select 1 from public.profile_interests
+    where user_id = new.user_id and interest = new.interest
+  ) and (
+    select count(*) from public.profile_interests
+    where user_id = new.user_id
+  ) >= 5 then
+    raise exception 'A maximum of five creative interests is allowed';
+  end if;
+  return new;
+end;
+$;
+
+drop trigger if exists musea_profile_interests_limit on public.profile_interests;
+create trigger musea_profile_interests_limit
+before insert on public.profile_interests
+for each row execute function public.musea_limit_profile_interests();
+revoke all on function public.musea_limit_profile_interests() from public, anon, authenticated;
 alter table public.follows enable row level security;
 alter table public.profile_interests enable row level security;
 drop policy if exists "Users see relationships involving them" on public.follows;
