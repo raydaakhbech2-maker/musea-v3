@@ -60,6 +60,14 @@ La découverte propose trois équilibres (Mes repères, Équilibré, Surprise), 
 
 La migration `2026-11-04_discovery_controls.sql` ajoute les réglages à `creative_preferences`. Les préférences sont privées via les politiques RLS existantes ; en cas de migration non appliquée, les réglages locaux restent disponibles sur l'appareil, sans prétendre être synchronisés.
 
+## Pulse créateur — retour privé sur les créations
+
+Le profil personnel affiche un tableau de bord privé calculé à partir des publications publiques du compte et des interactions réellement enregistrées : likes, commentaires et reposts. Il met en avant le volume de créations, l'activité récente sur 7 jours et la publication qui suscite le plus d'interactions.
+
+Les brouillons ne sont pas comptabilisés. Les vues, les personnes uniques et la portée ne sont pas mesurées dans cette version : les interactions ne doivent pas être présentées comme des vues ni comme une mesure de qualité. Les données sont chargées avec pagination pour éviter de tronquer les interactions au-delà de la limite habituelle d'une requête.
+
+Aucune migration SQL supplémentaire n'est nécessaire ; le tableau de bord utilise les tables sociales existantes et leurs politiques RLS.
+
 ## MUSEA Studio
 
 Le Studio permet de préparer des créations avant publication :
