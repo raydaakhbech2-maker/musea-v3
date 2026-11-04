@@ -1367,7 +1367,15 @@ async function toggleRepost(id){
     await refreshSocialViews(id);
   }catch(error){console.error(error);toast('Impossible de modifier le repost. '+(error.message||''));}
 }
-function translatePost(id){let p=defaultPosts.find(x=>x.id===id);let lang=document.getElementById('language')?.value||'Français';toast('Traduction IA simulée vers '+lang+' : la connexion au service de traduction reste à faire.');}
+async function translatePost(id){
+  const post=[...(communityPosts||[]),...(defaultPosts||[])].find(item=>String(item.id)===String(id));
+  const source=(post?.caption||post?.desc||post?.title||'').trim();
+  if(!source)return toast('Aucun texte disponible pour cette création.');
+  const input=document.getElementById('translationSourceText');
+  if(input)input.value=source;
+  navigate('settings');
+  await translateDemo();
+}
 async function loadDiscoverySettings(){
   const localStyles=(()=>{try{return JSON.parse(localStorage.getItem('museaCreativeStyles')||'null')}catch(e){return null}})();
   const localControls=(()=>{try{return JSON.parse(localStorage.getItem('museaDiscoveryControls')||'null')}catch(e){return null}})();
@@ -3453,7 +3461,7 @@ async function copyMuseaSignalReport(){
   }catch(error){toast('Copie indisponible : sélectionne le rapport après un nouveau diagnostic.');}
 }
 
-function init(){load();applyTheme();updatePlan();document.getElementById('prompt')?.addEventListener('input',()=>{const el=document.getElementById('studioCaptionCount');if(el)el.textContent=document.getElementById('prompt').value.length+' / 500';});const dailyPrompt=document.getElementById('dailyPromptText');if(dailyPrompt)dailyPrompt.textContent=getDailyCreativePrompt();renderFeed();renderDiscover();renderLeaderboard();renderMessages();renderNotifications();renderProfile();renderBookmarks();if(!state.plan)showPlans();if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});updateMuseaNetworkNotice();window.addEventListener('online',updateMuseaNetworkNotice);window.addEventListener('offline',updateMuseaNetworkNotice);window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(state.theme==='system')applyTheme()})}
+function init(){load();applyTheme();updatePlan();document.getElementById('prompt')?.addEventListener('input',()=>{const el=document.getElementById('studioCaptionCount');if(el)el.textContent=document.getElementById('prompt').value.length+' / 500';});const dailyPrompt=document.getElementById('dailyPromptText');if(dailyPrompt)dailyPrompt.textContent=getDailyCreativePrompt();renderFeed();renderDiscover();renderLeaderboard();renderMessages();renderNotifications();renderProfile();renderBookmarks();if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});updateMuseaNetworkNotice();window.addEventListener('online',updateMuseaNetworkNotice);window.addEventListener('offline',updateMuseaNetworkNotice);window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(state.theme==='system')applyTheme()})}
 async function museaMessage(text) {
   document.getElementById('authMessage').textContent = text;
 }
