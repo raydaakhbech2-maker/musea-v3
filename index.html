@@ -555,7 +555,7 @@ function renderHomeFeedFromCache(){
     :'Un espace supplémentaire pour les créations récentes et moins exposées.';
   feed.setAttribute('aria-busy','false');
   if(!ordered.length){
-    feed.innerHTML='<div class="home-empty card"><div class="home-empty-icon">✳</div><h3 class="h3">La prochaine idée à découvrir pourrait être la tienne.</h3><p class="muted small">Aucune création ne correspond à cette sélection pour le moment.</p><button class="btn primary" onclick="navigate('create')">Proposer une création</button></div>';
+    feed.innerHTML='<div class="home-empty card"><div class="home-empty-icon">✳</div><h3 class="h3">La prochaine idée à découvrir pourrait être la tienne.</h3><p class="muted small">Aucune création ne correspond à cette sélection pour le moment.</p><button class="btn primary" onclick="navigate(&quot;create&quot;)">Proposer une création</button></div>';
     return;
   }
   feed.innerHTML=ordered.map(post=>{
