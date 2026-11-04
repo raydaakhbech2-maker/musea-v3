@@ -1217,8 +1217,10 @@ async function deleteOwnPost(postId){
       if(storageError){storageWarning=true;console.warn('Publication supprimée, fichier Storage à nettoyer :',storageError);}
     }
     if(window.openCommentPostId===id)window.openCommentPostId=null;
-    await renderProfile();
-    await refreshSocialViews();
+    const activeScreen=document.querySelector('.screen.active')?.id;
+    if(activeScreen==='screen-profile')await renderProfile();
+    else if(activeScreen==='screen-home'||activeScreen==='screen-discover')await refreshSocialViews();
+    else await renderProfile();
     toast(storageWarning?'Création supprimée. Le fichier image nécessite un nettoyage côté stockage.':'Création supprimée de MUSEA.');
   }catch(error){
     console.error('Suppression de création impossible :',error);
@@ -3421,6 +3423,7 @@ async function museaRefreshAccount() {
     notificationPrefs={likes:true,comments:true,replies:true,reposts:true,new_followers:true,mentions:true,messages:true,recommendations:true};
     document.getElementById('profileName').textContent = '@monprofil';
     renderNotifications();
+    if(document.querySelector('.screen.active')?.id==='screen-home')await renderFeed();
     return;
   }
 
@@ -3451,6 +3454,7 @@ async function museaRefreshAccount() {
   }
 
   museaMessage("Connecté : " + user.email);
+  if(document.querySelector('.screen.active')?.id==='screen-home')await renderFeed();
 }
 
 museaSupabase.auth.onAuthStateChange(() => {
