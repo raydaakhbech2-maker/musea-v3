@@ -37,6 +37,32 @@
 .discovery-reason{display:flex;align-items:center;gap:7px;margin:0 0 6px 3px;font-size:12px;color:var(--muted)}
 .discovery-feedback{display:flex;gap:8px;flex-wrap:wrap;margin:-4px 4px 12px}
 .discovery-feedback .chip{font-size:12px}
+.trends-hero{background:radial-gradient(circle at 88% 10%,rgba(231,154,120,.25),transparent 30%),linear-gradient(130deg,#211b32,#443663 60%,#7963c8);color:#fff}
+.trends-hero .eyebrow{color:#d8ceff}
+.trends-hero p{color:#eee9ff;max-width:58ch}
+.trends-periods{display:flex;gap:7px;flex-wrap:wrap;margin-top:16px}
+.trends-periods .chip{background:#ffffff16;border-color:#ffffff50;color:#fff}
+.trends-periods .chip.selected{background:#fff;color:#342653;border-color:#fff}
+.trends-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.trends-summary{min-width:0;padding:13px 10px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
+.trends-summary span,.trends-summary small{display:block;color:var(--muted);font-size:10px;line-height:1.4}
+.trends-summary strong{display:block;font-size:clamp(21px,5vw,29px);margin:3px 0;overflow-wrap:anywhere}
+.trends-section{margin-bottom:14px}
+.trend-current-list{display:grid;gap:8px;margin-top:14px}
+.trend-current{display:flex;align-items:center;gap:10px;width:100%;padding:12px;border:1px solid var(--line);border-radius:15px;background:var(--surface);color:var(--ink);text-align:left}
+.trend-current-main{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.trend-current-main strong{overflow-wrap:anywhere}
+.trend-current small{font-size:11px;color:var(--muted)}
+.trend-current-index{font-size:12px;font-weight:850;color:var(--accent);min-width:23px}
+.trend-current-signal{text-align:right;display:flex;flex-direction:column;min-width:55px}
+.trend-current-signal strong{font-size:14px}
+.trend-current-arrow{font-size:18px;color:var(--accent)}
+.trend-emerging-list{display:grid;gap:12px;margin-top:12px}
+.trend-emerging-reason{font-size:11px;color:var(--muted);margin:0 0 6px 3px}
+.trends-footnote,.trends-honesty{font-size:11px;line-height:1.55;color:var(--muted);margin:10px 3px 16px}
+.trends-empty{padding:26px 18px}
+.trends-empty-mark{font-size:30px;color:var(--accent);margin-bottom:8px}
+@media(max-width:390px){.trends-summary{padding:10px 7px}.trends-summary span,.trends-summary small{font-size:9px}.trend-current{gap:7px;padding:10px}}
 .creator-pulse-card{overflow:hidden}
 .creator-pulse-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}
 .creator-pulse-stat{min-width:0;padding:13px;border:1px solid var(--line);border-radius:15px;background:var(--surface)}
@@ -515,10 +541,18 @@ window.museaSupabase = window.supabase.createClient(
   </div>
 </section>
 <section class="screen" id="screen-trends">
-  <div class="card hero"><div class="eyebrow">Tous les 7 jours</div><h2 class="h1">Le classement créatif.</h2><p>Les points récompensent la contribution. Ils ne sont pas de l'argent et ne peuvent pas être achetés.</p></div>
-  <div class="card"><h3 class="h3">Récompenses proposées</h3><div class="row wrap"><span class="chip">Badges de profil</span><span class="chip">Crédits IA</span><span class="chip">Thèmes Premium</span><span class="chip">Mise en avant</span></div><p class="small muted">Les récompenses réelles devront être financées et encadrées. Pas de récompense en espèces au lancement.</p></div>
-  <div id="leaderboard"></div>
-  <div class="card"><h3 class="h3">Comment gagner des points ?</h3><div class="switchrow"><span>Like reçu d'un compte authentique</span><strong>+1</strong></div><div class="switchrow"><span>Commentaire utile reçu</span><strong>+3</strong></div><div class="switchrow"><span>Enregistrement dans une collection</span><strong>+3</strong></div><div class="switchrow"><span>Repost authentique</span><strong>+4</strong></div><p class="small muted">Plafonds, détection de fraude, comptes uniques et modération seront nécessaires avant d'activer le classement.</p></div>
+  <div class="card trends-hero">
+    <div class="eyebrow">MUSEA / MOUVEMENTS CRÉATIFS</div>
+    <h1 class="h1">Les idées qui font bouger les univers.</h1>
+    <p>Les tendances racontent ce que la communauté explore. Ici, les styles prennent la lumière — pas un podium de personnes.</p>
+    <div class="trends-periods" role="group" aria-label="Période des tendances">
+      <button class="chip selected" data-trend-period="7d" onclick="setTrendPeriod('7d')">7 jours</button>
+      <button class="chip" data-trend-period="30d" onclick="setTrendPeriod('30d')">30 jours</button>
+      <button class="chip" data-trend-period="all" onclick="setTrendPeriod('all')">Toutes les récentes</button>
+    </div>
+  </div>
+  <div id="leaderboard" aria-live="polite" aria-busy="true"><div class="card notice">Les courants créatifs se dessinent…</div></div>
+  <p class="trends-footnote">Transparence : les tendances sont calculées à partir des 100 dernières publications publiques accessibles à MUSEA. Elles ne représentent pas nécessairement toute la communauté. Les interactions indiquent une activité, pas la qualité d'une œuvre.</p>
 </section>
 <section class="screen" id="screen-stories">
   <div class="card stories-page-hero"><div class="eyebrow">MUSEA / INSTANTS</div><h2 class="h1">Les instants créatifs.</h2><p class="muted">Un espace pour partager un aperçu, une étape de création ou une inspiration. La publication des stories est encore en démonstration locale.</p>
@@ -709,6 +743,8 @@ let creativeStyles=['Digital art','Fantasy'];
 let discoveryFeedback=[];
 let discoveryUserId=null;
 let discoveryControls={balance:'balanced',personalization:true,emerging:true};
+let trendPeriod='7d';
+let trendStyleChoices=[];
 const creativeStyleOptions=['Digital art','Fantasy','Photo','3D','Anime','Photorealistic','Peinture','Minimaliste','Architecture','Mode','Illustration'];
 function load(){try{let s=JSON.parse(localStorage.getItem('museaState')||'null');if(s)state={...state,...s,prefs:{...state.prefs,...s.prefs}}}catch(e){}}
 function save(){try{localStorage.setItem('museaState',JSON.stringify(state))}catch(e){}}
@@ -1348,7 +1384,96 @@ function addStory(){
   renderStories();
   toast('Brouillon enregistré sur cet appareil. Il n’est pas publié.');
 }
-function renderLeaderboard(){let entries=[{n:'luna.creative',p:1840,r:'Créateur vedette'},{n:'noah.visuals',p:1420,r:'Mise en avant'},{n:'aya.studio',p:980,r:'Crédits IA bonus'},{n:state.username,p:state.points,r:'Continue à créer'}].sort((a,b)=>b.p-a.p);document.getElementById('leaderboard').innerHTML=entries.map((e,i)=>`<div class="card"><div class="row"><div class="avatar">${i+1}</div><div style="flex:1"><strong>${escapeHtml(e.n)}</strong><div class="small muted">${e.p.toLocaleString('fr-FR')} points</div></div><span class="chip">#${i+1}</span></div><div class="small muted" style="margin-top:9px">Récompense possible : ${e.r}</div></div>`).join('')}
+function setTrendPeriod(period){
+  if(!['7d','30d','all'].includes(period))return;
+  trendPeriod=period;
+  document.querySelectorAll('[data-trend-period]').forEach(button=>{
+    const active=button.dataset.trendPeriod===period;
+    button.classList.toggle('selected',active);
+    button.setAttribute('aria-pressed',String(active));
+  });
+  renderLeaderboard();
+}
+function openTrendStyleByIndex(index){
+  const style=trendStyleChoices[index];
+  if(!style)return;
+  navigate('discover');
+  const input=document.getElementById('searchInput');
+  if(input)input.value=style;
+  renderDiscover();
+}
+function trendInteractionCount(post){
+  return (Number(post.likesCount)||0)+(Number(post.commentsCount)||0)+(Number(post.repostsCount)||0);
+}
+async function renderLeaderboard(){
+  const target=document.getElementById('leaderboard');
+  if(!target)return;
+  target.setAttribute('aria-busy','true');
+  target.innerHTML='<div class="card notice">Les courants créatifs se dessinent à partir des publications publiques…</div>';
+  try{
+    await loadCommunityPosts();
+    const now=Date.now();
+    const windowMs=trendPeriod==='7d'?7*86400000:trendPeriod==='30d'?30*86400000:Infinity;
+    const posts=communityPosts.filter(post=>{
+      const created=new Date(post.created_at||0).getTime();
+      return trendPeriod==='all'||(Number.isFinite(created)&&created>=now-windowMs);
+    });
+    const creators=new Set(posts.map(post=>post.user_id).filter(Boolean));
+    const periodLabel=trendPeriod==='7d'?'sur les 7 derniers jours':trendPeriod==='30d'?'sur les 30 derniers jours':'dans les publications récentes chargées';
+    if(!posts.length){
+      target.innerHTML='<div class="card trends-empty"><div class="trends-empty-mark">✳</div><h2 class="h2">Le prochain courant peut commencer avec toi.</h2><p class="small muted">Aucune publication publique ne correspond à cette période pour le moment. Essaie une période plus large ou partage une création.</p><div class="row wrap"><button class="btn" onclick="setTrendPeriod(\'30d\')">Voir 30 jours</button><button class="btn primary" onclick="navigate(\'create\')">Ouvrir le Studio</button></div></div>';
+      target.setAttribute('aria-busy','false');
+      return;
+    }
+    const buckets=new Map();
+    posts.forEach(post=>{
+      const label=(post.style||'Autres univers').trim()||'Autres univers';
+      const key=label.toLocaleLowerCase('fr-FR');
+      if(!buckets.has(key))buckets.set(key,{label,posts:0,creators:new Set(),interactions:0,latest:0});
+      const bucket=buckets.get(key);
+      bucket.posts++;
+      if(post.user_id)bucket.creators.add(post.user_id);
+      bucket.interactions+=trendInteractionCount(post);
+      const timestamp=new Date(post.created_at||0).getTime();
+      if(Number.isFinite(timestamp))bucket.latest=Math.max(bucket.latest,timestamp);
+    });
+    const currents=[...buckets.values()].map(bucket=>({...bucket,creatorCount:bucket.creators.size}))
+      .sort((a,b)=>b.posts-a.posts||b.creatorCount-a.creatorCount||b.latest-a.latest)
+      .slice(0,6);
+    trendStyleChoices=currents.map(item=>item.label);
+    const currentMarkup=currents.map((item,index)=>`<button class="trend-current" onclick="openTrendStyleByIndex(${index})">
+      <span class="trend-current-index">${String(index+1).padStart(2,'0')}</span>
+      <span class="trend-current-main"><strong>${escapeHtml(item.label)}</strong><small>${item.posts} création(s) · ${item.creatorCount} créateur(s)</small></span>
+      <span class="trend-current-signal"><strong>${item.interactions}</strong><small>interactions</small></span>
+      <span class="trend-current-arrow" aria-hidden="true">↗</span>
+    </button>`).join('');
+    const emerging=posts.slice().sort((a,b)=>{
+      const ageA=Math.max(0,(now-new Date(a.created_at||now).getTime())/86400000);
+      const ageB=Math.max(0,(now-new Date(b.created_at||now).getTime())/86400000);
+      const signalA=trendInteractionCount(a),signalB=trendInteractionCount(b);
+      return (signalA-signalB)||(ageA-ageB);
+    }).slice(0,3);
+    const emergingMarkup=emerging.map(post=>`<div class="trend-emerging-item"><div class="trend-emerging-reason">✳ À rencontrer · ${trendInteractionCount(post)} interaction(s)</div>${postMarkup(post)}</div>`).join('');
+    target.innerHTML=`<div class="trends-summary-grid">
+      <div class="trends-summary"><span>Créations</span><strong>${posts.length}</strong><small>${periodLabel}</small></div>
+      <div class="trends-summary"><span>Créateurs</span><strong>${creators.size}</strong><small>Comptes distincts présents</small></div>
+      <div class="trends-summary"><span>Univers</span><strong>${buckets.size}</strong><small>Styles représentés</small></div>
+    </div>
+    <section class="card trends-section"><div class="eyebrow">LA CARTE DES COURANTS</div><h2 class="h2">Ce qui se dessine</h2><p class="small muted">Les courants sont classés d'abord par nombre de créations, puis par diversité de créateurs. Les interactions restent un indicateur secondaire.</p>
+      <div class="trend-current-list">${currentMarkup}</div>
+      <p class="small muted">Choisis un courant pour retrouver les créations de cet univers dans Explorer.</p>
+    </section>
+    <section class="card trends-section"><div class="eyebrow">HORS DES PROJECTEURS</div><h2 class="h2">Des créations à rencontrer</h2><p class="small muted">Une sélection de publications ayant encore peu d'interactions. Ce n'est pas un jugement de qualité ni une promesse de visibilité.</p>
+      <div class="trend-emerging-list">${emergingMarkup}</div>
+    </section>
+    <div class="trends-honesty small muted">Aucun profil fictif, aucun classement individuel et aucun point attribué automatiquement dans cette page. Les chiffres proviennent des publications publiques et des interactions chargées.</div>`;
+    target.setAttribute('aria-busy','false');
+  }catch(error){
+    console.error('Courants créatifs indisponibles :',error);
+    target.innerHTML='<div class="card"><strong>Les tendances sont momentanément indisponibles.</strong><p class="small muted">Les créations ne sont pas modifiées. Vérifie ta connexion puis réessaie.</p><button class="btn" onclick="renderLeaderboard()">Réessayer</button></div>';
+    target.setAttribute('aria-busy','false');
+  }
+}
 let activeConversationId=null;
 let messageUserId=null;
 let messageChannel=null;
