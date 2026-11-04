@@ -351,7 +351,7 @@ async function renderFeed(){
   renderStories();
 }
 function setFeed(k,b){feedKind=k;document.querySelectorAll('#screen-home .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderFeed()}
-function toggleLike(id){if(state.liked.includes(id)){state.liked=state.liked.filter(x=>x!==id)}else{state.liked.push(id);state.notifications.unshift({type:'Activité',text:'Ta réaction a été enregistrée dans le prototype.',time:'À l’instant',read:false})}save();renderFeed();renderProfile();renderNotifications()}
+
 function toggleSave(id){if(state.saved.includes(id)){state.saved=state.saved.filter(x=>x!==id)}else{state.saved.push(id)}save();renderFeed();renderProfile();toast(state.saved.includes(id)?'Ajouté à tes collections.':'Retiré de tes collections.')}
 function commentPost(id){let txt=prompt('Écris un commentaire de démonstration :');if(txt&&txt.trim()){state.comments[id]=state.comments[id]||[];state.comments[id].push(txt.trim());state.notifications.unshift({type:'Activité',text:'Commentaire ajouté sur une publication.',time:'À l’instant',read:false});save();renderFeed();toast('Commentaire ajouté au prototype.')} }
 function translatePost(id){let p=defaultPosts.find(x=>x.id===id);let lang=document.getElementById('language')?.value||'Français';toast('Traduction IA simulée vers '+lang+' : la connexion au service de traduction reste à faire.');}
@@ -679,7 +679,7 @@ async function openNotificationTarget(notification){
       return;
     }
     navigate('discover');
-    setTimeout(()=>document.getElementById('post-'+notification.target_id)?.scrollIntoView({behavior:'smooth',block:'center'}),350);
+    setTimeout(()=>{const card=Array.from(document.querySelectorAll('[data-post-id]')).find(el=>el.dataset.postId===String(notification.target_id));card?.scrollIntoView({behavior:'smooth',block:'center'})},450);
   }catch(e){console.error(e);toast('Impossible d’ouvrir cette activité.')}
 }
 async function markNotificationRead(id,refresh=true){
