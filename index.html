@@ -2151,8 +2151,9 @@ function studioHandleImage(event){
   if(!['image/jpeg','image/png','image/webp'].includes(file.type)){toast('Formats acceptés : JPG, PNG ou WebP.');event.target.value='';return;}
   if(file.size>5*1024*1024){toast('Image trop volumineuse : 5 Mo maximum.');event.target.value='';return;}
   if(studioImageObjectUrl)URL.revokeObjectURL(studioImageObjectUrl);
+  studioImage=null;
   studioImageObjectUrl=URL.createObjectURL(file);
-  studioExistingImagePath=null;
+  studioRenderImage();
   studioLoadImage(studioImageObjectUrl).then(()=>{studioSetSaveState('Modifications non enregistrées');toast('Image ajoutée à ton atelier.');}).catch(error=>toast(error.message));
 }
 function studioSetSaveState(message){
