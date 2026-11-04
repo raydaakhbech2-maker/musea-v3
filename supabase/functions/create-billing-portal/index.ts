@@ -42,6 +42,10 @@ Deno.serve(async (req) => {
 
   try {
     const stripe = new Stripe(stripeKey);
+    const stripeCustomer = await stripe.customers.retrieve(customer.stripe_customer_id);
+    if (!("metadata" in stripeCustomer) || stripeCustomer.metadata?.musea_user_id !== user.id) {
+      return json({ error: "Le compte client ne correspond pas à ce compte MUSEA." }, 409);
+    }
     const session = await stripe.billingPortal.sessions.create({
       customer: customer.stripe_customer_id,
       return_url: APP_URL,
