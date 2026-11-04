@@ -1492,7 +1492,7 @@ function renderNotifications(errorMessage=''){
         <div class="small muted">${notificationDate(n.created_at)}</div>
         <div class="notification-actions">
           ${n.post_id?`<button class="chip" onclick="openNotificationPost('${n.post_id}')">Voir la création ↗</button>`:''}
-          ${['message','message_request','project_invite'].includes(n.type)?'<button class="chip" onclick="navigate(\\'messages\\')">Ouvrir les messages ↗</button>':''}
+          ${['message','message_request','project_invite'].includes(n.type)?'<button class="chip" onclick="navigate(&quot;messages&quot;)">Ouvrir les messages ↗</button>':''}
           ${n.read_at?'':'<button class="chip" onclick="markNotificationRead(\''+n.id+'\')">Marquer comme lue</button>'}
         </div>
       </div>
