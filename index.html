@@ -96,6 +96,17 @@ window.museaSupabase = window.supabase.createClient(
 >
 
 <div id="imagePreview" style="margin-top:12px"></div>
+  <div id="editorTools" class="card hidden" style="margin-top:12px">
+    <div class="row between"><h3 class="h3">Retouche rapide</h3><button class="btn" type="button" onclick="resetEditor()">Réinitialiser</button></div>
+    <p class="small muted">Les réglages sont appliqués à l'image exportée et à la publication.</p>
+    <label class="label" for="editBrightness">Luminosité <span id="brightnessValue">100 %</span></label>
+    <input class="field" type="range" id="editBrightness" min="50" max="150" value="100" oninput="updateEditor()">
+    <label class="label" for="editContrast">Contraste <span id="contrastValue">100 %</span></label>
+    <input class="field" type="range" id="editContrast" min="50" max="150" value="100" oninput="updateEditor()">
+    <label class="label" for="editSaturation">Saturation <span id="saturationValue">100 %</span></label>
+    <input class="field" type="range" id="editSaturation" min="0" max="200" value="100" oninput="updateEditor()">
+    <button class="btn full" type="button" style="margin-top:10px" onclick="downloadEditedImage()">↓ Exporter l'image retouchée</button>
+  </div>
   <label class="label">Style</label><select class="field" id="artStyle"><option>Digital art</option><option>Anime</option><option>Fantasy</option><option>Photorealistic</option><option>3D</option><option>Peinture</option><option>Minimaliste</option></select>
   <label class="label">Format</label><select class="field" id="artFormat"><option>Carré</option><option>Portrait</option><option>Paysage</option><option>Story 9:16</option></select>
   <div class="row between" style="margin:14px 0"><span class="muted small">Crédits disponibles</span><strong id="credits">5 / jour</strong></div>
@@ -385,39 +396,74 @@ function redeemWallpaper(){if(state.plan!=='premium')return toast('Le fond exclu
 function redeemBadge(){if(state.badge)return toast('Tu possèdes déjà ce badge de démonstration.');if(state.points<250)return toast('Il te faut 250 points.');state.points-=250;state.badge=true;save();renderRewards();renderProfile();document.getElementById('rewardStatus').classList.remove('hidden');document.getElementById('rewardStatus').textContent='Badge créateur débloqué. Il ne s’agit pas d’une certification.';toast('Badge cosmétique débloqué.')}
 function requestVerification(){if(state.plan!=='premium')return toast('La demande de certification est réservée aux comptes Premium éligibles.');if(state.points<5000)return toast('Éligibilité non atteinte : 5 000 points minimum, puis vérification indépendante.');toast('Tu peux soumettre une demande. L’approbation reste soumise à une vérification humaine et à des critères d’authenticité.')}
 function generateArt(){let p=document.getElementById('prompt').value.trim();if(!p)return toast('Décris ton idée avant de générer.');if(state.plan==='premium'&&state.points<0)return;document.getElementById('generated').classList.remove('hidden');document.getElementById('generated').innerHTML=`${artMarkup({title:p.slice(0,60),art:'a3'})}<p><strong>${escapeHtml(document.getElementById('artStyle').value)}</strong> · ${escapeHtml(document.getElementById('artFormat').value)}</p><div class="notice">Aperçu décoratif simulé : aucune image n'a été générée par une IA.</div><button class="btn primary full" style="margin-top:10px" onclick="publishDemo()">Publier dans le fil (démo)</button>`}
+let museaEditorSource = null;
+let museaEditorName = 'musea-creation.jpg';
+function editorValues(){
+  return {
+    brightness:Number(document.getElementById('editBrightness')?.value||100),
+    contrast:Number(document.getElementById('editContrast')?.value||100),
+    saturation:Number(document.getElementById('editSaturation')?.value||100)
+  };
+}
+function drawEditor(){
+  const canvas=document.getElementById('editorCanvas');
+  if(!canvas||!museaEditorSource)return;
+  const maxSide=1800,scale=Math.min(1,maxSide/Math.max(museaEditorSource.naturalWidth,museaEditorSource.naturalHeight));
+  canvas.width=Math.round(museaEditorSource.naturalWidth*scale);
+  canvas.height=Math.round(museaEditorSource.naturalHeight*scale);
+  const v=editorValues(),ctx=canvas.getContext('2d');
+  ctx.filter='brightness('+v.brightness+'%) contrast('+v.contrast+'%) saturate('+v.saturation+'%)';
+  ctx.drawImage(museaEditorSource,0,0,canvas.width,canvas.height);
+  ctx.filter='none';
+  document.getElementById('brightnessValue').textContent=v.brightness+' %';
+  document.getElementById('contrastValue').textContent=v.contrast+' %';
+  document.getElementById('saturationValue').textContent=v.saturation+' %';
+}
+function updateEditor(){drawEditor()}
+function resetEditor(){
+  ['editBrightness','editContrast','editSaturation'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=100});
+  drawEditor();
+}
+function canvasBlob(){
+  return new Promise((resolve,reject)=>{
+    const canvas=document.getElementById('editorCanvas');
+    if(!canvas)return reject(new Error('Aucune image à exporter.'));
+    canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Export impossible.')),'image/jpeg',0.9);
+  });
+}
+async function downloadEditedImage(){
+  try{
+    const blob=await canvasBlob(),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download=museaEditorName.replace(/\.[^.]+$/,'')+'-musea.jpg';
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+    toast('Image retouchée exportée.');
+  }catch(e){toast(e.message||'Impossible d’exporter cette image.')}
+}
 function previewPostImage(event) {
-  const file = event.target.files[0];
-  const preview = document.getElementById('imagePreview');
-
-  if (!file) {
-    preview.innerHTML = '';
-    return;
-  }
-
-  if (!file.type.startsWith('image/')) {
-    toast('Choisis un fichier image.');
-    event.target.value = '';
-    return;
-  }
-
-  if (file.size > 5 * 1024 * 1024) {
-    toast('Image trop volumineuse : 5 Mo maximum.');
-    event.target.value = '';
-    return;
-  }
-
-  const url = URL.createObjectURL(file);
-
-  preview.innerHTML = `
-    <img src="${url}" alt="Aperçu de ta publication"
-      style="width:100%;max-height:300px;object-fit:contain;border-radius:14px">
-  `;
+  const file=event.target.files[0],preview=document.getElementById('imagePreview'),tools=document.getElementById('editorTools');
+  if(!file){preview.innerHTML='';tools?.classList.add('hidden');museaEditorSource=null;return}
+  if(!file.type.startsWith('image/')){toast('Choisis un fichier image.');event.target.value='';return}
+  if(file.size>5*1024*1024){toast('Image trop volumineuse : 5 Mo maximum.');event.target.value='';return}
+  const url=URL.createObjectURL(file),img=new Image();
+  img.onload=()=>{
+    museaEditorSource=img;museaEditorName=file.name||'musea-creation.jpg';
+    preview.innerHTML='<canvas id="editorCanvas" style="width:100%;max-height:420px;object-fit:contain;border-radius:14px;background:var(--bg)"></canvas>';
+    tools?.classList.remove('hidden');resetEditor();URL.revokeObjectURL(url);
+  };
+  img.onerror=()=>{URL.revokeObjectURL(url);toast('Cette image ne peut pas être ouverte.')};
+  img.src=url;
 }
 async function publishDemo() {
   const prompt = document.getElementById('prompt').value.trim();
   const style = document.getElementById('artStyle').value;
   const imageInput = document.getElementById('postImage');
-  const file = imageInput?.files[0];
+  let file = imageInput?.files[0];
+  if(file && museaEditorSource){
+    try{
+      const editedBlob=await canvasBlob();
+      file=new File([editedBlob],museaEditorName.replace(/\.[^.]+$/,'')+'-musea.jpg',{type:'image/jpeg'});
+    }catch(e){toast(e.message||'Impossible de préparer l’image retouchée.');return}
+  }
 
   if (!prompt) {
     toast('Ajoute une description avant de publier.');
@@ -497,6 +543,9 @@ async function publishDemo() {
   document.getElementById('prompt').value = '';
   if (imageInput) imageInput.value = '';
   document.getElementById('imagePreview').innerHTML = '';
+  document.getElementById('editorTools')?.classList.add('hidden');
+  museaEditorSource=null;
+  document.getElementById('generated').classList.add('hidden');
 
   navigate('home');
 }
