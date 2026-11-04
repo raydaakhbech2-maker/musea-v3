@@ -2463,9 +2463,8 @@ async function savePrefs(){
 }
 function renderRewards(){
   const host=document.getElementById('creativePathList');
-  if(host)host.innerHTML='<div class="notice">Ton parcours sera actualisé depuis tes données de profil.</div>';
-  const progress=document.getElementById('pathProgressCount');
-  if(progress)progress.textContent='— / 5';
+  if(host)host.innerHTML='<div class="notice">Actualisation de tes repères à partir de tes données réelles…</div>';
+  renderProfile();
 }
 function renderCreativePath({publicPosts=[],portfolioItems=[],likedIds=[],savedIds=[],profile={}}={}){
   const host=document.getElementById('creativePathList');
