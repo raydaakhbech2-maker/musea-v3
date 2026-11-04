@@ -102,7 +102,7 @@ window.museaSupabase = window.supabase.createClient(
 
 <div id="imagePreview" style="margin-top:12px"></div>
   <div id="editorTools" class="card hidden" style="margin-top:12px">
-    <div class="row between"><h3 class="h3">Retouche rapide</h3><button class="btn" type="button" onclick="resetEditor()">Réinitialiser</button></div>
+    <div class="row between"><h3 class="h3">Retouche rapide</h3><button class="btn" type="button" onclick="resetEditor(true)">Réinitialiser</button></div>
     <p class="small muted">Les réglages sont appliqués à l'image exportée et à la publication.</p>
     <label class="label" for="editBrightness">Luminosité <span id="brightnessValue">100 %</span></label>
     <input class="field" type="range" id="editBrightness" min="50" max="150" value="100" oninput="updateEditor()">
@@ -1340,6 +1340,8 @@ function generateArt(){let p=document.getElementById('prompt').value.trim();if(!
 
 let museaActiveDraftId=null,museaActiveDraftImagePath=null,museaDraftImageUnchanged=false,museaDraftRemoveImage=false,museaLoadingDraftImage=false;
 function startNewCreativeDraft(){
+  if(museaActiveDraftId&&!confirm('Quitter cette Piste ? Les modifications non enregistrées seront perdues.'))return;
+  if(museaRemixSource)cancelRemix();
   museaActiveDraftId=null;museaActiveDraftImagePath=null;museaDraftImageUnchanged=false;museaDraftRemoveImage=false;
   ['draftTitle','prompt','journalIntention','journalChoice','journalDiscovery'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
   document.getElementById('draftStatus').value='seed';
@@ -1418,6 +1420,7 @@ async function saveCreativeDraft(){
 }
 async function openCreativeDraft(id){
   try{
+    if(museaActiveDraftId&&museaActiveDraftId!==id&&!confirm('Quitter la Piste actuelle ? Les modifications non enregistrées seront perdues.'))return;
     const {data:userData,error:userError}=await museaSupabase.auth.getUser();if(userError||!userData.user)return toast('Connecte-toi pour ouvrir cette Piste.');
     const {data:d,error}=await museaSupabase.from('creative_drafts').select('*').eq('id',id).eq('owner_id',userData.user.id).single();if(error)throw error;
     museaActiveDraftId=d.id;museaActiveDraftImagePath=d.image_path||null;museaDraftImageUnchanged=!!d.image_path;museaDraftRemoveImage=false;
@@ -1475,8 +1478,9 @@ function drawEditor(){
   document.getElementById('contrastValue').textContent=v.contrast+' %';
   document.getElementById('saturationValue').textContent=v.saturation+' %';
 }
-function updateEditor(){drawEditor()}
-function resetEditor(){
+function updateEditor(){if(museaActiveDraftId)museaDraftImageUnchanged=false;drawEditor()}
+function resetEditor(userInitiated=false){
+  if(userInitiated&&museaActiveDraftId)museaDraftImageUnchanged=false;
   ['editBrightness','editContrast','editSaturation'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=100});
   drawEditor();
 }
