@@ -1344,7 +1344,8 @@ function useDailyPrompt(){
   toast("L'étincelle du jour a rejoint ton atelier.");
 }
 function setHomeFeedMode(mode){
-  if(!['affinity','recent','emerging','following'].includes(mode))return;\n  homeFeedMode=mode;
+  if(!['affinity','recent','emerging','following'].includes(mode))return;
+  homeFeedMode=mode;
   document.querySelectorAll('[data-home-mode]').forEach(el=>el.classList.toggle('active',el.dataset.homeMode===mode));
   renderHomeFeedFromCache();
 }
