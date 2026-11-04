@@ -85,7 +85,7 @@ window.museaSupabase = window.supabase.createClient(
 </section>
 <section class="screen" id="screen-create">
   <div class="card"><div class="eyebrow">Studio IA</div><h2 class="h1">Donne forme à ton idée.</h2><p class="muted">Ce prototype simule la création. Une vraie génération nécessitera une API IA et un budget contrôlé.</p>
-  <label class="label" for="prompt">Décris ton idée</label><textarea class="field" id="prompt" placeholder="Ex. : une cité flottante au-dessus des nuages, au coucher du soleil…">Une cité flottante au-dessus des nuages, au coucher du soleil</textarea>
+  <div id="remixContext" class="notice hidden" style="margin:12px 0"></div><label class="label" for="remixNote">Ce que tu transformes (10 à 500 caractères)</label><textarea class="field" id="remixNote" maxlength="500" rows="2" placeholder="Ex. : Je transforme cette ambiance en décor futuriste, avec une palette et un point de vue différents."></textarea><div class="small muted">Ce texte explique ton apport personnel. Il sera affiché avec le crédit de la création d’origine.</div><div class="row wrap" style="margin-top:8px"><button class="btn hidden" id="cancelRemixBtn" type="button" onclick="cancelRemix()">Annuler l’Écho</button></div><label class="label" for="prompt">Décris ton idée</label><textarea class="field" id="prompt" placeholder="Ex. : une cité flottante au-dessus des nuages, au coucher du soleil…">Une cité flottante au-dessus des nuages, au coucher du soleil</textarea>
     <div class="line"></div>
 
 <label class="label" for="postImage">Ajouter une image</label>
@@ -258,6 +258,8 @@ const defaultPosts = [];
 let state={theme:'system',plan:null,points:120,liked:[],saved:[],following:[],comments:{},stories:['luna.creative','noah.visuals','aya.studio','kai.3d'],ownStories:[],groups:[],
 prefs:{likes:true,collections:true,online:true,dm:true,private:false},username:'monprofil',bio:'Créateur en devenir ✨',wallpaper:false,badge:false};
 let feedKind='all',discoverKind='Tout',myUserId=null,myFollowIds=new Set(),myInterests=[],activeConversationId=null,activeConversationPeer=null,activeMessageChannel=null,messageRefreshBusy=false,messageRefreshQueued=false,activeConversationCanSend=false,activeConversationStatus={blockedByMe:false,blockedByPeer:false,peerAllowsMessages:true},customStories=[];
+let museaRemixSource=null;
+const museaPostCache=new Map();
 let activeNotificationsChannel=null,activeNotificationUserId=null,notificationPrefs={likes:true,comments:true,reposts:true,messages:true};
 let activeStoriesChannel=null,storyItems=[],activeStoryGroup=[],activeStoryIndex=0,activeStoryUserId=null,storyPreviewUrl=null;
 function load(){try{let s=JSON.parse(localStorage.getItem('museaState')||'null');if(s)state={...state,...s,prefs:{...state.prefs,...s.prefs}}}catch(e){}}
@@ -277,10 +279,78 @@ function artMarkup(p){
   return `<div class="art ${p.art}"><span>${escapeHtml(p.title)}</span></div>`;
 }function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function postMarkup(p){
+  museaPostCache.set(String(p.id),p);
   const liked=!!p.liked,saved=state.saved.includes(p.id),reposted=!!p.reposted,id=escapeHtml(String(p.id));
-  const followButton=myUserId&&p.author_id&&p.author_id!==myUserId?'<button class="iconbtn '+(myFollowIds.has(p.author_id)?'on':'')+'" onclick="toggleFollow(\''+escapeHtml(p.author_id)+'\')">'+(myFollowIds.has(p.author_id)?'✓ Abonné':'＋ Suivre')+'</button>':'';
-  const comments=(p.comments||[]).map(c=>'<div class="switchrow" style="align-items:flex-start"><div style="flex:1"><strong>'+escapeHtml(c.username||'Utilisateur')+'</strong><div>'+escapeHtml(c.content)+'</div><div class="small muted">'+escapeHtml(new Date(c.created_at).toLocaleString('fr-FR'))+'</div></div>'+(c.owned?'<button class="iconbtn" onclick="deleteComment(\''+escapeHtml(c.id)+'\',\''+id+'\')">Supprimer</button>':'')+'</div>').join('');
-  return '<article class="card" data-post-id="'+id+'"><div class="post-head"><div class="avatar">'+escapeHtml(p.avatar||'✦')+'</div><div style="flex:1"><strong>'+escapeHtml(p.user)+'</strong><div class="small muted">'+escapeHtml(p.style||'Création')+' · '+escapeHtml(p.tag||'#MaCreation')+'</div></div>'+followButton+'<button class="iconbtn" onclick="toast(\'Options de signalement et de modération à venir.\')">•••</button></div>'+artMarkup(p)+'<div class="post-title">'+escapeHtml(p.title)+'</div><div>'+escapeHtml(p.desc)+'</div><div class="row wrap" style="margin-top:9px"><span class="chip">'+escapeHtml(p.tag||'#MaCreation')+'</span><button class="chip" onclick="translatePost(\''+id+'\')">文 Traduire</button></div><div class="post-actions"><button class="iconbtn '+(liked?'on':'')+'" onclick="toggleLike(\''+id+'\')">'+(liked?'♥':'♡')+' '+(p.like_count||0)+'</button><button class="iconbtn" onclick="toggleComments(\''+id+'\')">▢ '+(p.comment_count||0)+'</button><button class="iconbtn '+(saved?'on':'')+'" onclick="toggleSave(\''+id+'\')">☆ '+(saved?'Enregistré':'Enregistrer')+'</button><button class="iconbtn '+(reposted?'on':'')+'" onclick="toggleRepost(\''+id+'\')">⟳ '+(reposted?'Reposté':'Reposter')+' '+(p.repost_count||0)+'</button></div><div id="comments-'+id+'" class="hidden"><div class="line"></div><div>'+comments+'</div><label class="label" for="comment-input-'+id+'">Ajouter un commentaire</label><textarea class="field" id="comment-input-'+id+'" maxlength="1000" rows="2" placeholder="Partage ton avis…"></textarea><button class="btn primary full" style="margin-top:8px" onclick="submitComment(\''+id+'\')">Publier le commentaire</button></div></article>';
+  const followButton=myUserId&&p.author_id&&p.author_id!==myUserId?'<button class="iconbtn '+(myFollowIds.has(p.author_id)?'on':'')+'" onclick="toggleFollow(\\''+escapeHtml(p.author_id)+'\\')">'+(myFollowIds.has(p.author_id)?'✓ Abonné':'＋ Suivre')+'</button>':'';
+  const comments=(p.comments||[]).map(c=>'<div class="switchrow" style="align-items:flex-start"><div style="flex:1"><strong>'+escapeHtml(c.username||'Utilisateur')+'</strong><div>'+escapeHtml(c.content)+'</div><div class="small muted">'+escapeHtml(new Date(c.created_at).toLocaleString('fr-FR'))+'</div></div>'+(c.owned?'<button class="iconbtn" onclick="deleteComment(\\''+escapeHtml(c.id)+'\\',\\''+id+'\\')">Supprimer</button>':'')+'</div>').join('');
+  const lineage=p.remix_source?'<div class="notice small" style="margin-top:10px">✦ Écho de @'+escapeHtml(p.remix_source.username)+' · '+escapeHtml(p.remix_source.note)+'</div>':'';
+  const echoCount=p.remix_count?'<span class="small muted">✦ '+p.remix_count+' Écho'+(p.remix_count>1?'s':'')+'</span>':'';
+  const remixButton=p.remote?'<button class="iconbtn" onclick="startRemix(\\''+id+'\\')">✦ Créer un Écho</button>':'';
+  return '<article class="card" data-post-id="'+id+'"><div class="post-head"><div class="avatar">'+escapeHtml(p.avatar||'✦')+'</div><div style="flex:1"><strong>'+escapeHtml(p.user)+'</strong><div class="small muted">'+escapeHtml(p.style||'Création')+' · '+escapeHtml(p.tag||'#MaCreation')+'</div></div>'+followButton+'<button class="iconbtn" onclick="toast(\\'Options de signalement et de modération à venir.\\')">•••</button></div>'+artMarkup(p)+'<div class="post-title">'+escapeHtml(p.title)+'</div><div>'+escapeHtml(p.desc)+'</div>'+lineage+'<div class="row wrap" style="margin-top:9px"><span class="chip">'+escapeHtml(p.tag||'#MaCreation')+'</span><button class="chip" onclick="translatePost(\\''+id+'\\')">文 Traduire</button>'+echoCount+'</div><div class="post-actions">'+remixButton+'<button class="iconbtn '+(liked?'on':'')+'" onclick="toggleLike(\\''+id+'\\')">'+(liked?'♥':'♡')+' '+(p.like_count||0)+'</button><button class="iconbtn" onclick="toggleComments(\\''+id+'\\')">▢ '+(p.comment_count||0)+'</button><button class="iconbtn '+(saved?'on':'')+'" onclick="toggleSave(\\''+id+'\\')">☆ '+(saved?'Enregistré':'Enregistrer')+'</button><button class="iconbtn '+(reposted?'on':'')+'" onclick="toggleRepost(\\''+id+'\\')">⟳ '+(reposted?'Reposté':'Reposter')+' '+(p.repost_count||0)+'</button></div><div id="comments-'+id+'" class="hidden"><div class="line"></div><div>'+comments+'</div><label class="label" for="comment-input-'+id+'">Ajouter un commentaire</label><textarea class="field" id="comment-input-'+id+'" maxlength="1000" rows="2" placeholder="Partage ton avis…"></textarea><button class="btn primary full" style="margin-top:8px" onclick="submitComment(\\''+id+'\\')">Publier le commentaire</button></div></article>';
+}
+async function attachRemixMetadata(posts){
+  const ids=posts.filter(p=>p.remote).map(p=>p.id);
+  if(!ids.length)return posts;
+  try{
+    const [incoming,outgoing]=await Promise.all([
+      museaSupabase.from('post_remixes').select('remix_post_id,source_post_id,note').in('remix_post_id',ids),
+      museaSupabase.from('post_remixes').select('source_post_id').in('source_post_id',ids)
+    ]);
+    if(incoming.error)throw incoming.error;
+    if(outgoing.error)throw outgoing.error;
+    const sourceIds=[...new Set((incoming.data||[]).map(x=>x.source_post_id))];
+    let sourcePosts=[],sourceProfiles=[];
+    if(sourceIds.length){
+      const sourceResult=await museaSupabase.from('posts').select('id,user_id,caption,style').in('id',sourceIds).eq('visibility','public');
+      if(sourceResult.error)throw sourceResult.error;
+      sourcePosts=sourceResult.data||[];
+      const ownerIds=[...new Set(sourcePosts.map(x=>x.user_id))];
+      if(ownerIds.length){
+        const profileResult=await museaSupabase.from('profiles').select('id,username').in('id',ownerIds);
+        if(profileResult.error)throw profileResult.error;
+        sourceProfiles=profileResult.data||[];
+      }
+    }
+    return posts.map(post=>{
+      const lineage=(incoming.data||[]).find(x=>x.remix_post_id===post.id);
+      const source=lineage?sourcePosts.find(x=>x.id===lineage.source_post_id):null;
+      const sourceUsername=sourceProfiles.find(x=>x.id===source?.user_id)?.username||'un créateur';
+      return {...post,
+        remix_source:lineage&&source?{id:source.id,username:sourceUsername,note:lineage.note}:null,
+        remix_count:(outgoing.data||[]).filter(x=>x.source_post_id===post.id).length
+      };
+    });
+  }catch(error){
+    console.warn('Filiation des Échos indisponible :',error);
+    return posts;
+  }
+}
+async function startRemix(postId){
+  try{
+    const user=await requireSocialUser();
+    if(!user)return;
+    const source=museaPostCache.get(String(postId));
+    if(!source||!source.remote)return toast('Cette création ne peut pas encore devenir un Écho.');
+    museaRemixSource={id:source.id,username:source.user};
+    document.getElementById('prompt').value='';
+    document.getElementById('prompt').placeholder='Décris ta propre interprétation, pas une copie de l’original…';
+    document.getElementById('remixNote').value='';
+    document.getElementById('remixContext').innerHTML='<div class="eyebrow">Création source</div><strong>'+escapeHtml(source.user)+'</strong><p class="small">'+escapeHtml((source.desc||source.title||'Création publique').slice(0,220))+'</p><p class="small muted">Ton Écho sera relié à cette œuvre et créditera son auteur.</p>';
+    document.getElementById('remixContext').classList.remove('hidden');
+    document.getElementById('cancelRemixBtn').classList.remove('hidden');
+    document.getElementById('postImage').value='';
+    document.getElementById('imagePreview').innerHTML='';
+    document.getElementById('editorTools').classList.add('hidden');
+    museaEditorSource=null;
+    navigate('create');
+  }catch(error){console.error(error);toast('Impossible de préparer cet Écho.')}
+}
+function cancelRemix(){
+  museaRemixSource=null;
+  document.getElementById('remixContext')?.classList.add('hidden');
+  document.getElementById('cancelRemixBtn')?.classList.add('hidden');
+  document.getElementById('remixNote').value='';
+  document.getElementById('prompt').placeholder='Ex. : une cité flottante au-dessus des nuages, au coucher du soleil…';
 }
 async function attachPostInteractions(posts){
   const ids=posts.filter(p=>p.remote).map(p=>p.id);
@@ -368,7 +438,7 @@ async function renderFeed(){
   });
   let selected=posts;if(feedKind==='circle')selected=posts.filter(p=>myFollowIds.has(p.author_id)||p.author_id===myUserId);if(feedKind==='bridges')selected=posts.filter(p=>p.bridge_label);selected.sort((a,b)=>b.feed_score-a.feed_score);
   if(!selected.length)feed.innerHTML=feedKind==='circle'?'<div class="card"><strong>Ton cercle commence ici.</strong><p class="small muted">Recherche des créateurs dans Explorer et suis ceux dont les univers te parlent.</p><button class="btn primary" onclick="navigate(\'discover\')">Découvrir des créateurs</button></div>':feedKind==='bridges'?'<div class="card"><strong>Pas encore de passerelle à te proposer.</strong><p class="small muted">Choisis quelques univers dans Explorer. MUSEA cherchera des créateurs qui partagent tes centres d’intérêt mais explorent d’autres styles.</p><button class="btn primary" onclick="navigate(\'discover\')">Choisir mes univers</button></div>':'<div class="card muted">Aucune publication publique pour le moment. Les premières créations feront vivre ton fil.</div>';
-  else{const enriched=await attachPostInteractions(selected);feed.innerHTML=enriched.map(p=>(p.bridge_label?'<div class="small muted" style="margin:0 0 7px 5px">✦ '+escapeHtml(p.bridge_label)+' · un univers commun, une autre approche</div>':'')+postMarkup(p)).join('')}
+  else{const withLineage=await attachRemixMetadata(selected);const enriched=await attachPostInteractions(withLineage);feed.innerHTML=enriched.map(p=>(p.bridge_label?'<div class="small muted" style="margin:0 0 7px 5px">✦ '+escapeHtml(p.bridge_label)+' · un univers commun, une autre approche</div>':'')+postMarkup(p)).join('')}
   if(explanation)explanation.textContent=feedKind==='circle'?'Les créations des personnes que tu suis, dans ton cercle.':feedKind==='bridges'?'Des créateurs que tu ne suis pas encore, reliés à tes intérêts mais actifs dans d’autres styles.':'Un mélange pondéré entre ton cercle et des découvertes reliées à tes intérêts.';
  }catch(e){console.error('Fil MUSEA:',e);feed.innerHTML='<div class="notice">Impossible de composer le fil. Vérifie la connexion et la migration de l’étape 8.</div>'}
  renderStories();
@@ -377,7 +447,7 @@ function setFeed(k,b){feedKind=k;document.querySelectorAll('#screen-home .chip')
 function toggleSave(id){if(state.saved.includes(id)){state.saved=state.saved.filter(x=>x!==id)}else{state.saved.push(id)}save();renderFeed();renderProfile();toast(state.saved.includes(id)?'Ajouté à tes collections.':'Retiré de tes collections.')}
 
 function translatePost(id){let p=defaultPosts.find(x=>x.id===id);let lang=document.getElementById('language')?.value||'Français';toast('Traduction IA simulée vers '+lang+' : la connexion au service de traduction reste à faire.');}
-async function renderDiscover(){const target=document.getElementById('discoverResults');if(!target)return;const q=(document.getElementById('searchInput')?.value||'').toLowerCase();target.innerHTML='<p class="muted small">Recherche des créations…</p>';let realPosts=[];try{const {data:rows,error}=await museaSupabase.from('posts').select('id,user_id,caption,style,visibility,image_url,created_at').eq('visibility','public').order('created_at',{ascending:false}).limit(60);if(error)throw error;const ids=[...new Set((rows||[]).map(p=>p.user_id))];let profiles=[];if(ids.length){const result=await museaSupabase.from('profiles').select('id,username').in('id',ids);if(!result.error)profiles=result.data||[]}realPosts=(rows||[]).map(row=>{const username=profiles.find(p=>p.id===row.user_id)?.username||'Utilisateur';return{id:row.id,author_id:row.user_id,remote:true,user:username,avatar:username[0]?.toUpperCase()||'M',title:(row.caption||'Publication').slice(0,60),desc:row.caption||'',image_url:row.image_url,style:row.style||'Création',kind:'art',art:'a4',tag:'#MaCreation'}})}catch(error){console.warn('Recherche distante indisponible :',error)}const all=[...realPosts,...defaultPosts];const list=all.filter(p=>(discoverKind==='Tout'||p.style===discoverKind)&&(`${p.user} ${p.title} ${p.desc} ${p.style} ${p.tag}`).toLowerCase().includes(q));if(list.length){try{const enriched=await attachPostInteractions(list);target.innerHTML=enriched.map(postMarkup).join()}catch(e){console.warn('Interactions Supabase indisponibles',e);target.innerHTML=list.map(postMarkup).join()+'<p class="notice">Active le schéma social Supabase pour utiliser les interactions.</p>'}}else target.innerHTML='<div class="card muted">Aucun résultat. Essaie un autre mot-clé.</div>'}
+async function renderDiscover(){const target=document.getElementById('discoverResults');if(!target)return;const q=(document.getElementById('searchInput')?.value||'').toLowerCase();target.innerHTML='<p class="muted small">Recherche des créations…</p>';let realPosts=[];try{const {data:rows,error}=await museaSupabase.from('posts').select('id,user_id,caption,style,visibility,image_url,created_at').eq('visibility','public').order('created_at',{ascending:false}).limit(60);if(error)throw error;const ids=[...new Set((rows||[]).map(p=>p.user_id))];let profiles=[];if(ids.length){const result=await museaSupabase.from('profiles').select('id,username').in('id',ids);if(!result.error)profiles=result.data||[]}realPosts=(rows||[]).map(row=>{const username=profiles.find(p=>p.id===row.user_id)?.username||'Utilisateur';return{id:row.id,author_id:row.user_id,remote:true,user:username,avatar:username[0]?.toUpperCase()||'M',title:(row.caption||'Publication').slice(0,60),desc:row.caption||'',image_url:row.image_url,style:row.style||'Création',kind:'art',art:'a4',tag:'#MaCreation'}})}catch(error){console.warn('Recherche distante indisponible :',error)}const all=[...realPosts,...defaultPosts];const list=all.filter(p=>(discoverKind==='Tout'||p.style===discoverKind)&&(`${p.user} ${p.title} ${p.desc} ${p.style} ${p.tag}`).toLowerCase().includes(q));if(list.length){try{const withLineage=await attachRemixMetadata(list);const enriched=await attachPostInteractions(withLineage);target.innerHTML=enriched.map(postMarkup).join()}catch(e){console.warn('Interactions Supabase indisponibles',e);target.innerHTML=list.map(postMarkup).join()+'<p class="notice">Active le schéma social Supabase pour utiliser les interactions.</p>'}}else target.innerHTML='<div class="card muted">Aucun résultat. Essaie un autre mot-clé.</div>'}
 function setDiscover(k,b){discoverKind=k;document.querySelectorAll('#screen-discover .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderDiscover()}
 function formatStoryAge(value){
   const minutes=Math.max(0,Math.floor((Date.now()-new Date(value).getTime())/60000));
@@ -1149,6 +1219,9 @@ function previewPostImage(event) {
 async function publishDemo() {
   const prompt = document.getElementById('prompt').value.trim();
   const style = document.getElementById('artStyle').value;
+  const remixSource = museaRemixSource;
+  const remixNote = document.getElementById('remixNote')?.value.trim() || '';
+  if(remixSource && (remixNote.length < 10 || remixNote.length > 500)) return toast('Explique ton interprétation en 10 à 500 caractères.');
   const imageInput = document.getElementById('postImage');
   let file = imageInput?.files[0];
   if(file && museaEditorSource){
@@ -1210,36 +1283,57 @@ async function publishDemo() {
     imageUrl = publicData.publicUrl;
   }
 
-  const { data: post, error } = await museaSupabase
-    .from('posts')
-    .insert({
-      user_id: userData.user.id,
-      caption: prompt.slice(0, 500),
-      style: style,
-      visibility: 'public',
-      image_url: imageUrl,
-      image_path: imagePath
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error(error);
-    toast('Erreur lors de la publication : ' + error.message);
-    return;
+  let post=null;
+  if(remixSource){
+    const {data:remixId,error}=await museaSupabase.rpc('musea_publish_remix',{
+      p_caption:prompt.slice(0,500),
+      p_style:style,
+      p_image_url:imageUrl,
+      p_image_path:imagePath,
+      p_source_post_id:remixSource.id,
+      p_note:remixNote
+    });
+    if(error){
+      console.error('Publication Écho :',error);
+      if(imagePath)try{await museaSupabase.storage.from('musea-posts').remove([imagePath])}catch(cleanupError){console.warn('Nettoyage média Écho impossible',cleanupError)}
+      toast('Écho non publié : '+error.message);
+      return;
+    }
+    post={id:remixId};
+  }else{
+    const {data:createdPost,error}=await museaSupabase
+      .from('posts')
+      .insert({
+        user_id:userData.user.id,
+        caption:prompt.slice(0,500),
+        style:style,
+        visibility:'public',
+        image_url:imageUrl,
+        image_path:imagePath
+      })
+      .select()
+      .single();
+    if(error){
+      console.error(error);
+      if(imagePath)try{await museaSupabase.storage.from('musea-posts').remove([imagePath])}catch(cleanupError){console.warn('Nettoyage média impossible',cleanupError)}
+      toast('Erreur lors de la publication : '+error.message);
+      return;
+    }
+    post=createdPost;
   }
 
   state.points += 10;
   save();
 
-  toast('Publication enregistrée sur Supabase !');
   document.getElementById('prompt').value = '';
   if (imageInput) imageInput.value = '';
   document.getElementById('imagePreview').innerHTML = '';
   document.getElementById('editorTools')?.classList.add('hidden');
   museaEditorSource=null;
   document.getElementById('generated').classList.add('hidden');
+  if(remixSource){museaRemixSource=null;document.getElementById('remixContext').classList.add('hidden');document.getElementById('cancelRemixBtn').classList.add('hidden');document.getElementById('remixNote').value='';document.getElementById('prompt').placeholder='Ex. : une cité flottante au-dessus des nuages, au coucher du soleil…'}
 
+  toast(remixSource?'Ton Écho est publié : l’œuvre d’origine reste créditée.':'Publication enregistrée sur Supabase !');
   navigate('home');
 }
 function quickWeb(url){document.getElementById('urlInput').value=url;openWeb()}
