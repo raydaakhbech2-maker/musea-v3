@@ -194,3 +194,23 @@ MUSEA Signal ajoute dans les paramètres un diagnostic local lisible : état ré
 Une bannière hors ligne prévient lorsque le navigateur déclare une absence de réseau et rappelle que publication, messagerie et synchronisation nécessitent une reconnexion. Le service worker conserve uniquement la structure de l'application ; il ne met pas en cache les données privées ou les réponses authentifiées.
 
 Limites explicites : le diagnostic ne réalise pas de test de disponibilité du serveur Supabase, ne certifie pas la sécurité globale du compte et ne remplace ni les tests sur appareils réels, ni l'audit des politiques RLS et des migrations. Les fonctions dépendantes du réseau peuvent rester indisponibles même si le navigateur indique être en ligne.
+
+
+## Consolidation compte, créations et facturation — novembre 2026
+
+### Connexion et gestion des créations
+- Le panneau de connexion initial disparaît après authentification ; les informations de compte et la déconnexion sont regroupées dans Paramètres.
+- L'auteur voit une action de suppression sur ses propres publications. Le serveur vérifie la propriété via RLS ; les autres membres conservent l'action de signalement.
+- Après suppression de la ligne de publication, l'application tente également de supprimer l'image du bucket `musea-posts`. Les relations de portfolio et de filiation sont liées par des clés étrangères avec suppression en cascade dans leurs migrations respectives.
+- Migration requise : `2026-11-06_post_owner_delete.sql`. Elle refuse d'ajouter le droit si RLS n'est pas activé sur `public.posts`, et limite les suppressions Storage au dossier UUID du propriétaire.
+
+### Facturation — protections renforcées
+- Le tableau Paramètres affiche l'état de l'abonnement, la confirmation serveur de l'accès Signature et les dernières factures visibles par le compte connecté. Les liens de facture sont acceptés uniquement en HTTPS depuis les domaines Stripe.
+- Le portail de facturation vérifie que l'identifiant client Stripe appartient bien au compte MUSEA authentifié.
+- La création d'un Checkout est verrouillée par deux variables serveur indépendantes : `MUSEA_BILLING_ENABLED=true` et `MUSEA_MERCHANT_READY=true`. Elles ne doivent être définies qu'après validation du compte marchand par son titulaire légal. Elles ne sont pas configurées dans le dépôt.
+- Le Checkout exige une adresse e-mail confirmée, vérifie le prix côté Stripe (actif, mensuel, EUR, montant positif), associe le client Stripe au compte MUSEA et consulte Stripe pour éviter les abonnements simultanés ou les doubles souscriptions.
+- La migration `2026-11-06_billing_hardening.sql` ajoute une réservation atomique des webhooks, un état de traitement, des tentatives et une reprise des événements échoués. Les doublons déjà traités sont acquittés ; un événement toujours en cours n'est pas acquitté prématurément.
+- Les accès Signature restent décidés par la fonction SQL serveur `musea_has_signature_access()`, jamais par un drapeau local ou un paramètre d'URL.
+
+### Limites de déploiement
+Aucune migration n'a été exécutée sur le projet Supabase, aucune Edge Function n'a été déployée et aucun paiement de test ou réel n'a été lancé. Le Checkout reste verrouillé tant que les deux drapeaux serveur ne sont pas explicitement activés par le titulaire légal autorisé. La gestion d'un compte marchand, les contrats, les vérifications d'identité et la réception de fonds doivent être assumés par le représentant légal ou la structure habilitée selon les règles du prestataire.
