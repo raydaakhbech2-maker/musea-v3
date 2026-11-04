@@ -792,7 +792,7 @@ function commentPost(id,keepOpen=false){
   target.hidden=false;
   const comments=post?.comments||[];
   const renderTree=(parent=null,depth=0)=>comments.filter(c=>(c.parent_comment_id||null)===parent).map(c=>
-    `<div class="social-comment" style="margin-left:${Math.min(depth,3)*14}px"><div><strong>@${escapeHtml(c.username)}</strong> <span class="small muted">${new Date(c.created_at).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})}</span></div><div>${escapeHtml(c.content)}</div><button class="chip" onclick="setCommentReply('${id}','${c.id}','@${escapeHtml(c.username)}')">Répondre</button>${renderTree(c.id,depth+1)}</div>`
+    `<div class="social-comment" style="margin-left:${Math.min(depth,3)*14}px"><div><strong>@${escapeHtml(c.username)}</strong> <span class="small muted">${new Date(c.created_at).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})}</span></div><div>${escapeHtml(c.content)}</div><button class="chip" onclick="setCommentReply('${id}','${c.id}','@${escapeHtml(c.username)}')">Répondre</button> <button class="chip" onclick="openCommentReport('${c.id}')">Signaler</button>${renderTree(c.id,depth+1)}</div>`
   ).join('');
   const reply=window.replyTargets[id];
   target.innerHTML=`<div class="social-comments-head"><strong>Conversation</strong><span class="small muted">${comments.length} commentaire(s)</span></div>
@@ -2074,27 +2074,32 @@ function bookmarkCurrent(){let u=state.lastUrl||document.getElementById('urlInpu
 function renderBookmarks(){let b=document.getElementById('bookmarks');if(!b)return;b.innerHTML=(state.bookmarks||[]).map(u=>`<button class="chip" onclick="quickWeb('${escapeHtml(u)}')">${escapeHtml(new URL(u).hostname)}</button>`).join('')||'<span class="small muted">Aucun favori pour le moment.</span>'}
 function translateDemo(){let lang=document.getElementById('language').value;let el=document.getElementById('translationResult');el.classList.remove('hidden');el.textContent='Simulation : le texte serait traduit en '+lang+' par un service IA. Aucune traduction externe n’a été effectuée.'}
 
-let pendingContentReportPostId=null;
+let pendingContentReportTarget=null;
 function openContentReport(postId){
-  pendingContentReportPostId=postId;
-  const modal=document.getElementById('contentReportModal');
-  if(modal)modal.classList.remove('hidden');
+  pendingContentReportTarget={type:'post',id:postId};
+  document.getElementById('contentReportTitle').textContent='Signaler une création';
+  document.getElementById('contentReportModal')?.classList.remove('hidden');
+}
+function openCommentReport(commentId){
+  pendingContentReportTarget={type:'comment',id:commentId};
+  document.getElementById('contentReportTitle').textContent='Signaler un commentaire';
+  document.getElementById('contentReportModal')?.classList.remove('hidden');
 }
 function closeContentReport(){
-  pendingContentReportPostId=null;
+  pendingContentReportTarget=null;
   document.getElementById('contentReportModal')?.classList.add('hidden');
 }
 async function submitContentReport(){
-  const postId=pendingContentReportPostId;
-  if(!postId)return toast('Aucune création sélectionnée.');
+  const target=pendingContentReportTarget;
+  if(!target)return toast('Aucun contenu sélectionné.');
   const {data:userData}=await museaSupabase.auth.getUser();
   if(!userData?.user)return toast('Connecte-toi pour envoyer un signalement.');
   const reason=document.getElementById('contentReportReason')?.value||'other';
   const details=document.getElementById('contentReportDetails')?.value.trim()||'';
   const {error}=await museaSupabase.from('content_reports').insert({
-    reporter_id:userData.user.id,target_type:'post',target_id:postId,reason,details
+    reporter_id:userData.user.id,target_type:target.type,target_id:target.id,reason,details
   });
-  if(error)return toast(error.code==='23505'?'Tu as déjà signalé cette création.':'Signalement non enregistré : '+error.message);
+  if(error)return toast(error.code==='23505'?'Tu as déjà signalé ce contenu.':'Signalement non enregistré : '+error.message);
   document.getElementById('contentReportDetails').value='';
   closeContentReport();
   toast('Signalement transmis de façon confidentielle. Merci de contribuer à un espace plus sûr.');
