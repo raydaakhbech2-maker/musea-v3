@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  async function saveSubscription(subscription: Stripe.Subscription) {
+  async function saveSubscription(subscription: any) {
     const customerId = typeof subscription.customer === "string"
       ? subscription.customer : subscription.customer.id;
     let userId = subscription.metadata?.musea_user_id;
@@ -45,16 +45,21 @@ Deno.serve(async (req) => {
     }
     if (!userId) throw new Error("Abonné MUSEA introuvable pour cet abonnement.");
     const firstItem = subscription.items.data[0];
+    // Stripe a déplacé les périodes de facturation vers les Subscription Items
+    // dans les versions d'API récentes ; les deux formes sont lues pour rester robuste.
+    const subscriptionRecord = subscription as Record<string, any>;
+    const periodStart = subscriptionRecord.current_period_start ?? firstItem?.current_period_start ?? null;
+    const periodEnd = subscriptionRecord.current_period_end ?? firstItem?.current_period_end ?? null;
     const { error } = await admin.from("billing_subscriptions").upsert({
       user_id: userId,
       stripe_subscription_id: subscription.id,
       stripe_customer_id: customerId,
       price_id: firstItem?.price?.id ?? null,
       status: subscription.status,
-      current_period_start: subscription.current_period_start
-        ? new Date(subscription.current_period_start * 1000).toISOString() : null,
-      current_period_end: subscription.current_period_end
-        ? new Date(subscription.current_period_end * 1000).toISOString() : null,
+      current_period_start: periodStart
+        ? new Date(periodStart * 1000).toISOString() : null,
+      current_period_end: periodEnd
+        ? new Date(periodEnd * 1000).toISOString() : null,
       cancel_at_period_end: subscription.cancel_at_period_end,
       updated_at: new Date().toISOString(),
     }, { onConflict: "stripe_subscription_id" });
@@ -64,7 +69,11 @@ Deno.serve(async (req) => {
 
   try {
     if (event.type.startsWith("customer.subscription.")) {
-      await saveSubscription(event.data.object as Stripe.Subscription);
+      const subscriptionId = (event.data.object as Stripe.Subscription).id;
+      // Relire l'état actuel chez Stripe évite qu'un webhook ancien arrivé en retard
+      // écrase l'état plus récent de l'abonnement dans notre base.
+      const currentSubscription = await stripe.subscriptions.retrieve(subscriptionId);
+      await saveSubscription(currentSubscription);
     } else if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const subscriptionId = typeof session.subscription === "string"
@@ -74,10 +83,8 @@ Deno.serve(async (req) => {
         await saveSubscription(subscription);
       }
     } else if (event.type === "invoice.paid" || event.type === "invoice.payment_failed") {
-      const invoice = event.data.object as Stripe.Invoice & {
-        subscription?: string | null;
-        parent?: { subscription_details?: { subscription?: string | null } };
-      };
+      const invoiceEvent = event.data.object as Stripe.Invoice;
+      const invoice = await stripe.invoices.retrieve(invoiceEvent.id) as any;
       const subscriptionId = invoice.subscription ??
         invoice.parent?.subscription_details?.subscription ?? null;
       let userId: string | null = null;
