@@ -51,6 +51,43 @@ create trigger musea_touch_conversation_after_message
 after insert on public.direct_messages
 for each row execute function public.musea_touch_conversation();
 
+alter table public.profiles
+  add column if not exists allow_messages boolean not null default true;
+
+create table if not exists public.direct_message_blocks (
+  blocker_id uuid not null references auth.users(id) on delete cascade,
+  blocked_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (blocker_id, blocked_id),
+  constraint direct_message_blocks_distinct_users check (blocker_id <> blocked_id)
+);
+
+alter table public.direct_message_blocks enable row level security;
+
+drop policy if exists "Users can read blocks involving them" on public.direct_message_blocks;
+create policy "Users can read blocks involving them"
+on public.direct_message_blocks for select to authenticated
+using (auth.uid() = blocker_id or auth.uid() = blocked_id);
+
+drop policy if exists "Users can block others" on public.direct_message_blocks;
+create policy "Users can block others"
+on public.direct_message_blocks for insert to authenticated
+with check (auth.uid() = blocker_id);
+
+drop policy if exists "Users can unblock others" on public.direct_message_blocks;
+create policy "Users can unblock others"
+on public.direct_message_blocks for delete to authenticated
+using (auth.uid() = blocker_id);
+
+grant select, insert, delete on public.direct_message_blocks to authenticated;
+grant update (allow_messages) on public.profiles to authenticated;
+
+drop policy if exists "Users can update their own messaging preference" on public.profiles;
+create policy "Users can update their own messaging preference"
+on public.profiles for update to authenticated
+using (auth.uid() = id)
+with check (auth.uid() = id);
+
 alter table public.direct_conversations enable row level security;
 alter table public.direct_messages enable row level security;
 
@@ -65,6 +102,11 @@ on public.direct_conversations for insert to authenticated
 with check (
   user_one < user_two
   and (auth.uid() = user_one or auth.uid() = user_two)
+  and exists (
+    select 1 from public.profiles p
+    where p.id = case when auth.uid() = user_one then user_two else user_one end
+      and p.allow_messages = true
+  )
 );
 
 drop policy if exists "Participants can read messages" on public.direct_messages;
@@ -87,6 +129,13 @@ with check (
     select 1 from public.direct_conversations c
     where c.id = conversation_id
       and (auth.uid() = c.user_one or auth.uid() = c.user_two)
+      and not exists (
+        select 1 from public.direct_message_blocks b
+        where (b.blocker_id = auth.uid() and b.blocked_id =
+          case when auth.uid() = c.user_one then c.user_two else c.user_one end)
+           or (b.blocked_id = auth.uid() and b.blocker_id =
+          case when auth.uid() = c.user_one then c.user_two else c.user_one end)
+      )
   )
 );
 
