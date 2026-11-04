@@ -2129,6 +2129,14 @@ async function museaRefreshAccount() {
   if (!user) {
     await stopMessageRealtime();
     activeConversationId=null;
+    currentConversation=null;
+    currentConversationMembers=[];
+    messageRows=[];
+    selectedMessagePeople=[];
+    messagePeople=[];
+    await renderMessages();
+    const blockedList=document.getElementById('blockedUsersList');
+    if(blockedList)blockedList.textContent='Connecte-toi pour gérer cette liste.';
     await stopNotificationRealtime();
     notificationRows=[];
     notificationPrefs={likes:true,comments:true,replies:true,reposts:true,new_followers:true,mentions:true,messages:true,recommendations:true};
