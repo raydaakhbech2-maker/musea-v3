@@ -38,7 +38,7 @@ Le client utilise une clé publishable côté navigateur. Aucune clé `service_r
 Avant d'activer les fonctionnalités, vérifier dans Supabase :
 1. L'URL de redirection d'authentification : `https://raydaakhbech2-maker.github.io/musea-v3/`.
 2. L'existence des tables de base `profiles`, `posts` et des tables d'interactions sociales utilisées par l'application.
-3. L'application des migrations du dépôt dans un ordre respectant leurs dépendances : notifications, découverte créative, messagerie/collaboration, modération/confiance, équité/recours, profils créateurs/portfolio, puis Studio créatif.
+3. L'application des migrations du dépôt dans un ordre respectant leurs dépendances : notifications, découverte créative, réglages de la Boussole, messagerie/collaboration, modération/confiance, équité/recours, profils créateurs/portfolio, puis Studio créatif.
 4. Les politiques Row Level Security (RLS), les fonctions RPC et les rôles de modération côté serveur.
 5. Les règles du bucket Storage utilisé pour les images.
 
@@ -53,6 +53,12 @@ Ne jamais désactiver RLS pour contourner une erreur. Une erreur de permission d
 - Les appels audio/vidéo et les pièces jointes personnelles dans les messages ne sont pas implémentés.
 - Les stories disponibles dans certaines vues sont des brouillons locaux, pas un service de stories synchronisées complet.
 - La modération repose sur des signalements et des décisions humaines autorisées ; aucun système automatique ne garantit la détection de tous les abus.
+
+## Boussole créative — transparence et contrôle
+
+La découverte propose trois équilibres (Mes repères, Équilibré, Surprise), un contrôle de la personnalisation par interactions et un réglage de mise en avant des talents émergents. Chaque recommandation peut expliquer les signaux effectivement utilisés pour son classement. Les utilisateurs peuvent réinitialiser leurs préférences et retours.
+
+La migration `2026-11-04_discovery_controls.sql` ajoute les réglages à `creative_preferences`. Les préférences sont privées via les politiques RLS existantes ; en cas de migration non appliquée, les réglages locaux restent disponibles sur l'appareil, sans prétendre être synchronisés.
 
 ## MUSEA Studio
 
