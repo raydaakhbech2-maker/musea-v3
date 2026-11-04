@@ -66,7 +66,7 @@ L'écran Tendances ne présente plus de classement individuel fictif. Il calcule
 
 Une sélection « Des créations à rencontrer » fait ressortir des publications ayant peu d'interactions. Aucun profil ou engagement fictif n'est généré et aucun point n'est attribué par cet écran. Les tendances sont limitées aux 100 dernières publications publiques accessibles via le chargement communautaire : elles ne prétendent pas représenter l'intégralité de la plateforme.
 
-Les points, le classement de récompenses et les avantages restent des prototypes locaux non synchronisés ; ils ne doivent pas être présentés comme un programme de fidélité opérationnel.
+Le parcours créatif « Mes repères » remplace les points et la boutique simulés. Cinq jalons privés sont calculés à partir des données réelles du compte : première publication publique, trois publications, diversité de trois styles, première pièce de portfolio et identité créative renseignée. Aucun classement, série quotidienne, dépense de points ou avantage Premium n'est associé à ces jalons. Ils ne sont pas une monnaie et ne peuvent pas être achetés.
 
 ## Pulse créateur — retour privé sur les créations
 
