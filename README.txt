@@ -215,3 +215,21 @@ Limites explicites : le diagnostic ne réalise pas de test de disponibilité du 
 
 ### Limites de déploiement
 Aucune migration n'a été exécutée sur le projet Supabase, aucune Edge Function n'a été déployée et aucun paiement de test ou réel n'a été lancé. Le Checkout reste verrouillé tant que les deux drapeaux serveur ne sont pas explicitement activés par le titulaire légal autorisé. La gestion d'un compte marchand, les contrats, les vérifications d'identité et la réception de fonds doivent être assumés par le représentant légal ou la structure habilitée selon les règles du prestataire.
+
+
+## MUSEA IA — assistant créatif (remise à niveau)
+
+Le Studio comprend désormais les points d'entrée pour développer une idée, proposer une légende, traduire un texte et générer un visuel. Les appels passent par l'Edge Function authentifiée `musea-ai` ; la clé OpenAI reste côté serveur et n'est jamais intégrée au navigateur.
+
+- Modèle texte par défaut : `gpt-6-luna` via l'API Responses.
+- Modèle image par défaut : `gpt-image-2.5-flare`.
+- La migration `2026-11-06_ai_usage_limits.sql` crée des quotas quotidiens côté serveur : 8 requêtes texte et 1 image pour Libre ; 80 requêtes texte et 5 images pour Signature.
+- Secrets requis côté Supabase : `OPENAI_API_KEY` et `MUSEA_AI_ENABLED=true`. Modèles configurables via `OPENAI_TEXT_MODEL` et `OPENAI_IMAGE_MODEL`.
+- Les quotas sont consommés avant l'appel fournisseur pour empêcher les appels concurrents de dépasser les limites. Une requête fournisseur échouée peut donc consommer une unité.
+- Les résultats ne sont jamais publiés automatiquement. Le créateur doit les relire, les modifier et décider de les enregistrer ou de les publier.
+- L'API OpenAI est facturée séparément des abonnements ChatGPT ; le coût dépend du modèle, des tokens et des images générées. Les clés doivent être conservées dans les secrets Supabase, jamais dans le code client.
+- Le service reste désactivé tant que la migration n'est pas appliquée et que le titulaire du projet n'a pas configuré les secrets et validé les plafonds de dépenses.
+
+### Paiement Signature — environnement de test uniquement
+
+L'interface appelle maintenant `create-signature-checkout`. L'Edge Function refuse explicitement toute clé Stripe autre que `sk_test_`. Les flags serveur `MUSEA_BILLING_ENABLED` et `MUSEA_MERCHANT_READY` doivent aussi être validés pour les tests. Aucun paiement réel ne peut être lancé depuis cette branche. La mise en production nécessitera une revue distincte du compte marchand, des obligations légales, des conditions commerciales, des remboursements et de la résiliation.
