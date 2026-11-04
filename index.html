@@ -197,10 +197,11 @@ window.museaSupabase = window.supabase.createClient(
 </section>
 <section class="screen" id="screen-profile">
   <div class="card"><div class="row"><div class="avatar" style="width:66px;height:66px;font-size:25px">M</div><div style="flex:1"><h2 class="h2" id="profileName">@monprofil</h2><p class="muted small" id="profileBio">Créateur en devenir ✨</p></div><button class="btn" onclick="navigate('settings')">⚙ Paramètres</button></div>
-  <div class="row" style="margin-top:14px"><div class="stat"><strong id="pointsStat">120</strong><span class="muted small">Points</span></div><div class="stat"><strong id="followersStat">0</strong><span class="muted small">Abonnés</span></div><div class="stat"><strong id="followingStat">0</strong><span class="muted small">Abonnements</span></div><div class="stat"><strong id="likesStat">0</strong><span class="muted small">Likes donnés</span></div></div>
+  <div class="row wrap" style="margin-top:14px"><div class="stat"><strong id="pointsStat">120</strong><span class="muted small">Points</span></div><div class="stat"><strong id="followersStat">0</strong><span class="muted small">Abonnés</span></div><div class="stat"><strong id="followingStat">0</strong><span class="muted small">Abonnements</span></div><div class="stat"><strong id="likesStat">0</strong><span class="muted small">Likes donnés</span></div></div>
   <label class="label">Nom d'utilisateur</label><input class="field" id="username" value="monprofil">
   <label class="label">Biographie</label><textarea class="field" id="bio" rows="2">Créateur en devenir ✨</textarea>
   <button class="btn primary full" style="margin-top:10px" onclick="saveProfile()">Enregistrer le profil</button></div>
+  <div class="card"><h3 class="h3">Mon cercle</h3><div class="eyebrow">Mes abonnements</div><div id="followingList"><p class="small muted">Chargement…</p></div><div class="line"></div><div class="eyebrow">Mes abonnés</div><div id="followerList"><p class="small muted">Chargement…</p></div></div>
   <div class="card"><div class="row between"><h3 class="h3">Mon activité</h3><span class="chip" id="privacyTag">Visible</span></div><p class="muted small">Les publications aimées et les collections apparaissent ici si tes préférences les rendent publiques.</p><div id="profileActivity"></div></div>
   <div class="line"></div>
 <h3 class="h3">Mes publications</h3>
@@ -920,6 +921,23 @@ async function renderNotifications(){
     settings.innerHTML='<p class="muted small">Préférences indisponibles.</p>';
   }
 }
+async function renderMyCircle(){
+ const followingBox=document.getElementById('followingList'),followersBox=document.getElementById('followerList');if(!followingBox||!followersBox)return;
+ try{
+  const {data:user,error:userError}=await museaSupabase.auth.getUser();if(userError)throw userError;if(!user.user){followingBox.innerHTML=followersBox.innerHTML='<p class="small muted">Connecte-toi pour gérer ton cercle.</p>';return}
+  await loadRelationshipContext();
+  const [following,followers]=await Promise.all([
+   museaSupabase.from('follows').select('followed_id,created_at').eq('follower_id',user.user.id).order('created_at',{ascending:false}),
+   museaSupabase.from('follows').select('follower_id,created_at').eq('followed_id',user.user.id).order('created_at',{ascending:false})
+  ]);
+  if(following.error)throw following.error;if(followers.error)throw followers.error;
+  const ids=[...new Set([...(following.data||[]).map(x=>x.followed_id),...(followers.data||[]).map(x=>x.follower_id)])];let profiles=[];
+  if(ids.length){const p=await museaSupabase.from('profiles').select('id,username,bio').in('id',ids);if(p.error)throw p.error;profiles=p.data||[]}
+  const name=id=>profiles.find(x=>x.id===id)?.username||'Utilisateur';
+  followingBox.innerHTML=(following.data||[]).length?(following.data||[]).map(x=>'<div class="switchrow"><div style="flex:1"><strong>@'+escapeHtml(name(x.followed_id))+'</strong></div><button class="btn" onclick="toggleFollow(\''+x.followed_id+'\')">Ne plus suivre</button></div>').join(''):'<p class="small muted">Tu ne suis encore personne. Explore pour trouver tes premiers créateurs.</p>';
+  followersBox.innerHTML=(followers.data||[]).length?(followers.data||[]).map(x=>'<div class="switchrow"><div style="flex:1"><strong>@'+escapeHtml(name(x.follower_id))+'</strong></div><button class="btn '+(myFollowIds.has(x.follower_id)?'':'primary')+'" onclick="toggleFollow(\''+x.follower_id+'\')">'+(myFollowIds.has(x.follower_id)?'Abonné ✓':'Suivre en retour')+'</button></div>').join(''):'<p class="small muted">Tes premiers abonnés apparaîtront ici.</p>';
+ }catch(e){console.error('Cercle:',e);followingBox.innerHTML=followersBox.innerHTML='<p class="notice">Impossible de charger ton cercle. Vérifie la migration de l’étape 8.</p>'}
+}
 async function renderProfile(){
   document.getElementById('profileName').textContent='@'+state.username;
   document.getElementById('profileBio').textContent=state.bio;
@@ -992,7 +1010,7 @@ async function renderProfile(){
     }catch(repostLoadError){console.warn('Chargement des reposts du profil indisponible',repostLoadError)}
   }
 
-  try{const {data:me}=await museaSupabase.auth.getUser();if(me.user){const [followers,following]=await Promise.all([museaSupabase.from('follows').select('follower_id',{count:'exact',head:true}).eq('followed_id',me.user.id),museaSupabase.from('follows').select('followed_id',{count:'exact',head:true}).eq('follower_id',me.user.id)]);if(!followers.error)document.getElementById('followersStat').textContent=followers.count||0;const fs=document.getElementById('followingStat');if(fs&&!following.error)fs.textContent=following.count||0}}catch(e){console.warn('Compteurs du cercle indisponibles',e)}
+  try{const {data:me}=await museaSupabase.auth.getUser();if(me.user){const [followers,following]=await Promise.all([museaSupabase.from('follows').select('follower_id',{count:'exact',head:true}).eq('followed_id',me.user.id),museaSupabase.from('follows').select('followed_id',{count:'exact',head:true}).eq('follower_id',me.user.id)]);if(!followers.error)document.getElementById('followersStat').textContent=followers.count||0;const fs=document.getElementById('followingStat');if(fs&&!following.error)fs.textContent=following.count||0}}catch(e){console.warn('Compteurs du cercle indisponibles',e)};await renderMyCircle()
   document.getElementById('prefLikes').checked=state.prefs.likes;
   document.getElementById('prefCollections').checked=state.prefs.collections;
   document.getElementById('prefOnline').checked=state.prefs.online;
