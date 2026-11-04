@@ -54,6 +54,19 @@ Ne jamais désactiver RLS pour contourner une erreur. Une erreur de permission d
 - Les stories disponibles dans certaines vues sont des brouillons locaux, pas un service de stories synchronisées complet.
 - La modération repose sur des signalements et des décisions humaines autorisées ; aucun système automatique ne garantit la détection de tous les abus.
 
+## MUSEA Studio
+
+Le Studio permet de préparer des créations avant publication :
+- brief créatif, titre, légende publique et notes privées séparés ;
+- recadrage réel en carré, portrait, paysage ou story ;
+- réglages d'image côté appareil (ambiance, luminosité, contraste, saturation) ;
+- export du visuel retouché en WebP ;
+- projets privés synchronisés dans `creator_drafts` et fichiers sources dans le bucket privé `musea-drafts` ;
+- états « En création » et « Prêt à publier » ;
+- publication déclenchée explicitement par le créateur.
+
+Aucun moteur de génération IA n'est connecté dans cette version. Les outils de retouche fonctionnent localement dans le navigateur ; aucune image n'est envoyée à un fournisseur IA. La migration `2026-11-04_creator_studio.sql` doit être appliquée dans Supabase pour activer les brouillons synchronisés et leur stockage privé.
+
 ## Installation sur téléphone
 
 Le site HTTPS peut être installé comme PWA :
