@@ -171,6 +171,36 @@ button:active{transform:scale(.98)}
  .home-mode strong{font-size:11px}
  .home-mode span{font-size:10px}
 }
+/* MUSEA Creator Identity & Portfolio */
+.creator-cover{position:relative;overflow:hidden;min-height:190px;padding:26px 24px;border-radius:26px;background:radial-gradient(circle at 83% 28%,rgba(241,190,166,.26),transparent 25%),linear-gradient(125deg,#211b32,#423466 62%,#735bc1);color:white;display:flex;align-items:center;margin-bottom:13px}
+.creator-cover-copy{position:relative;z-index:1;max-width:78%}.creator-cover .eyebrow{color:#d7caff}.creator-cover .h1{font-size:clamp(27px,5vw,40px);letter-spacing:-.045em;margin:9px 0}.creator-cover-copy p{color:#e9e2f7;margin:0;max-width:46ch}
+.creator-cover-orbit{position:absolute;right:14%;top:-42px;width:200px;height:200px;border:1px solid rgba(255,255,255,.22);border-radius:50%;display:grid;place-items:center;font-size:65px;color:rgba(255,255,255,.35)}
+.creator-cover-orbit:before,.creator-cover-orbit:after{content:"";position:absolute;inset:18px -15px;border:1px solid rgba(255,255,255,.18);border-radius:50%;transform:rotate(40deg)}
+.creator-cover-orbit:after{transform:rotate(-40deg);inset:-15px 18px}
+.creator-identity-mark{position:absolute;right:24px;bottom:12px;font-size:76px;font-weight:900;letter-spacing:-.1em;color:rgba(255,255,255,.14)}
+.creator-profile-top{margin-bottom:16px}.creator-profile-top .h2{margin:0 0 3px}.creator-signature{margin:15px 0 10px;padding-left:12px;border-left:3px solid var(--accent);font-size:14px;line-height:1.5}
+.creator-specialty-list,.creator-specialty-picker{display:flex;gap:7px;flex-wrap:wrap}.creator-specialty-list{margin:10px 0 15px}.creator-specialty-list .chip{background:var(--accent2);border-color:transparent;color:var(--accent-strong)}
+.creator-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;border-top:1px solid var(--line);padding-top:12px}.creator-stats .stat{min-width:0}
+.creator-editor,.creator-project-editor{margin:14px 0}.creator-editor .label,.creator-project-editor .label{display:block;margin:13px 0 6px}
+.creator-specialty-picker{margin:9px 0 4px}
+.creator-specialty-option{position:relative}.creator-specialty-option input{position:absolute;opacity:0;pointer-events:none}
+.creator-specialty-option span{display:block;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 12px;font-size:12px;cursor:pointer}
+.creator-specialty-option input:checked+span{background:var(--accent2);border-color:var(--accent);color:var(--accent-strong);font-weight:750}
+.creator-specialty-option input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.creator-portfolio-head,.creator-activity-head{margin:23px 2px 11px}.creator-portfolio-head .h2,.creator-activity-head .h2{margin:3px 0}
+.creator-portfolio-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.creator-project-card{overflow:hidden;padding:0}.creator-project-card .creator-project-image{width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--surface);display:block}
+.creator-project-body{padding:13px}.creator-project-body h3{font-size:15px;margin:0 0 6px}.creator-project-body p{font-size:12px;color:var(--muted);margin:0 0 8px;line-height:1.45}
+.creator-project-meta{font-size:11px;color:var(--muted);margin:7px 0}
+.creator-project-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.public-creator-hero{padding:24px;border-radius:25px;background:linear-gradient(125deg,#211b32,#48396e 65%,#795fc5);color:white;margin:13px 0}
+.public-creator-hero .eyebrow{color:#d7caff}.public-creator-hero p{color:#e9e2f7}
+.public-creator-hero .creator-signature{color:#fff}
+.public-creator-section{margin:22px 0 12px}
+.public-creator-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.creator-open-link{border:0;background:none;color:inherit;font:inherit;font-weight:750;padding:0;text-align:left;cursor:pointer}
+.creator-open-link:hover{text-decoration:underline}
+@media(max-width:560px){.creator-cover{min-height:170px;padding:22px 18px}.creator-cover-orbit{right:-20px;opacity:.65}.creator-cover-copy{max-width:90%}.creator-portfolio-grid,.public-creator-grid{grid-template-columns:1fr}.creator-stats .stat strong{font-size:20px}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -355,17 +385,66 @@ window.museaSupabase = window.supabase.createClient(
   <div class="card"><h3 class="h3">Pour une version native complète</h3><p class="muted">On pourra construire un écran navigateur avec onglets, favoris, historique, navigation arrière/avant, gestion des permissions et filtres de sécurité. Le moteur sera celui fourni par le système, pas un moteur Chromium complet indépendant.</p></div>
 </section>
 <section class="screen" id="screen-profile">
-  <div class="card"><div class="row"><div class="avatar" style="width:66px;height:66px;font-size:25px">M</div><div style="flex:1"><h2 class="h2" id="profileName">@monprofil</h2><p class="muted small" id="profileBio">Créateur en devenir ✨</p></div><button class="btn" onclick="navigate('settings')">⚙ Paramètres</button></div>
-  <div class="row" style="margin-top:14px"><div class="stat"><strong id="pointsStat">120</strong><span class="muted small">Points</span></div><div class="stat"><strong id="followersStat">24</strong><span class="muted small">Abonnés</span></div><div class="stat"><strong id="likesStat">0</strong><span class="muted small">Likes donnés</span></div></div>
-  <label class="label">Nom d'utilisateur</label><input class="field" id="username" value="monprofil">
-  <label class="label">Biographie</label><textarea class="field" id="bio" rows="2">Créateur en devenir ✨</textarea>
-  <button class="btn primary full" style="margin-top:10px" onclick="saveProfile()">Enregistrer le profil</button></div>
-  <div class="card"><div class="row between"><h3 class="h3">Mon activité</h3><span class="chip" id="privacyTag">Visible</span></div><p class="muted small">Les publications aimées et les collections apparaissent ici si tes préférences les rendent publiques.</p><div id="profileActivity"></div></div>
-  <div class="line"></div>
-<h3 class="h3">Mes publications</h3>
-<div id="myPosts"></div>
+  <div class="creator-cover">
+    <div class="creator-cover-orbit" aria-hidden="true">✳</div>
+    <div class="creator-cover-copy"><div class="eyebrow">MUSEA / IDENTITÉ CRÉATIVE</div><h1 class="h1" id="profileDisplayName">Mon univers, mes règles.</h1><p id="profileHeadlineView">Un espace pour présenter ce que tu imagines.</p></div>
+    <span class="creator-identity-mark" aria-hidden="true">M</span>
+  </div>
+  <div class="creator-profile-top card">
+    <div class="row between wrap">
+      <div><h2 class="h2" id="profileName">@monprofil</h2><p class="muted small" id="profileBio">Créateur en devenir ✨</p></div>
+      <div class="row wrap"><span class="chip" id="privacyTag">Visible</span><button class="btn" onclick="navigate('settings')">⚙ Paramètres</button></div>
+    </div>
+    <p class="creator-signature" id="profileSignatureView">Ta signature créative apparaîtra ici.</p>
+    <div class="creator-specialty-list" id="profileSpecialtiesView"></div>
+    <div class="creator-stats">
+      <div class="stat"><strong id="pointsStat">120</strong><span class="muted small">Points</span></div>
+      <div class="stat"><strong id="followersStat">—</strong><span class="muted small">Abonnés</span></div>
+      <div class="stat"><strong id="likesStat">0</strong><span class="muted small">Likes donnés</span></div>
+    </div>
+  </div>
+
+  <div class="card creator-editor">
+    <div class="row between"><div><div class="eyebrow">TON IDENTITÉ</div><h3 class="h3">Façonner ma vitrine</h3></div><span class="chip">Éditable</span></div>
+    <label class="label" for="username">Nom d'utilisateur</label><input class="field" id="username" maxlength="30" value="monprofil">
+    <label class="label" for="displayName">Nom affiché</label><input class="field" id="displayName" maxlength="50" placeholder="Le nom de ton univers">
+    <label class="label" for="profileHeadline">Phrase d'accroche</label><input class="field" id="profileHeadline" maxlength="90" placeholder="Ex. : Illustrations de mondes imaginaires">
+    <label class="label" for="bio">Biographie</label><textarea class="field" id="bio" rows="3" maxlength="240" placeholder="Présente-toi en quelques phrases…"></textarea>
+    <label class="label" for="profileSignature">Signature créative</label><textarea class="field" id="profileSignature" rows="2" maxlength="180" placeholder="Qu'est-ce qui rend ton univers reconnaissable ?"></textarea>
+    <div class="label">Mes territoires créatifs <span class="muted small">(5 maximum)</span></div>
+    <div class="creator-specialty-picker" id="creatorSpecialtyPicker">
+      <label class="creator-specialty-option"><input type="checkbox" value="Art digital" data-creator-specialty onchange="updateCreatorSpecialtyCount()"><span>Art digital</span></label><label class="creator-specialty-option"><input type="checkbox" value="Illustration" data-creator-specialty onchange="updateCreatorSpecialtyCount()"><span>Illustration</span></label><label class="creator-specialty-option"><input type="checkbox" value="Fantasy" data-creator-specialty onchange="updateCreatorSpecialtyCount()"><span>Fantasy</span></label><label class="creator-specialty-option"><input type="checkbox" value="Photographie" data-creator-specialty onchange="updateCreatorSpecialtyCount()"><span>Photographie</span></label><label class="creator-specialty-option"><input type="checkbox" value="3D" data-creator-specialty onchange="updateCreatorSpecialtyCount()"><span>3D</span></label><label class="creator-specialty-option"><input type="checkbox" value="Architecture" data-creator-specialty onchange="updateCreatorSpecialtyCount()"><span>Architecture</span></label><label class="creator-specialty-option"><input type="checkbox" value="Mode" data-creator-specialty onchange="updateCreatorSpecialtyCount()"><span>Mode</span></label><label class="creator-specialty-option"><input type="checkbox" value="Animation" data-creator-specialty onchange="updateCreatorSpecialtyCount()"><span>Animation</span></label><label class="creator-specialty-option"><input type="checkbox" value="Écriture" data-creator-specialty onchange="updateCreatorSpecialtyCount()"><span>Écriture</span></label><label class="creator-specialty-option"><input type="checkbox" value="Design" data-creator-specialty onchange="updateCreatorSpecialtyCount()"><span>Design</span></label>
+    </div>
+    <p class="small muted" id="creatorSpecialtyCount">0 / 5 sélectionnés</p>
+    <button class="btn primary full" onclick="saveProfile()">Enregistrer mon identité</button>
+  </div>
+
+  <div class="creator-portfolio-head">
+    <div><div class="eyebrow">SÉLECTION SIGNATURE</div><h2 class="h2">Mon portfolio</h2><p class="muted small">Les créations que tu souhaites présenter en premier.</p></div>
+  </div>
+  <div class="card creator-project-editor">
+    <h3 class="h3">Ajouter une pièce au portfolio</h3>
+    <p class="small muted">Choisis une publication déjà en ligne, puis explique l'idée et ta contribution. Jusqu'à 6 pièces peuvent être mises en avant.</p>
+    <label class="label" for="portfolioPostSelect">Création à présenter</label><select class="field" id="portfolioPostSelect"><option value="">Chargement de tes publications…</option></select>
+    <label class="label" for="portfolioTitle">Titre du projet</label><input class="field" id="portfolioTitle" maxlength="70" placeholder="Donne un titre à cette pièce">
+    <label class="label" for="portfolioContext">L'idée derrière le projet</label><textarea class="field" id="portfolioContext" rows="2" maxlength="240" placeholder="Quel était ton point de départ ?"></textarea>
+    <label class="label" for="portfolioContribution">Ma contribution</label><input class="field" id="portfolioContribution" maxlength="100" placeholder="Ex. : concept, illustration, retouche…">
+    <label class="label" for="portfolioProcess">Une étape ou un choix marquant</label><textarea class="field" id="portfolioProcess" rows="2" maxlength="180" placeholder="Explique un choix créatif ou une difficulté dépassée."></textarea>
+    <button class="btn primary full" onclick="addPortfolioItem()">＋ Ajouter au portfolio</button>
+    <div id="portfolioEditorMessage" class="small muted" aria-live="polite"></div>
+  </div>
+  <div id="myPortfolio" class="creator-portfolio-grid"><div class="notice">Ton portfolio apparaîtra ici.</div></div>
+
+  <div class="creator-activity-head row between wrap"><div><div class="eyebrow">JOURNAL PUBLIC</div><h2 class="h2">Mes publications</h2></div><span class="small muted">Le fil complet de tes créations</span></div>
+  <div id="myPosts"></div>
+
+  <div class="card"><div class="row between"><h3 class="h3">Mon activité</h3><span class="chip" id="activityPrivacyTag">Selon mes réglages</span></div><p class="muted small">Les publications aimées et les collections apparaissent ici si tes préférences les rendent publiques.</p><div id="profileActivity"></div></div>
   <div class="card"><h3 class="h3">Points et avantages</h3><div class="premium-wall"><div class="eyebrow" style="color:#e1d9ff">Boutique de récompenses</div><h2 class="h2">Échange tes points.</h2><p class="small">Les points donnent accès à des éléments cosmétiques et à des options de personnalisation, jamais à une certification automatique.</p><button class="btn primary" onclick="navigate('rewards')">Voir les récompenses</button></div></div>
   <div class="card"><h3 class="h3">Abonnement</h3><p id="profilePlan">Offre gratuite</p><button class="btn primary full" onclick="showPlans()">Comparer les offres</button></div>
+</section>
+<section class="screen" id="screen-creator">
+  <button class="btn" onclick="navigate('home')">← Retour à la galerie</button>
+  <div id="publicCreatorContent" class="public-creator-content"><div class="notice">Chargement du profil créateur…</div></div>
 </section>
 <section class="screen" id="screen-settings">
   <div class="row between"><h2 class="h1">Paramètres</h2><button class="btn" onclick="navigate('profile')">Retour au profil</button></div>
@@ -443,7 +522,7 @@ function postMarkup(p){
     <div class="post-head">
       <div class="avatar" aria-hidden="true">${escapeHtml(p.avatar||'✦')}</div>
       <div class="post-author">
-        <strong>${escapeHtml(p.user||'Créateur MUSEA')}</strong>
+        <button class="creator-open-link" onclick="openCreatorProfile('${escapeHtml(p.user_id||'')}')">${escapeHtml(p.user||'Créateur MUSEA')}</button>
         <div class="small muted">${escapeHtml(p.style||'Création')} · ${escapeHtml(p.tag||'#MaCreation')}</div>
         <time class="small muted" datetime="${escapeHtml(p.created_at||'')}">${escapeHtml(postDateLabel(p.created_at))}</time>
       </div>
