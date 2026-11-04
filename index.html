@@ -3048,6 +3048,7 @@ async function exportMyMuseaData(){
       ['collections',()=>museaSupabase.from('saved_posts').select('*').eq('user_id',user.id)],
       ['commentaires_envoyes',()=>museaSupabase.from('post_comments').select('*').eq('user_id',user.id)],
       ['republications',()=>museaSupabase.from('post_reposts').select('*').eq('user_id',user.id)],
+      ['filiations_creees',()=>museaSupabase.from('creative_lineage').select('*').eq('creator_id',user.id)],
       ['portfolio',()=>museaSupabase.from('creator_portfolio_items').select('*').eq('user_id',user.id)],
       ['projets_prives_studio',()=>museaSupabase.from('creator_drafts').select('*').eq('user_id',user.id)],
       ['notifications_recues',()=>museaSupabase.from('notifications').select('*').eq('recipient_id',user.id)],
