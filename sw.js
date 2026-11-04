@@ -1,4 +1,4 @@
-const CACHE = 'musea-signature-v9';
+const CACHE = 'musea-encaissement-v10';
 const FILES = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', event => {
