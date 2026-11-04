@@ -219,12 +219,12 @@ Aucune migration n'a été exécutée sur le projet Supabase, aucune Edge Functi
 
 ## MUSEA IA — assistant créatif (remise à niveau)
 
-Le Studio comprend désormais les points d'entrée pour développer une idée, proposer une légende, traduire un texte et générer un visuel. Les appels passent par l'Edge Function authentifiée `musea-ai` ; la clé OpenAI reste côté serveur et n'est jamais intégrée au navigateur.
+Le Studio comprend désormais les points d'entrée pour développer une idée, proposer une légende, traduire un texte, générer un visuel et transformer un visuel importé à partir d'une consigne. Les appels passent par l'Edge Function authentifiée `musea-ai` ; la clé OpenAI reste côté serveur et n'est jamais intégrée au navigateur.
 
 - Modèle texte par défaut : `gpt-6-luna` via l'API Responses.
-- Modèle image par défaut : `gpt-image-2.5-flare`.
+- Modèle image par défaut : `gpt-image-2.5-flare` pour générer et `gpt-image-2.5-sunburst` pour transformer un visuel importé.
 - La migration `2026-11-06_ai_usage_limits.sql` crée des quotas quotidiens côté serveur : 8 requêtes texte et 1 image pour Libre ; 80 requêtes texte et 5 images pour Signature.
-- Secrets requis côté Supabase : `OPENAI_API_KEY` et `MUSEA_AI_ENABLED=true`. Modèles configurables via `OPENAI_TEXT_MODEL` et `OPENAI_IMAGE_MODEL`.
+- Secrets requis côté Supabase : `OPENAI_API_KEY` et `MUSEA_AI_ENABLED=true`. Modèles configurables via `OPENAI_TEXT_MODEL`, `OPENAI_IMAGE_MODEL` et `OPENAI_EDIT_MODEL`.
 - Les quotas sont consommés avant l'appel fournisseur pour empêcher les appels concurrents de dépasser les limites. Une requête fournisseur échouée peut donc consommer une unité.
 - Les résultats ne sont jamais publiés automatiquement. Le créateur doit les relire, les modifier et décider de les enregistrer ou de les publier.
 - L'API OpenAI est facturée séparément des abonnements ChatGPT ; le coût dépend du modèle, des tokens et des images générées. Les clés doivent être conservées dans les secrets Supabase, jamais dans le code client.
