@@ -9,22 +9,25 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Vary": "Origin",
 };
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
+  status,
+  headers: { ...corsHeaders, "Content-Type": "application/json" },
+});
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Méthode non autorisée." }, 405);
   const origin = req.headers.get("Origin");
-  if (origin && origin !== APP_ORIGIN) return json({ error: "Origine non autorisée." }, 403);
-
+  if (origin !== APP_ORIGIN) return json({ error: "Origine non autorisée." }, 403);
   const authorization = req.headers.get("Authorization");
   if (!authorization?.startsWith("Bearer ")) return json({ error: "Connexion requise." }, 401);
+
+  // Double verrou serveur : le titulaire légal doit explicitement autoriser la facturation
+  // après avoir finalisé la conformité et l'onboarding du compte marchand.
+  if (Deno.env.get("MUSEA_BILLING_ENABLED") !== "true" ||
+      Deno.env.get("MUSEA_MERCHANT_READY") !== "true") {
+    return json({ error: "La facturation MUSEA n'est pas encore autorisée par le titulaire du compte marchand." }, 503);
+  }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
@@ -41,49 +44,62 @@ Deno.serve(async (req) => {
   });
   const { data: { user }, error: authError } = await userClient.auth.getUser();
   if (authError || !user) return json({ error: "Session invalide." }, 401);
+  if (!user.email || !user.email_confirmed_at) {
+    return json({ error: "Une adresse e-mail vérifiée est nécessaire." }, 403);
+  }
 
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const { data: activeRows, error: activeError } = await admin
-    .from("billing_subscriptions")
-    .select("stripe_subscription_id,status,current_period_end")
-    .eq("user_id", user.id)
-    .in("status", ["active", "trialing"])
-    .order("current_period_end", { ascending: false })
-    .limit(1);
-  if (activeError) return json({ error: "Impossible de vérifier l'abonnement." }, 500);
-  if (activeRows?.length) return json({ error: "Un abonnement Signature est déjà actif." }, 409);
-
-  const stripe = new Stripe(stripeKey);
-  const configuredPrice = await stripe.prices.retrieve(priceId);
-  if (!configuredPrice.active || configuredPrice.type !== "recurring" ||
-      configuredPrice.currency !== "eur" || configuredPrice.recurring?.interval !== "month") {
-    return json({ error: "Le tarif Signature configuré n'est pas un abonnement mensuel actif en euros." }, 503);
-  }
-  const { data: existingCustomer, error: customerReadError } = await admin
-    .from("billing_customers")
-    .select("stripe_customer_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  if (customerReadError) return json({ error: "Impossible de préparer le compte de paiement." }, 500);
-
-  let customerId = existingCustomer?.stripe_customer_id;
-  if (!customerId) {
-    const customer = await stripe.customers.create(
-      { email: user.email, metadata: { musea_user_id: user.id } },
-      { idempotencyKey: `musea-customer-${user.id}` },
-    );
-    customerId = customer.id;
-    const { error: saveCustomerError } = await admin.from("billing_customers").upsert({
-      user_id: user.id,
-      stripe_customer_id: customerId,
-      updated_at: new Date().toISOString(),
-    });
-    if (saveCustomerError) return json({ error: "Impossible d'associer le compte de paiement." }, 500);
-  }
 
   try {
+    const stripe = new Stripe(stripeKey);
+    const configuredPrice = await stripe.prices.retrieve(priceId);
+    if (!configuredPrice.active || configuredPrice.type !== "recurring" ||
+        configuredPrice.currency !== "eur" || configuredPrice.recurring?.interval !== "month" ||
+        configuredPrice.recurring?.interval_count !== 1 || Number(configuredPrice.unit_amount) <= 0) {
+      return json({ error: "Le tarif Signature doit être un abonnement mensuel actif en euros." }, 503);
+    }
+
+    const { data: existingCustomer, error: customerReadError } = await admin
+      .from("billing_customers")
+      .select("stripe_customer_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (customerReadError) return json({ error: "Impossible de préparer le compte de paiement." }, 500);
+
+    let customerId = existingCustomer?.stripe_customer_id;
+    if (customerId) {
+      const customer = await stripe.customers.retrieve(customerId);
+      if (!("metadata" in customer) || customer.metadata?.musea_user_id !== user.id) {
+        return json({ error: "Le compte client du prestataire ne correspond pas à ce compte MUSEA." }, 409);
+      }
+    } else {
+      const customer = await stripe.customers.create(
+        { email: user.email, metadata: { musea_user_id: user.id } },
+        { idempotencyKey: "musea-customer-" + user.id },
+      );
+      customerId = customer.id;
+      const { error: saveCustomerError } = await admin.from("billing_customers").upsert({
+        user_id: user.id,
+        stripe_customer_id: customerId,
+        updated_at: new Date().toISOString(),
+      });
+      if (saveCustomerError) return json({ error: "Impossible d'associer le compte de paiement." }, 500);
+    }
+
+    // Stripe reste la source d'autorité pour éviter un second abonnement en cas
+    // de webhook retardé ou d'état local temporairement désynchronisé.
+    const existingSubscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: "all",
+      limit: 100,
+    });
+    const blockingStatuses = new Set(["active", "trialing", "past_due", "unpaid", "incomplete", "paused"]);
+    if (existingSubscriptions.data.some((subscription) => blockingStatuses.has(subscription.status))) {
+      return json({ error: "Un abonnement ou une régularisation existe déjà. Utilise le portail de facturation." }, 409);
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
@@ -92,11 +108,12 @@ Deno.serve(async (req) => {
       subscription_data: { metadata: { musea_user_id: user.id } },
       success_url: APP_URL + "?billing=success",
       cancel_url: APP_URL + "?billing=cancelled",
+      billing_address_collection: "required",
       allow_promotion_codes: false,
     });
     if (!session.url) return json({ error: "Le prestataire n'a pas fourni de page de paiement." }, 502);
     return json({ checkout_url: session.url });
   } catch (_error) {
-    return json({ error: "La session de paiement n'a pas pu être créée." }, 502);
+    return json({ error: "La préparation du paiement a échoué. Aucun accès Signature n'a été accordé." }, 502);
   }
 });
