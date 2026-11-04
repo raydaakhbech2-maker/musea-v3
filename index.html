@@ -763,7 +763,7 @@ let discoveryControls={balance:'balanced',personalization:true,emerging:true};
 let trendPeriod='7d';
 let trendStyleChoices=[];
 const creativeStyleOptions=['Digital art','Fantasy','Photo','3D','Anime','Photorealistic','Peinture','Minimaliste','Architecture','Mode','Illustration'];
-function load(){try{let s=JSON.parse(localStorage.getItem('museaState')||'null');if(s)state={...state,...s,prefs:{...state.prefs,...s.prefs}}}catch(e){}}
+function load(){try{let s=JSON.parse(localStorage.getItem('museaState')||'null');if(s)state={...state,...s,prefs:{...state.prefs,...s.prefs}};delete state.points;delete state.wallpaper;delete state.badge;}catch(e){}}
 function save(){try{localStorage.setItem('museaState',JSON.stringify(state))}catch(e){}}
 function toast(msg){let el=document.getElementById('toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.add('hidden'),2800)}
 function setTheme(t){state.theme=t;save();applyTheme();toast('Apparence mise à jour.')}
