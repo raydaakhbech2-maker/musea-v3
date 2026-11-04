@@ -1024,10 +1024,352 @@ function addStory(){
   toast('Brouillon enregistré sur cet appareil. Il n’est pas publié.');
 }
 function renderLeaderboard(){let entries=[{n:'luna.creative',p:1840,r:'Créateur vedette'},{n:'noah.visuals',p:1420,r:'Mise en avant'},{n:'aya.studio',p:980,r:'Crédits IA bonus'},{n:state.username,p:state.points,r:'Continue à créer'}].sort((a,b)=>b.p-a.p);document.getElementById('leaderboard').innerHTML=entries.map((e,i)=>`<div class="card"><div class="row"><div class="avatar">${i+1}</div><div style="flex:1"><strong>${escapeHtml(e.n)}</strong><div class="small muted">${e.p.toLocaleString('fr-FR')} points</div></div><span class="chip">#${i+1}</span></div><div class="small muted" style="margin-top:9px">Récompense possible : ${e.r}</div></div>`).join('')}
-function renderMessages(){document.getElementById('conversationList').innerHTML=`<button class="btn soft full" onclick="openChat('Luna Creative')">◉ Luna Creative <span class="muted">· en ligne (démo)</span></button><button class="btn full" style="margin-top:7px" onclick="openChat('Noah Visuals')">◉ Noah Visuals <span class="muted">· vu récemment (démo)</span></button>`;document.getElementById('chatName').textContent=currentChat;document.getElementById('chatStatus').textContent=state.prefs.online?'Statut fictif visible':'Statut masqué selon tes préférences';document.getElementById('chatLog').innerHTML=state.messages.map(m=>`<div style="display:flex;justify-content:${m.mine?'flex-end':'flex-start'};margin:8px 0"><div style="max-width:85%;background:${m.mine?'var(--accent2)':'var(--bg)'};padding:10px 12px;border-radius:13px">${escapeHtml(m.text)}<div class="small muted">${m.mine?'Toi':escapeHtml(m.who)}</div></div></div>`).join('')}
-function openChat(n){currentChat=n;renderMessages()}
-function sendMessage(){let el=document.getElementById('messageInput'),v=el.value.trim();if(!v)return;state.messages.push({who:'Toi',text:v,mine:true});el.value='';save();renderMessages();toast('Message enregistré localement dans la démo.')}
-function createGroup(){let n=document.getElementById('groupName').value.trim();if(!n)return toast('Donne un nom au groupe.');state.groups.push(n);save();document.getElementById('groupName').value='';document.getElementById('groups').innerHTML=state.groups.map(g=>`<div class="notice" style="margin-top:8px">👥 ${escapeHtml(g)} · groupe de démonstration</div>`).join('');toast('Groupe créé localement.')}
+let activeConversationId=null;
+let messageUserId=null;
+let messageChannel=null;
+let messageRows=[];
+let messagePeople=[];
+let selectedMessagePeople=[];
+let messageWorkspaceLoading=false;
+let messageSearchTimer=null;
+let pendingSharePostId=null;
+let currentConversation=null;
+let currentConversationMembers=[];
+
+function scheduleMessagePeopleSearch(){
+  clearTimeout(messageSearchTimer);
+  messageSearchTimer=setTimeout(searchMessagePeople,350);
+}
+async function searchMessagePeople(){
+  const input=document.getElementById('messagePeopleSearch');
+  const target=document.getElementById('messagePeopleResults');
+  const term=(input?.value||'').trim().replace(/^@/,'');
+  if(!target)return;
+  if(term.length<2){target.innerHTML='<p class="small muted">Saisis au moins 2 caractères.</p>';return;}
+  const {data:userData}=await museaSupabase.auth.getUser();
+  if(!userData?.user){target.innerHTML='<p class="small muted">Connecte-toi pour rechercher des créateurs.</p>';return;}
+  target.innerHTML='<p class="small muted">Recherche…</p>';
+  const {data,error}=await museaSupabase.from('profiles')
+    .select('id,username,display_name,headline,allow_messages_from_non_followers,allow_project_invites')
+    .ilike('username','%'+term+'%').neq('id',userData.user.id).limit(8);
+  if(error){target.innerHTML='<p class="small muted">Recherche indisponible : '+escapeHtml(error.message)+'</p>';return;}
+  messagePeople=data||[];
+  if(!messagePeople.length){target.innerHTML='<p class="small muted">Aucun créateur trouvé avec ce pseudo.</p>';return;}
+  target.innerHTML=messagePeople.map(p=>{
+    const selected=selectedMessagePeople.includes(p.id);
+    return '<label class="message-person-option"><input type="checkbox" '+(selected?'checked':'')+' onchange="toggleMessagePerson(\''+escapeHtml(p.id)+'\',this.checked)"><span class="person-copy"><strong>@'+escapeHtml(p.username)+'</strong><span class="small muted">'+escapeHtml(p.display_name||p.headline||'Créateur MUSEA')+'</span></span><span class="small muted">'+(p.allow_messages_from_non_followers?'DM ouvert':'DM sur demande désactivé')+'</span></label>';
+  }).join('');
+}
+function toggleMessagePerson(id,checked){
+  if(checked){
+    if(!selectedMessagePeople.includes(id)){
+      if(selectedMessagePeople.length>=8){toast('Huit invités maximum par atelier.');return;}
+      selectedMessagePeople.push(id);
+    }
+  }else selectedMessagePeople=selectedMessagePeople.filter(x=>x!==id);
+  renderSelectedMessagePeople();
+  searchMessagePeople();
+}
+function renderSelectedMessagePeople(){
+  const target=document.getElementById('messageSelectedPeople');
+  if(!target)return;
+  const names=selectedMessagePeople.map(id=>messagePeople.find(p=>p.id===id)?.username||'Créateur');
+  target.innerHTML=names.length?'<div class="small muted">Sélection : '+names.map(x=>'@'+escapeHtml(x)).join(' · ')+'</div>':'<div class="small muted">Aucun participant sélectionné.</div>';
+}
+function toggleProjectFields(){
+  const fields=document.getElementById('projectFields');
+  if(fields)fields.hidden=!fields.hidden;
+  const title=document.getElementById('projectTitle');
+  if(fields&&!fields.hidden&&title)title.focus();
+}
+async function createMessageConversation(kind){
+  const {data:userData}=await museaSupabase.auth.getUser();
+  if(!userData?.user)return toast('Connecte-toi pour démarrer une conversation.');
+  if(!selectedMessagePeople.length)return toast('Sélectionne au moins un créateur.');
+  if(kind==='dm'&&selectedMessagePeople.length!==1)return toast('Un message privé nécessite un seul destinataire.');
+  const title=document.getElementById('projectTitle')?.value.trim()||'';
+  const description=document.getElementById('projectDescription')?.value.trim()||'';
+  if(kind==='project'&&title.length<2)return toast('Donne un nom à ton atelier collectif.');
+  const {data,error}=await museaSupabase.rpc('musea_create_conversation',{
+    p_kind:kind,p_title:kind==='project'?title:null,p_description:kind==='project'?description:'',
+    p_participant_ids:selectedMessagePeople
+  });
+  if(error){toast(error.message||'Impossible de créer cette conversation.');return;}
+  activeConversationId=data;
+  selectedMessagePeople=[];messagePeople=[];
+  document.getElementById('messagePeopleSearch').value='';
+  document.getElementById('messagePeopleResults').innerHTML='';
+  document.getElementById('projectTitle').value='';
+  document.getElementById('projectDescription').value='';
+  document.getElementById('projectFields').hidden=true;
+  renderSelectedMessagePeople();
+  await loadMessageWorkspace();
+  await openConversation(data);
+  toast(kind==='project'?'Atelier créé. Les invités doivent accepter pour participer.':'Demande de discussion envoyée.');
+}
+async function respondMessageInvite(conversationId,accept){
+  const {error}=await museaSupabase.rpc('musea_respond_conversation_invite',{
+    p_conversation_id:conversationId,p_accept:accept
+  });
+  if(error)return toast(error.message||'Impossible de traiter cette invitation.');
+  if(accept){activeConversationId=conversationId;toast('Invitation acceptée. Bienvenue dans la conversation.');}
+  else toast('Invitation refusée.');
+  await loadMessageWorkspace();
+  if(accept)await openConversation(conversationId);
+}
+async function startMessageRealtime(userId){
+  if(messageUserId===userId&&messageChannel)return;
+  await stopMessageRealtime();
+  messageUserId=userId;
+  messageChannel=museaSupabase.channel('musea-conversations-'+userId)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},payload=>{
+      if(payload.new?.conversation_id===activeConversationId)loadConversationMessages();
+      loadMessageWorkspace();
+    })
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'conversation_members',filter:'user_id=eq.'+userId},()=>{
+      loadMessageWorkspace();
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'conversation_tasks'},payload=>{
+      if(payload.new?.conversation_id===activeConversationId)loadProjectTasks();
+    })
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'conversation_tasks'},payload=>{
+      if(payload.new?.conversation_id===activeConversationId)loadProjectTasks();
+    })
+    .subscribe();
+}
+async function stopMessageRealtime(){
+  if(messageChannel)await museaSupabase.removeChannel(messageChannel);
+  messageChannel=null;messageUserId=null;
+}
+async function refreshMessageWorkspace(){
+  await loadMessageWorkspace();
+  if(activeConversationId)await loadConversationMessages();
+}
+async function renderMessages(){
+  const {data:userData}=await museaSupabase.auth.getUser();
+  const user=userData?.user;
+  const list=document.getElementById('conversationList');
+  const invitations=document.getElementById('messageInvitations');
+  const empty=document.getElementById('chatEmpty');
+  const chat=document.getElementById('chatCard');
+  if(!user){
+    if(list)list.innerHTML='<div class="notice">Connecte-toi pour utiliser la messagerie.</div>';
+    if(invitations)invitations.innerHTML='';
+    if(empty)empty.hidden=false;
+    if(chat)chat.hidden=true;
+    if(messageChannel)await stopMessageRealtime();
+    return;
+  }
+  await startMessageRealtime(user.id);
+  if(!communityPosts.length){try{await loadCommunityPosts();}catch(error){console.warn('Les créations à partager sont indisponibles :',error);}}
+  fillMessagePostOptions();
+  await loadMessageWorkspace();
+  if(pendingSharePostId){
+    const select=document.getElementById('messagePostSelect');
+    if(select&&[...select.options].some(o=>o.value===pendingSharePostId))select.value=pendingSharePostId;
+    pendingSharePostId=null;
+    toast('Choisis une conversation puis envoie la création sélectionnée.');
+  }
+  if(activeConversationId)await openConversation(activeConversationId);
+}
+function fillMessagePostOptions(){
+  const select=document.getElementById('messagePostSelect');
+  if(!select)return;
+  const current=select.value;
+  select.innerHTML='<option value="">Aucune création jointe</option>'+communityPosts.map(p=>'<option value="'+escapeHtml(p.id)+'">@'+escapeHtml(p.user)+' · '+escapeHtml(p.title||'Création')+'</option>').join('');
+  if(current&&[...select.options].some(o=>o.value===current))select.value=current;
+}
+async function loadMessageWorkspace(){
+  if(messageWorkspaceLoading)return;
+  messageWorkspaceLoading=true;
+  const list=document.getElementById('conversationList');
+  const invitations=document.getElementById('messageInvitations');
+  try{
+    const {data:userData}=await museaSupabase.auth.getUser();
+    const user=userData?.user;
+    if(!user){if(list)list.innerHTML='<div class="notice">Connecte-toi pour retrouver tes conversations.</div>';return;}
+    const {data:myMemberships,error:membershipError}=await museaSupabase.from('conversation_members')
+      .select('conversation_id,status,role,last_read_at').eq('user_id',user.id);
+    if(membershipError)throw membershipError;
+    const memberships=myMemberships||[];
+    const ids=memberships.map(m=>m.conversation_id);
+    if(!ids.length){
+      if(list)list.innerHTML='<div class="notice">Pas encore de conversation. Invite un créateur ou lance un atelier collectif.</div>';
+      if(invitations)invitations.innerHTML='';
+      const count=document.getElementById('messageCount');if(count)count.textContent='0';
+      return;
+    }
+    const [convResult,memberResult]=await Promise.all([
+      museaSupabase.from('conversations').select('*').in('id',ids).order('updated_at',{ascending:false}),
+      museaSupabase.from('conversation_members').select('conversation_id,user_id,status,role').in('conversation_id',ids)
+    ]);
+    if(convResult.error)throw convResult.error;
+    if(memberResult.error)throw memberResult.error;
+    const allMembers=memberResult.data||[];
+    const memberIds=[...new Set(allMembers.map(m=>m.user_id))];
+    let profiles=[];
+    if(memberIds.length){
+      const {data,error}=await museaSupabase.from('profiles').select('id,username,display_name').in('id',memberIds);
+      if(error)console.warn('Noms des participants indisponibles :',error);
+      profiles=data||[];
+    }
+    const names=new Map(profiles.map(p=>[p.id,p]));
+    const convs=convResult.data||[];
+    const accepted=memberships.filter(m=>m.status==='accepted');
+    const pending=memberships.filter(m=>m.status==='invited');
+    const acceptedIds=accepted.map(m=>m.conversation_id);
+    let lastMessages=[];
+    if(acceptedIds.length){
+      const {data,error}=await museaSupabase.from('messages').select('conversation_id,body,created_at,sender_id')
+        .in('conversation_id',acceptedIds).order('created_at',{ascending:false}).limit(100);
+      if(error)console.warn('Aperçus des messages indisponibles :',error);
+      lastMessages=data||[];
+    }
+    const latest=new Map();
+    lastMessages.forEach(m=>{if(!latest.has(m.conversation_id))latest.set(m.conversation_id,m);});
+    if(list){
+      list.innerHTML=accepted.map(m=>{
+        const c=convs.find(x=>x.id===m.conversation_id);if(!c)return '';
+        const others=allMembers.filter(x=>x.conversation_id===c.id&&x.user_id!==user.id);
+        const name=c.kind==='project'?c.title:'@'+(names.get(others[0]?.user_id)?.username||'Conversation privée');
+        const last=latest.get(c.id);
+        return '<button class="conversation-entry '+(activeConversationId===c.id?'active':'')+'" onclick="openConversation(\''+c.id+'\')"><strong>'+escapeHtml(name)+'</strong><div class="conversation-preview">'+(c.kind==='project'?'✳ Atelier collectif · ':'')+escapeHtml(last?.body||'La conversation est prête.')+'</div></button>';
+      }).join('')||'<div class="notice">Aucune conversation active.</div>';
+    }
+    if(invitations){
+      invitations.innerHTML=pending.map(m=>{
+        const c=convs.find(x=>x.id===m.conversation_id);if(!c)return '';
+        const inviter=allMembers.find(x=>x.conversation_id===c.id&&x.role==='owner');
+        const inviterName=names.get(inviter?.user_id)?.username||'Un créateur';
+        const title=c.kind==='project'?c.title:'Demande de @'+inviterName;
+        return '<article class="message-invite-card"><strong>'+escapeHtml(title)+'</strong><p>'+(c.kind==='project'?'Invitation à un atelier collectif.':'Cette personne souhaite démarrer une conversation privée.')+'</p><div class="row"><button class="btn primary" onclick="respondMessageInvite(\''+c.id+'\',true)">Accepter</button><button class="btn" onclick="respondMessageInvite(\''+c.id+'\',false)">Refuser</button></div></article>';
+      }).join('');
+    }
+    const count=document.getElementById('messageCount');if(count)count.textContent=String(accepted.length);
+    if(activeConversationId&&!acceptedIds.includes(activeConversationId))activeConversationId=null;
+  }catch(error){
+    console.error('Chargement des conversations impossible :',error);
+    if(list)list.innerHTML='<div class="notice">Messagerie indisponible : '+escapeHtml(error.message||'Vérifie la migration Supabase.')+'</div>';
+  }finally{messageWorkspaceLoading=false;}
+}
+async function openConversation(id){
+  const {data:userData}=await museaSupabase.auth.getUser();
+  if(!userData?.user)return toast('Connecte-toi pour ouvrir une conversation.');
+  activeConversationId=id;
+  const {data:conversation,error}=await museaSupabase.from('conversations').select('*').eq('id',id).maybeSingle();
+  if(error||!conversation){toast('Cette conversation n’est pas accessible.');return;}
+  currentConversation=conversation;
+  const {data:members,error:membersError}=await museaSupabase.from('conversation_members')
+    .select('conversation_id,user_id,status,role').eq('conversation_id',id);
+  if(membersError){toast('Impossible de charger les participants.');return;}
+  currentConversationMembers=members||[];
+  const ids=currentConversationMembers.map(m=>m.user_id);
+  let profiles=[];
+  if(ids.length){
+    const {data}=await museaSupabase.from('profiles').select('id,username,display_name').in('id',ids);
+    profiles=data||[];
+  }
+  const names=new Map(profiles.map(p=>[p.id,p]));
+  const others=currentConversationMembers.filter(m=>m.user_id!==userData.user.id);
+  const title=conversation.kind==='project'?conversation.title:'@'+(names.get(others[0]?.user_id)?.username||'Conversation privée');
+  document.getElementById('chatName').textContent=title;
+  document.getElementById('chatKind').textContent=conversation.kind==='project'?'ATELIER COLLECTIF':'DISCUSSION PRIVÉE';
+  document.getElementById('chatStatus').textContent=conversation.kind==='project'?currentConversationMembers.filter(m=>m.status==='accepted').length+' membres · '+currentConversationMembers.filter(m=>m.status==='invited').length+' invitations en attente':'Conversation protégée · '+currentConversationMembers.length+' participant(s)';
+  const brief=document.getElementById('projectBrief');
+  const board=document.getElementById('projectBoard');
+  if(brief){brief.hidden=conversation.kind!=='project';brief.innerHTML='<strong>Intention du projet</strong><p>'+escapeHtml(conversation.project_description||'Un espace pour imaginer ensemble.')+'</p>';}
+  if(board)board.hidden=conversation.kind!=='project';
+  document.getElementById('chatEmpty').hidden=true;
+  document.getElementById('chatCard').hidden=false;
+  await loadConversationMessages();
+  if(conversation.kind==='project')await loadProjectTasks();
+  fillMessagePostOptions();
+  document.getElementById('conversationList')?.querySelectorAll('.conversation-entry').forEach(x=>x.classList.toggle('active',x.getAttribute('onclick')?.includes(id)));
+}
+async function loadConversationMessages(){
+  if(!activeConversationId)return;
+  const log=document.getElementById('chatLog');
+  if(log)log.innerHTML='<div class="notice">Chargement des messages…</div>';
+  const {data,error}=await museaSupabase.from('messages')
+    .select('id,conversation_id,sender_id,body,shared_post_id,created_at')
+    .eq('conversation_id',activeConversationId).order('created_at',{ascending:true}).limit(100);
+  if(error){if(log)log.innerHTML='<div class="notice">Impossible de charger les messages : '+escapeHtml(error.message)+'</div>';return;}
+  messageRows=data||[];
+  const senderIds=[...new Set(messageRows.map(m=>m.sender_id))];
+  const postIds=[...new Set(messageRows.map(m=>m.shared_post_id).filter(Boolean))];
+  let profiles=[],posts=[];
+  if(senderIds.length){const {data}=await museaSupabase.from('profiles').select('id,username').in('id',senderIds);profiles=data||[];}
+  if(postIds.length){const {data}=await museaSupabase.from('posts').select('id,caption,image_url').in('id',postIds);posts=data||[];}
+  const names=new Map(profiles.map(p=>[p.id,p.username||'Créateur']));
+  const postMap=new Map(posts.map(p=>[p.id,p]));
+  const {data:userData}=await museaSupabase.auth.getUser();
+  if(log)log.innerHTML=messageRows.length?messageRows.map(m=>{
+    const mine=m.sender_id===userData?.user?.id;
+    const post=postMap.get(m.shared_post_id);
+    const preview=post?'<div class="shared-post-preview">'+(post.image_url?'<img loading="lazy" src="'+escapeHtml(post.image_url)+'" alt="Création partagée">':'')+'<strong>'+escapeHtml((post.caption||'Création partagée').slice(0,100))+'</strong></div>':'';
+    return '<div class="message-bubble-row '+(mine?'mine':'')+'"><div class="message-bubble">'+(mine?'':'<div class="message-author">@'+escapeHtml(names.get(m.sender_id)||'Créateur')+'</div>')+(m.body?'<div>'+escapeHtml(m.body)+'</div>':'')+preview+'<div class="message-time">'+new Date(m.created_at).toLocaleString('fr-FR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'})+'</div></div></div>';
+  }).join(''):'<div class="notice">La conversation commence ici. Une idée, un retour ou une création à partager ?</div>';
+  if(log)log.scrollTop=log.scrollHeight;
+  await museaSupabase.from('conversation_members').update({last_read_at:new Date().toISOString()})
+    .eq('conversation_id',activeConversationId).eq('user_id',userData.user.id);
+}
+async function sendMessage(){
+  if(!activeConversationId)return toast('Ouvre une conversation avant d’envoyer un message.');
+  const input=document.getElementById('messageInput');
+  const postSelect=document.getElementById('messagePostSelect');
+  const body=(input?.value||'').trim();
+  const sharedPostId=postSelect?.value||null;
+  if(!body&&!sharedPostId)return toast('Écris un message ou joins une création.');
+  const {data:userData}=await museaSupabase.auth.getUser();
+  if(!userData?.user)return toast('Connecte-toi pour envoyer un message.');
+  const {error}=await museaSupabase.from('messages').insert({
+    conversation_id:activeConversationId,sender_id:userData.user.id,body,shared_post_id:sharedPostId
+  });
+  if(error)return toast('Message non envoyé : '+error.message);
+  if(input)input.value='';
+  if(postSelect)postSelect.value='';
+  await loadConversationMessages();
+  await loadMessageWorkspace();
+}
+function prepareSharePost(postId){
+  pendingSharePostId=postId;
+  navigate('messages');
+}
+async function loadProjectTasks(){
+  if(!activeConversationId||currentConversation?.kind!=='project')return;
+  const board=document.getElementById('projectBoard');
+  const {data:tasks,error}=await museaSupabase.from('conversation_tasks').select('*')
+    .eq('conversation_id',activeConversationId).order('created_at',{ascending:true});
+  if(error){if(board)board.innerHTML='<p class="small muted">Tableau indisponible : '+escapeHtml(error.message)+'</p>';return;}
+  const groups=[['todo','À explorer'],['doing','En création'],['done','Terminé']];
+  const members=currentConversationMembers.filter(m=>m.status==='accepted');
+  const memberIds=members.map(m=>m.user_id);
+  let profiles=[];
+  if(memberIds.length){const {data}=await museaSupabase.from('profiles').select('id,username').in('id',memberIds);profiles=data||[];}
+  const names=new Map(profiles.map(p=>[p.id,p.username||'Créateur']));
+  const html=groups.map(([status,label])=>{
+    const rows=(tasks||[]).filter(t=>t.status===status);
+    return '<section class="project-task-column"><h4>'+label+' · '+rows.length+'</h4>'+(rows.map(t=>'<article class="project-task"><strong>'+escapeHtml(t.title)+'</strong>'+(t.details?'<p>'+escapeHtml(t.details)+'</p>':'')+'<div class="small muted">'+(t.assigned_to?'@'+escapeHtml(names.get(t.assigned_to)||'Créateur'):'Non attribuée')+'</div><div class="project-task-actions">'+(status!=='todo'?'<button class="btn" onclick="moveProjectTask(\''+t.id+'\',\'todo\')">À explorer</button>':'')+(status!=='doing'?'<button class="btn" onclick="moveProjectTask(\''+t.id+'\',\'doing\')">En création</button>':'')+(status!=='done'?'<button class="btn" onclick="moveProjectTask(\''+t.id+'\',\'done\')">Terminé</button>':'')+'</div></article>').join('')||'<p class="small muted">Rien pour le moment.</p>')+'</section>';
+  }).join('');
+  if(board)board.innerHTML='<div class="row between wrap"><div><div class="eyebrow">ATELIER / AVANCEMENT</div><strong>Le projet prend forme.</strong></div><span class="small muted">'+(tasks||[]).length+' tâche(s)</span></div><div class="project-board-grid">'+html+'</div><div class="project-task-form"><input class="field" id="newTaskTitle" maxlength="100" placeholder="Nouvelle étape à réaliser"><input class="field" id="newTaskDetails" maxlength="400" placeholder="Détail facultatif"><button class="btn primary" onclick="addProjectTask()">＋ Ajouter</button></div>';
+}
+async function addProjectTask(){
+  const title=document.getElementById('newTaskTitle')?.value.trim();
+  const details=document.getElementById('newTaskDetails')?.value.trim()||'';
+  if(!title||title.length<2)return toast('Donne un titre de deux caractères minimum.');
+  const {data:userData}=await museaSupabase.auth.getUser();
+  if(!userData?.user)return toast('Connexion nécessaire.');
+  const {error}=await museaSupabase.from('conversation_tasks').insert({
+    conversation_id:activeConversationId,title,details,created_by:userData.user.id
+  });
+  if(error)return toast('Étape non ajoutée : '+error.message);
+  await loadProjectTasks();
+}
+async function moveProjectTask(taskId,status){
+  const {error}=await museaSupabase.from('conversation_tasks').update({status}).eq('id',taskId).eq('conversation_id',activeConversationId);
+  if(error)return toast('Mise à jour impossible : '+error.message);
+  await loadProjectTasks();
+}
 let notificationRows=[];
 let notificationPrefs={likes:true,comments:true,replies:true,reposts:true,new_followers:true,mentions:true,messages:true,recommendations:true};
 let notificationFilter='all';
