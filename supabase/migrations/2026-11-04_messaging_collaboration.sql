@@ -405,7 +405,7 @@ grant execute on function public.musea_create_conversation(text,text,text,uuid[]
 grant execute on function public.musea_respond_conversation_invite(uuid,boolean) to authenticated;
 
 create or replace function public.musea_touch_conversation()
-returns trigger language plpgsql security definer set search_path=public,pg_temp as $
+returns trigger language plpgsql security definer set search_path=public,pg_temp as $$
 begin
   update public.conversations set updated_at=now() where id=new.conversation_id;
   return new;
