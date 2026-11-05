@@ -240,3 +240,14 @@ Secrets serveur attendus, à saisir par le titulaire majeur dans le gestionnaire
 - `MUSEA_BILLING_ENABLED` : valeur `true` uniquement après validation de la configuration de test.
 
 Le webhook Stripe doit écouter : `checkout.session.completed`, `checkout.session.expired`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid` et `invoice.payment_failed`. L'URL est l'endpoint Supabase de la fonction `stripe-webhook`. Le portail et Checkout exigent un JWT valide. Aucun secret marchand n'a été configuré par cette mise à jour ; aucun paiement réel n'est possible.
+
+
+### Mise à jour du parcours de paiement
+
+- Migration `billing_adult_eligibility` appliquée au projet Supabase.
+- `create-checkout-session` déployée en version 2, JWT obligatoire ; uniquement une clé Stripe test `sk_test_`, un prix de test configuré et le drapeau serveur `MUSEA_BILLING_ENABLED=true` peuvent l'activer.
+- La table `billing_checkout_eligibility` est inaccessible à `anon` et `authenticated`. Seul `service_role` peut y lire/écrire. L'accès au Checkout est refusé par défaut, jusqu'à une validation adulte effectuée hors du navigateur.
+- Le verrou de Checkout est conservé jusqu'à la réception d'un webhook `checkout.session.completed` ou `checkout.session.expired`.
+- `create-billing-portal` déployée avec JWT obligatoire ; `stripe-webhook` déployée sans JWT Supabase, mais avec vérification cryptographique de la signature Stripe.
+- Le bouton Signature appelle désormais le Checkout de test et valide strictement le domaine de redirection.
+- Les secrets Stripe, le prix Stripe de test et la configuration du webhook ne sont pas encore renseignés. Aucun paiement réel ne peut être déclenché.
