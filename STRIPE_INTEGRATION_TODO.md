@@ -2,69 +2,61 @@
 
 ## État vérifié au 5 novembre 2026
 
-La fonction Supabase `create-checkout-session` est déployée en version 8. Le parcours reste volontairement limité au mode test et verrouillé tant que les contrôles du compte marchand et l'éligibilité du titulaire ne sont pas validés.
+Le dépôt contient déjà un appel Stripe Checkout dans la fonction Supabase `create-checkout-session` : scénario A. Le code utilise `npm:stripe@^22` ; selon la règle de version du SDK, `ui_mode` attendu est `hosted_page`.
 
-## Paramètres Checkout déployés
+**État d'exécution :** la version actuellement déployée est la version 8. Une tentative de déploiement de la mise à jour demandée a été bloquée par un contrôle de sécurité de la plateforme. Les paramètres listés ci-dessous sont donc les paramètres à appliquer, et non une confirmation qu'ils sont déjà actifs en production.
 
-- `ui_mode`: `hosted` (page Checkout hébergée par Stripe)
-- `integration_identifier`: `musea_web_aBcdEfGh` (paramètre de premier niveau)
-- `mode`: `subscription`
-- `line_items`: tarif mensuel lu depuis `STRIPE_PRICE_SIGNATURE_MONTHLY`, quantité 1
+## Valeurs conservées (scénario A)
+
+Les valeurs réelles déjà présentes dans le code sont conservées :
+- `mode`: `subscription` (abonnement mensuel MUSEA Signature)
+- `line_items`: tarif lu depuis `STRIPE_PRICE_SIGNATURE_MONTHLY`, quantité 1
 - `success_url`: `https://raydaakhbech2-maker.github.io/musea-v3/?billing=success&session_id={CHECKOUT_SESSION_ID}`
 - `cancel_url`: `https://raydaakhbech2-maker.github.io/musea-v3/?billing=cancelled`
-- `billing_address_collection`: `auto`
-- `phone_number_collection.enabled`: `false`
-- `automatic_tax.enabled`: `false` (ne pas activer sans avoir vérifié les immatriculations fiscales requises)
-- `allow_promotion_codes`: `false`
-- `payment_method_collection`: `always`
-- Aucun `payment_method_types` forcé : Stripe conserve les moyens de paiement dynamiques.
 
-Les contrôles existants ont été conservés : session Supabase authentifiée, vérification d'éligibilité adulte côté serveur, absence d'abonnement en cours, verrou anti-doublon, vérification du prix et du client Stripe, idempotence.
+Aucun de ces paramètres n'est un placeholder. Aucun identifiant de prix ou secret ne doit être codé en dur.
 
-## Fonctions Supabase
+## Paramètres Checkout Studio à appliquer
 
-| Fonction | Version | Contrôle |
-|---|---:|---|
-| `create-checkout-session` | 8 | JWT requis, clé Stripe test uniquement, double verrou marchand/éligibilité |
-| `create-billing-portal` | 5 | JWT requis, clé Stripe test uniquement, client Stripe lié à l'utilisateur |
-| `stripe-webhook` | 6 | JWT désactivé pour Stripe, signature vérifiée, clé test uniquement |
+Fichier : `supabase/functions/create-checkout-session/index.ts` (fonction déployée via Supabase Edge Functions).
 
-## Webhooks et limites actuelles
+| Paramètre | Valeur attendue |
+|---|---|
+| `ui_mode` | `hosted_page` (SDK Stripe ^22) |
+| `billing_address_collection` | `auto` |
+| `phone_number_collection` | `{ enabled: false }` |
+| `automatic_tax` | `{ enabled: false }` |
+| `allow_promotion_codes` | `false` |
+| `payment_method_collection` | `always` (car `mode=subscription`) |
+| `submit_type` | `auto` |
+| `integration_identifier` | `hosted_web_0002` |
+| `origin_context` | `web` |
 
-Le webhook traite actuellement les événements de cycle de vie suivants : `checkout.session.completed`, `checkout.session.expired`, `customer.subscription.*`, `invoice.paid` et `invoice.payment_failed`. Il vérifie la signature, gère l'idempotence et synchronise abonnements/factures.
+## Configuration et fonctionnement
 
-**Avant un lancement commercial**, il reste nécessaire d'ajouter et de traiter explicitement les événements de risque pertinents (`charge.dispute.created`, `charge.refunded`, `radar.early_fraud_warning.created`), de vérifier le comportement de résiliation et de réconciliation, puis de tester tout le cycle de vie avec des événements Stripe de test. Ils ne doivent pas être activés dans le Dashboard tant que leur traitement applicatif n'est pas prêt.
+- Les secrets serveur restent dans le coffre Supabase : `STRIPE_SECRET_KEY`, `STRIPE_PRICE_SIGNATURE_MONTHLY`, `SUPABASE_SERVICE_ROLE_KEY` et les autres variables Supabase nécessaires.
+- Ne jamais exposer `STRIPE_SECRET_KEY` dans le frontend ni utiliser un préfixe `VITE_` pour ce secret.
+- Le frontend authentifié appelle `create-checkout-session`; la fonction vérifie l'utilisateur, l'éligibilité, le tarif mensuel et l'existence d'un abonnement, puis crée une session Checkout hébergée par Stripe.
+- Le webhook synchronise les abonnements et factures dans Supabase. Le portail client est fourni par `create-billing-portal`.
 
-Le portail client dépend également de la configuration du Customer Portal dans Stripe. Il n'a pas encore été validé par une session de bout en bout.
+## Tests et étapes restantes
 
-## Tests non réalisés
+1. Appliquer les paramètres attendus ci-dessus à l'appel existant puis redéployer la fonction.
+2. Garder le mode test et les verrous d'éligibilité existants ; ne pas activer de paiements réels ni contourner une validation du titulaire.
+3. Faire valider l'éligibilité du compte marchand par la personne légalement autorisée, puis tester le cycle complet avec des cartes de test Stripe : succès `4242 4242 4242 4242`, refus `4000 0000 0000 0002`, date future et CVC à 3 chiffres.
+4. Vérifier la création d'abonnement, les webhooks, l'attribution Premium uniquement après confirmation serveur, les échecs, annulations, remboursements et litiges.
+5. Le webhook actuel traite `checkout.session.completed`, `checkout.session.expired`, `customer.subscription.*`, `invoice.paid` et `invoice.payment_failed`. Les traitements de remboursement, litige et alerte de fraude restent à ajouter et tester avant d'abonner ces événements au webhook.
+6. Configurer et tester le Customer Portal dans Stripe.
 
-Aucun paiement Checkout de test complet n'a encore été réalisé. Les drapeaux `MUSEA_BILLING_ENABLED` et `MUSEA_MERCHANT_READY` restent désactivés et aucune ligne d'éligibilité adulte n'est enregistrée. C'est intentionnel : ne pas créer de faux justificatif ni contourner ces contrôles.
+## Sécurité et mise en production
 
-Une fois le parcours de test autorisé par le représentant responsable, tester au minimum :
-1. création de session Checkout et retour vers MUSEA ;
-2. abonnement créé puis synchronisé par webhook ;
-3. facture payée et facture échouée ;
-4. annulation depuis le Customer Portal et mise à jour du statut ;
-5. événements dupliqués, reçus dans le désordre et signatures invalides ;
-6. absence d'accès Premium avant confirmation serveur de l'abonnement.
+Le déploiement existant reste limité aux clés Stripe de test et les interrupteurs de facturation/validation marchand restent verrouillés. Ne retire pas ces protections. La mise en production exige une revue juridique/fiscale, une validation du compte marchand par son titulaire autorisé, des clés/prix/webhooks live distincts et des tests complets.
 
-Cartes de test Stripe uniquement : succès `4242 4242 4242 4242`, refus `4000 0000 0000 0002`, avec date future et CVC à 3 chiffres.
-
-## Conditions préalables à toute mise en production
-
-- Le représentant légalement autorisé doit confirmer auprès de Stripe que l'entité, le représentant et l'activité sont correctement déclarés et autorisés.
-- Vérifier les conditions applicables à la vente d'abonnements, aux renouvellements, à la résiliation, aux remboursements, à la confidentialité et à la fiscalité.
-- Préparer un tarif et un webhook distincts en environnement live, puis effectuer une revue de sécurité et des tests de bout en bout avant toute activation.
-- Examiner les événements de risque et le mécanisme d'attribution/révocation des droits Premium.
-- Envisager une clé API restreinte avec le minimum de permissions nécessaires ; conserver les secrets exclusivement dans le coffre Supabase.
-
-**Sécurité :** cette version reste bloquée en mode test. Ne pas retirer le contrôle `sk_test_`, ne pas activer les interrupteurs et ne pas inscrire artificiellement un utilisateur comme adulte vérifié. Le fait que Stripe affiche certaines capacités actives ne remplace pas la validation légale du titulaire ni la revue de mise en production.
-
-## Références
+## Ressources
 
 - [Stripe Checkout](https://docs.stripe.com/checkout)
 - [Stripe Billing et abonnements](https://docs.stripe.com/billing/subscriptions)
 - [Webhooks Stripe](https://docs.stripe.com/webhooks)
-- [Stripe Tax — abonnements](https://docs.stripe.com/billing/taxes/collect-taxes)
-- [Tableau de bord Stripe](https://dashboard.stripe.com/)
+- [Clés API Stripe](https://dashboard.stripe.com/apikeys)
+- [Support Stripe](https://support.stripe.com)
+- [Documentation Stripe MCP](https://docs.stripe.com/mcp)
