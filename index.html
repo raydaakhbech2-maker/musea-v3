@@ -2700,6 +2700,10 @@ async function openCreatorProfile(userId){
       .eq('id',userId).maybeSingle();
     if(profileError)throw profileError;
     if(!profile){target.innerHTML='<div class="notice">Ce profil n’est pas accessible. Il a peut-être été supprimé ou rendu privé.</div>';return;}
+    if(profile.is_private){
+      target.innerHTML='<div class="notice"><strong>Ce profil est privé.</strong><p class="small muted">Ses créations et son portfolio ne sont pas affichés ici.</p></div>';
+      return;
+    }
     const {data:portfolio,error:portfolioError}=await museaSupabase.from('creator_portfolio_items')
       .select('*').eq('user_id',userId).order('sort_order',{ascending:true}).order('created_at',{ascending:false});
     if(portfolioError)throw portfolioError;
