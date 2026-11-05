@@ -793,7 +793,7 @@ window.museaSupabase = window.supabase.createClient(
   </div>
   <div class="card" id="moderationAccessCard" hidden><div class="eyebrow">ESPACE CONFIDENTIEL</div><h3 class="h3">Modération MUSEA</h3><p class="small muted">Accès réservé aux comptes auxquels un rôle de modération a été attribué côté serveur.</p><button class="btn primary" onclick="navigate('moderation')">Ouvrir la file de confiance</button></div>
   <div class="card"><div class="eyebrow">TRANSPARENCE</div><h3 class="h3">Mes mesures et mes recours</h3><p class="small muted">Si une mesure est prise à ton encontre, tu peux en consulter la raison et demander un nouvel examen. Un recours est lu par l’équipe de modération.</p><div id="myModerationCases"><div class="small muted">Chargement…</div></div></div>
-  <div class="card"><h3 class="h3">Langue</h3><select class="field" id="language"><option>Français</option><option>English</option><option>Español</option><option>العربية</option><option>中文</option><option>日本語</option><option>Deutsch</option><option>Português</option></select><p class="muted small">L'interface complète et la traduction IA seront intégrées dans une future version.</p><button class="btn" onclick="translateDemo()">Traduire un texte de démonstration</button><div id="translationResult" class="notice hidden" style="margin-top:10px"></div></div>
+  <div class="card"><h3 class="h3">Langue</h3><select class="field" id="language"><option>Français</option><option>English</option><option>Español</option><option>العربية</option><option>中文</option><option>日本語</option><option>Deutsch</option><option>Português</option></select><p class="muted small">La langue choisie est utilisée pour traduire les publications du fil. La traduction de toute l’interface n’est pas encore disponible.</p></div>
   <div class="card" id="museaDataExportCard"><div class="eyebrow">MUSEA / MAÎTRISE DE MES DONNÉES</div><h3 class="h3">Mon dossier MUSEA</h3><p class="small muted">Récupère une copie lisible des informations associées à ton compte : profil, créations, interactions, collections, notifications, projets privés et éléments de collaboration auxquels tu as accès. L'export interroge uniquement les données autorisées par ta session et les règles RLS.</p><div class="row wrap"><button class="btn primary" id="museaExportButton" onclick="exportMyMuseaData()">Télécharger mes données (.json)</button><span id="museaExportStatus" class="small muted" aria-live="polite">Aucun export lancé.</span></div><p class="small muted">Les images ne sont pas copiées dans le fichier : leurs références et chemins disponibles sont conservés. Les messages exportés sont uniquement ceux que tu as envoyés, pas les messages privés des autres membres. Si une migration manque, le fichier signale les catégories indisponibles au lieu de les inventer.</p><div class="line"></div><strong class="small">Suppression du compte</strong><p class="small muted">La suppression définitive n'est pas activée depuis cette interface : elle doit aussi traiter les fichiers stockés, les abonnements éventuels, les données liées et les sessions côté serveur. Aucun bouton ne prétend supprimer ton compte tant que ce parcours sécurisé n'est pas déployé.</p></div><div class="card"><h3 class="h3">Sécurité</h3><div class="switchrow"><span>Filtrage de contenu sensible (concept)</span><input type="checkbox" checked></div><div class="switchrow"><span>Masquer les contenus signalés</span><input type="checkbox" checked></div><p class="small muted">La vraie version nécessitera signalement, blocage, modération humaine et automatisée, export/suppression des données et protections anti-abus.</p><button class="btn danger full" onclick="if(confirm('Réinitialiser les données locales du prototype ?')){localStorage.removeItem('museaState');location.reload()}">Réinitialiser la démo</button></div>
 </section>
 <section class="screen" id="screen-rewards">
@@ -1341,7 +1341,7 @@ async function translatePost(id){
   const post=(communityPosts||[]).find(item=>String(item.id)===String(id));
   const lang=document.getElementById('language')?.value||'Français';
   const output=document.getElementById('post-translation-'+String(id));
-  const button=document.querySelector('[data-translate-post="'+CSS.escape(String(id))+'"]');
+  const button=Array.from(document.querySelectorAll('[data-translate-post]')).find(el=>el.dataset.translatePost===String(id));
   if(!post){toast('Cette publication n’est plus disponible. Actualise le fil puis réessaie.');return;}
   if(!output){toast('Zone de traduction indisponible.');return;}
   const source=String(post.desc||post.title||'').trim();
@@ -2793,13 +2793,17 @@ async function runMuseaAI(task){
       prompt,
       context:document.getElementById('studioBrief')?.value?.trim()||''
     }});
-    if(error)throw error;
+    if(error){
+      let detail='';
+      try{detail=(await error.context?.json())?.error||'';}catch(_){}
+      throw new Error(detail||error.message||'Service IA indisponible.');
+    }
     if(!data?.result)throw new Error(data?.error||'Aucune réponse reçue.');
     if(result)result.textContent=data.result;
     if(status)status.textContent='Réponse générée. Tu peux la reprendre ou la modifier librement.';
   }catch(error){
     console.error('MUSEA AI:',error);
-    if(status)status.textContent=error?.message||'Impossible de contacter l’assistant IA. Vérifie le déploiement de la fonction.';
+    if(status)status.textContent=error?.message||'Impossible de contacter l’assistant IA. Réessaie plus tard.';
   }finally{
     buttons.forEach(button=>button.disabled=false);
   }
@@ -3132,7 +3136,6 @@ function quickWeb(url){document.getElementById('urlInput').value=url;openWeb()}
 function openWeb(){let raw=document.getElementById('urlInput').value.trim();if(!raw)return toast('Saisis une adresse ou une recherche.');let url;if(/^https?:\/\//i.test(raw))url=raw;else if(raw.includes('.')&&!raw.includes(' '))url='https://'+raw;else url='https://www.google.com/search?q='+encodeURIComponent(raw);try{let u=new URL(url);if(!['http:','https:'].includes(u.protocol))throw 0;window.open(u.href,'_blank','noopener,noreferrer');state.lastUrl=u.href;save();toast('Page ouverte dans un nouvel onglet du navigateur de ton appareil.')}catch(e){toast('Adresse invalide. Utilise une adresse HTTPS ou une recherche.')} }
 function bookmarkCurrent(){let u=state.lastUrl||document.getElementById('urlInput').value.trim();if(!u)return toast('Ouvre d’abord une page.');state.bookmarks=state.bookmarks||[];if(!state.bookmarks.includes(u))state.bookmarks.push(u);save();renderBookmarks();toast('Favori enregistré localement.')}
 function renderBookmarks(){let b=document.getElementById('bookmarks');if(!b)return;b.innerHTML=(state.bookmarks||[]).map(u=>`<button class="chip" onclick="quickWeb('${escapeHtml(u)}')">${escapeHtml(new URL(u).hostname)}</button>`).join('')||'<span class="small muted">Aucun favori pour le moment.</span>'}
-function translateDemo(){let lang=document.getElementById('language').value;let el=document.getElementById('translationResult');el.classList.remove('hidden');el.textContent='Simulation : le texte serait traduit en '+lang+' par un service IA. Aucune traduction externe n’a été effectuée.'}
 
 let pendingContentReportTarget=null;
 function openContentReport(postId){
