@@ -251,3 +251,29 @@ Le webhook Stripe doit écouter : `checkout.session.completed`, `checkout.sessio
 - `create-billing-portal` déployée avec JWT obligatoire ; `stripe-webhook` déployée sans JWT Supabase, mais avec vérification cryptographique de la signature Stripe.
 - Le bouton Signature appelle désormais le Checkout de test et valide strictement le domaine de redirection.
 - Les secrets Stripe, le prix Stripe de test et la configuration du webhook ne sont pas encore renseignés. Aucun paiement réel ne peut être déclenché.
+
+
+## Stripe — environnement sandbox isolé (mise à jour du 5 novembre 2026)
+
+L'environnement choisi pour MUSEA V3 est le compte séparé **« environnement de test Musea »** (`acct_1UYNbP0CmLAIBoiD`). Toutes les opérations réalisées dans cette étape ont été faites avec `livemode=false`. Aucun produit, prix, client, abonnement, webhook ou paiement n'a été créé dans le compte réel.
+
+Catalogue de test créé :
+- Produit : **MUSEA Signature** — `prod_VZZ9fHcMjUUCYI`.
+- Tarif : **5,99 EUR par mois** — `price_1UYQ1B0CmLAIBoiDXKzhou3g`.
+- Portail client : configuration par défaut **MUSEA Signature — portail test** — `bpc_1UYQ1H0CmLAIBoiDHzWxSoed`. Le client peut modifier ses coordonnées, mettre à jour son moyen de paiement, consulter ses factures et résilier à la fin de la période. Les changements d'offre sont désactivés tant qu'une deuxième formule n'existe pas.
+
+Les trois Edge Functions de facturation sont actives et renforcées :
+- `create-checkout-session` : JWT obligatoire, clé `sk_test_` uniquement, vérification du prix actif (EUR, mensuel, montant positif), verrou atomique et validation adulte préalable.
+- `create-billing-portal` : JWT obligatoire et refus des clés Stripe live.
+- `stripe-webhook` : JWT Supabase désactivé pour permettre l'appel Stripe, mais signature cryptographique obligatoire et clé Stripe test uniquement.
+
+Secrets et variables encore à configurer côté Supabase par le titulaire majeur du compte marchand :
+- `STRIPE_SECRET_KEY` : clé secrète de test `sk_test_...`.
+- `STRIPE_WEBHOOK_SIGNING_SECRET` : secret de signature du webhook de test.
+- `STRIPE_PRICE_SIGNATURE_MONTHLY` : `price_1UYQ1B0CmLAIBoiDXKzhou3g`.
+- `MUSEA_BILLING_ENABLED=true` et `MUSEA_MERCHANT_READY=true` uniquement après validation de la configuration de test par le titulaire majeur.
+- Les variables Supabase natives doivent rester configurées par Supabase ; aucune clé privilégiée ne doit être publiée dans GitHub.
+
+Le webhook Stripe n'est pas encore créé, car son secret de signature doit être enregistré immédiatement et de façon sécurisée dans Supabase. Il devra écouter `checkout.session.completed`, `checkout.session.expired`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid` et `invoice.payment_failed`, sur `https://dujargvriuxwczkgsyua.supabase.co/functions/v1/stripe-webhook`.
+
+**État :** le catalogue Stripe et le portail test sont créés ; les fonctions sont déployées en versions renforcées. Les secrets, le webhook, le test authentifié de bout en bout et la validation adulte restent à faire. Le Checkout demeure fermé par défaut. Aucun paiement réel n'est possible depuis cette configuration.
