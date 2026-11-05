@@ -1,4 +1,4 @@
-const CACHE = 'musea-final-v18';
+const CACHE = 'musea-final-v19';
 const FILES = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', event => {
