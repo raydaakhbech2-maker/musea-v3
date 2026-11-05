@@ -5,7 +5,7 @@ const APP_ORIGIN = "https://raydaakhbech2-maker.github.io";
 const APP_URL = "https://raydaakhbech2-maker.github.io/musea-v3/";
 const corsHeaders = {
   "Access-Control-Allow-Origin": APP_ORIGIN,
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Vary": "Origin",
 };
