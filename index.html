@@ -625,11 +625,11 @@ window.museaSupabase = window.supabase.createClient(
   <p class="trends-footnote">Transparence : les tendances sont calculées à partir des 100 dernières publications publiques accessibles à MUSEA. Elles ne représentent pas nécessairement toute la communauté. Les interactions indiquent une activité, pas la qualité d'une œuvre.</p>
 </section>
 <section class="screen" id="screen-stories">
-  <div class="card stories-page-hero"><div class="eyebrow">MUSEA / INSTANTS</div><h2 class="h1">Les instants créatifs.</h2><p class="muted">Un espace pour partager un aperçu, une étape de création ou une inspiration. La publication des stories est encore en démonstration locale.</p>
+  <div class="card stories-page-hero"><div class="eyebrow">MUSEA / INSTANTS</div><h2 class="h1">Les instants créatifs.</h2><p class="muted">Partage un aperçu, une étape de création ou une inspiration. Chaque instant reste visible pendant 24 heures.</p>
   <div class="storyrow" id="allStories"></div>
   <label class="label" for="storyText">Préparer un instant</label><input class="field" id="storyText" maxlength="180" placeholder="Une idée, un making-of, une inspiration…">
-  <p class="small muted">Ton texte reste sur cet appareil dans cette version. Il n'est pas envoyé à la communauté.</p>
-  <button class="btn primary full" style="margin-top:10px" onclick="addStory()">＋ Enregistrer mon brouillon</button></div>
+  <p class="small muted">Ton instant sera partagé avec les personnes autorisées à voir ton profil et expirera automatiquement après 24 heures.</p>
+  <button class="btn primary full" style="margin-top:10px" onclick="addStory()">＋ Publier mon instant</button></div>
 </section>
 <section class="screen" id="screen-messages">
   <div class="message-hero"><div class="eyebrow">MUSEA / LIENS CRÉATIFS</div><h1 class="h1">Les idées circulent mieux ensemble.</h1><p>Échange en privé, partage une création ou transforme une discussion en atelier collectif.</p><div class="message-hero-mark" aria-hidden="true">✳</div></div>
@@ -860,7 +860,7 @@ function navigate(name){
   if(announcement)announcement.textContent=label+' ouvert';
   const main=document.getElementById('main');
   if(main)main.setAttribute('aria-label',label);
-  if(name==='home')renderFeed();
+  if(name==='home'){renderFeed();loadStories().catch(error=>console.error('Stories:',error));}
   if(name==='discover')renderDiscover();
   if(name==='trends')renderLeaderboard();
   if(name==='messages')renderMessages();
@@ -869,7 +869,7 @@ function navigate(name){
   if(name==='profile')renderProfile();
   if(name==='settings'){loadMyModerationCases();loadBillingOverview();}
   if(name==='profile')loadBillingOverview();
-  if(name==='stories')renderStories();
+  if(name==='stories')loadStories().catch(error=>{console.error('Stories:',error);const el=document.getElementById('allStories');if(el)el.innerHTML='<div class="notice">Les instants sont indisponibles. La mise à jour sociale doit être activée côté serveur.</div>';});
   if(name==='rewards')renderRewards();
   if(name==='create')studioLoadDrafts();
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1661,26 +1661,41 @@ async function renderDiscover(){
   }
 }
 function setDiscover(k,b){discoverKind=k;document.querySelectorAll('#discoverCategoryFilters .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderDiscover()}
-function renderStories(){
-  const drafts=Array.isArray(state.ownStories)?state.ownStories:[];
-  const hasLocalStory=drafts.length>0;
-  const draftLabel=hasLocalStory?escapeHtml(String(drafts[0]).slice(0,30)):'Communauté bientôt';
-  const html='<button class="story story-own" onclick="navigate(&quot;stories&quot;)"><span class="story-ring"><span>＋</span></span><span>Ton instant</span></button>'+
-    (hasLocalStory?'<div class="story story-local"><span class="story-ring"><span>✳</span></span><span>'+draftLabel+'</span></div>':'<div class="story story-empty"><span class="story-ring"><span>…</span></span><span>'+draftLabel+'</span></div>');
-  const row=document.getElementById('storyRow');if(row)row.innerHTML=html;
-  const all=document.getElementById('allStories');if(all)all.innerHTML=html;
+let museaStoriesCache=[];
+async function loadStories(){
+  const {data,error}=await museaSupabase.from('stories').select('id,user_id,content,created_at,expires_at').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false}).limit(60);
+  if(error)throw error;
+  museaStoriesCache=data||[];
+  renderStories();
 }
-function viewStory(){toast('Les stories sont encore en mode démonstration locale.');}
-function addStory(){
+function renderStories(){
+  const stories=Array.isArray(museaStoriesCache)?museaStoriesCache:[];
+  const own=stories.filter(x=>x.user_id===state.userId);
+  const others=stories.filter(x=>x.user_id!==state.userId);
+  const ownLabel=own.length?escapeHtml(String(own[0].content).slice(0,24)):'Ton instant';
+  const ownHtml='<button class="story story-own" onclick="navigate(&quot;stories&quot;)"><span class="story-ring"><span>＋</span></span><span>'+ownLabel+'</span></button>';
+  const otherHtml=others.map(x=>'<button class="story" onclick="viewStory(\''+escapeHtml(x.id)+'\')"><span class="story-ring"><span>✳</span></span><span>'+escapeHtml(String(x.content).slice(0,24))+'</span></button>').join('');
+  const html=ownHtml+otherHtml;
+  const row=document.getElementById('storyRow');if(row)row.innerHTML=html;
+  const all=document.getElementById('allStories');if(all)all.innerHTML=html||'<p class="small muted">Aucun instant actif pour le moment.</p>';
+}
+async function viewStory(id){
+  const story=museaStoriesCache.find(x=>x.id===id);
+  if(!story)return toast('Cet instant n’est plus disponible.');
+  toast(story.content);
+}
+async function addStory(){
   const input=document.getElementById('storyText');
   const value=input?.value.trim();
-  if(!value)return toast('Ajoute un texte avant de l’enregistrer.');
-  state.ownStories.unshift(value.slice(0,180));
-  state.ownStories=state.ownStories.slice(0,10);
-  save();
+  if(!value)return toast('Ajoute un texte avant de le publier.');
+  if(value.length>500)return toast('500 caractères maximum.');
+  const {data,error:authError}=await museaSupabase.auth.getUser();
+  if(authError||!data?.user)return toast('Connecte-toi pour publier un instant.');
+  const {error}=await museaSupabase.from('stories').insert({user_id:data.user.id,content:value});
+  if(error){console.error('Publication story:',error);return toast('Publication impossible. Vérifie que la mise à jour sociale est activée.');}
   input.value='';
-  renderStories();
-  toast('Brouillon enregistré sur cet appareil. Il n’est pas publié.');
+  await loadStories().catch(error=>{console.error(error);toast('Instant publié, mais actualisation impossible.');});
+  toast('Ton instant est publié pour 24 heures.');
 }
 function setTrendPeriod(period){
   if(!['7d','30d','all'].includes(period))return;
