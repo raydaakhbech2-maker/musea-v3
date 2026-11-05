@@ -1,0 +1,22 @@
+{
+  "name": "musea-android",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MUSEA Android application built with Capacitor",
+  "scripts": {
+    "web:prepare": "node scripts/prepare-web.mjs",
+    "android:prepare": "npm run web:prepare && cap sync android",
+    "android:debug": "npm run android:prepare && cd android && ./gradlew assembleDebug",
+    "android:release": "npm run android:prepare && cd android && ./gradlew bundleRelease"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/core": "^8.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
