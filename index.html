@@ -545,6 +545,20 @@ window.museaSupabase = window.supabase.createClient(
         <textarea class="field" id="studioBrief" rows="3" maxlength="1000" placeholder="Qu'est-ce que tu veux exprimer, explorer ou faire ressentir ?"></textarea>
         <p class="small muted">Ce brief reste privé. Il ne sera pas publié avec ta création.</p>
       </div>
+      <div class="card" id="studioAICard">
+        <div class="eyebrow">MUSEA / ASSISTANT IA</div>
+        <h3 class="h3">Donne vie à tes idées</h3>
+        <p class="small muted">Décris ce dont tu as besoin : idées créatives, aide à la rédaction ou conseils. L'IA ne publie jamais à ta place.</p>
+        <label class="label" for="studioAIPrompt">Ta demande</label>
+        <textarea class="field" id="studioAIPrompt" rows="3" maxlength="4000" placeholder="Ex. : Propose trois concepts visuels autour des villes du futur…"></textarea>
+        <div class="row wrap">
+          <button class="btn primary" id="studioAIAsk" onclick="runMuseaAI('assistant')">Demander à l'IA</button>
+          <button class="btn" id="studioAIIdeas" onclick="runMuseaAI('creative_ideas')">Trouver des idées</button>
+          <button class="btn" id="studioAICaption" onclick="runMuseaAI('caption')">Écrire une légende</button>
+        </div>
+        <div id="studioAIStatus" class="small muted" role="status" aria-live="polite">Connecte-toi pour utiliser l'assistant IA.</div>
+        <div id="studioAIResult" class="small" style="white-space:pre-wrap;overflow-wrap:anywhere" aria-live="polite"></div>
+      </div>
       <div class="card">
         <div class="row between wrap"><div><div class="eyebrow">02 / MATIÈRE</div><h3 class="h3">Ton visuel</h3></div><span class="small muted">Jusqu'à 5 Mo</span></div>
         <label class="label" for="postImage">Importer une image</label>
@@ -2724,6 +2738,37 @@ function renderCreativePath({publicPosts=[],portfolioItems=[],likedIds=[],savedI
       <div class="creator-path-detail">${escapeHtml(item.detail)} · ${item.earned?'objectif atteint':item.progress+' / '+item.goal}</div>
     </div>
   </article>`).join('');
+}
+
+async function runMuseaAI(task){
+  const prompt=document.getElementById('studioAIPrompt')?.value?.trim()||'';
+  const status=document.getElementById('studioAIStatus');
+  const result=document.getElementById('studioAIResult');
+  const buttons=['studioAIAsk','studioAIIdeas','studioAICaption'].map(id=>document.getElementById(id)).filter(Boolean);
+  if(!prompt){if(status)status.textContent='Écris d’abord ta demande.';return;}
+  if(!window.museaSupabase){if(status)status.textContent='Service indisponible.';return;}
+  buttons.forEach(button=>button.disabled=true);
+  if(status)status.textContent='MUSEA réfléchit…';
+  if(result)result.textContent='';
+  try{
+    const {data:sessionData,error:sessionError}=await museaSupabase.auth.getSession();
+    if(sessionError)throw sessionError;
+    if(!sessionData?.session){if(status)status.textContent='Connecte-toi pour utiliser l’assistant IA.';return;}
+    const {data,error}=await museaSupabase.functions.invoke('musea-ai',{body:{
+      task,
+      prompt,
+      context:document.getElementById('studioBrief')?.value?.trim()||''
+    }});
+    if(error)throw error;
+    if(!data?.result)throw new Error(data?.error||'Aucune réponse reçue.');
+    if(result)result.textContent=data.result;
+    if(status)status.textContent='Réponse générée. Tu peux la reprendre ou la modifier librement.';
+  }catch(error){
+    console.error('MUSEA AI:',error);
+    if(status)status.textContent=error?.message||'Impossible de contacter l’assistant IA. Vérifie le déploiement de la fonction.';
+  }finally{
+    buttons.forEach(button=>button.disabled=false);
+  }
 }
 
 function studioCurrentSettings(){
