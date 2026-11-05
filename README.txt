@@ -47,11 +47,11 @@ Ne jamais désactiver RLS pour contourner une erreur. Une erreur de permission d
 ## Limites actuelles à ne pas présenter comme des fonctionnalités terminées
 
 - Le navigateur MUSEA ouvre les pages dans le navigateur de l'appareil ; ce n'est pas un moteur web intégré comparable à Chrome ou Opera GX.
-- La génération IA n'est pas reliée à un fournisseur IA opérationnel dans cette version.
+- L'assistant IA, les idées créatives et les légendes appellent l'Edge Function Supabase musea-ai (OpenAI). La disponibilité effective dépend du secret serveur OPENAI_API_KEY, des crédits fournisseur et d'une session utilisateur valide ; un test authentifié de bout en bout reste nécessaire.
 - Les offres Premium, points, récompenses et achats restent des simulations : aucun paiement réel n'est traité.
 - Les notifications sont dans l'application ; les notifications push lorsque l'application est fermée ne sont pas garanties.
 - Les appels audio/vidéo et les pièces jointes personnelles dans les messages ne sont pas implémentés.
-- Les stories disponibles dans certaines vues sont des brouillons locaux, pas un service de stories synchronisées complet.
+- Les stories textuelles sont synchronisées dans public.stories, limitées à 24 heures et filtrées par les règles de confidentialité et de blocage. Les médias de stories et leur lecture avancée ne sont pas encore intégrés à l'interface.
 - La modération repose sur des signalements et des décisions humaines autorisées ; aucun système automatique ne garantit la détection de tous les abus.
 
 ## Boussole créative — transparence et contrôle
@@ -153,7 +153,7 @@ L'interface MUSEA ne donne toujours aucun accès Premium par simple modification
 **Cadre légal :** comme le projet est porté par un mineur, toute ouverture et gestion du compte marchand, acceptation des contrats, vérification d'identité et réception des fonds doivent être prises en charge avec le représentant légal ou la structure habilitée, selon les conditions du prestataire. Aucun contrôle d'âge, d'identité ou de conformité ne doit être contourné.
 
 
-**Validation réalisée pour l'étape 23 :** revue statique des chemins d'authentification, contrôle de l'origine, validation du prix mensuel en EUR, vérification de signature du webhook sur le corps brut, synchronisation serveur et politiques RLS. Aucune migration n'a été exécutée sur le projet Supabase, aucune Edge Function n'a été déployée et aucun paiement de test ou réel n'a été effectué.
+**Validation réalisée pour l'étape 23 :** revue statique des chemins d'authentification, contrôle de l'origine, validation du prix mensuel en EUR, vérification de signature du webhook sur le corps brut, synchronisation serveur et politiques RLS. Les migrations de facturation ont été appliquées au schéma Supabase, mais aucune Edge Function Stripe n'a été déployée, aucun secret marchand n'a été configuré et aucun paiement de test ou réel n'a été effectué. Le verrou de Checkout reste fermé.
 
 
 ## MUSEA Empreinte — maîtrise des données personnelles (étape 24 proposée)
@@ -214,4 +214,16 @@ Limites explicites : le diagnostic ne réalise pas de test de disponibilité du 
 - Les accès Signature restent décidés par la fonction SQL serveur `musea_has_signature_access()`, jamais par un drapeau local ou un paramètre d'URL.
 
 ### Limites de déploiement
-Aucune migration n'a été exécutée sur le projet Supabase, aucune Edge Function n'a été déployée et aucun paiement de test ou réel n'a été lancé. Le Checkout reste verrouillé tant que les deux drapeaux serveur ne sont pas explicitement activés par le titulaire légal autorisé. La gestion d'un compte marchand, les contrats, les vérifications d'identité et la réception de fonds doivent être assumés par le représentant légal ou la structure habilitée selon les règles du prestataire.
+Les migrations SQL du socle social, des notifications, de la découverte, de la messagerie, de la modération, du portfolio, du Studio, de la filiation, de la suppression propriétaire et de la facturation sont maintenant appliquées au projet Supabase. L'Edge Function musea-ai est active. Stripe reste désactivé et n'a fait l'objet d'aucun paiement de test ou réel. Le Checkout reste verrouillé tant que les deux drapeaux serveur ne sont pas explicitement activés par le titulaire légal autorisé. La gestion d'un compte marchand, les contrats, les vérifications d'identité et la réception de fonds doivent être assumés par le représentant légal ou la structure habilitée selon les règles du prestataire.
+
+
+## État réel du déploiement — 5 novembre 2026
+
+- Projet Supabase Musea : actif, région eu-west-2.
+- Edge Function musea-ai : active avec JWT obligatoire ; le code utilise OpenAI gpt-4.1-mini. Le test authentifié de bout en bout dépend de la présence et de la validité du secret serveur OPENAI_API_KEY et d'un compte utilisateur de test.
+- Migrations appliquées : social_graph_compat, notifications, creative_discovery, discovery_controls, messaging_collaboration, moderation_trust, fair_moderation, creator_profiles_portfolio, creator_studio, creative_lineage, post_owner_delete, billing_core, billing_checkout_lock, billing_hardening, trigger_function_privileges et follow_graph_privacy.
+- Stories : le schéma réel utilise caption et media_path ; l'interface a été alignée sur ce schéma. Les demandes d'abonnement privées et les abonnements publics utilisent user_follows.
+- Stockage : les buckets musea-posts (public), musea-drafts (privé) et musea-stories (privé) existent.
+- La PWA Android/iOS est installable depuis un navigateur compatible. Aucun APK natif signé ni IPA n'est produit par ce dépôt.
+- Les contrôles Supabase signalent encore des avertissements de performance RLS et plusieurs fonctions SECURITY DEFINER accessibles aux utilisateurs authentifiés. Les fonctions de trigger-only ont été retirées des rôles API ; les autres fonctions privilégiées restent à auditer individuellement avant ouverture publique.
+- Les migrations n'ont pas toutes été exécutées sur une base vierge : le projet contenait déjà un schéma préexistant sans historique de migrations. Les opérations ont été appliquées en mode compatible avec les tables et données déjà présentes.
