@@ -999,6 +999,7 @@ function postMarkup(p){
     ${artMarkup(p)}
     <div class="post-title">${escapeHtml(p.title||'Création')}</div>
     <div class="post-description">${escapeHtml(p.desc||'')}</div>
+    <div id="post-translation-${escapeHtml(id)}" class="notice" style="margin-top:10px;white-space:pre-wrap" aria-live="polite" hidden></div>
     ${p.lineage?'<div class="musea-lineage"><span class="musea-lineage-mark">↳</span><div><strong>'+(p.lineage.relation_type==='remix'?'Réinterprétation de':'Inspirée par')+'</strong><div class="small muted">'+escapeHtml(p.lineage.source_user?'@'+p.lineage.source_user:'une création MUSEA')+(p.lineage.source_title?' · '+escapeHtml(p.lineage.source_title):'')+'</div>'+(p.lineage.note?'<p class="small">'+escapeHtml(p.lineage.note)+'</p>':'')+'<button class="chip" onclick="openLineageSource(\''+escapeHtml(p.lineage.source_post_id)+'\')">Voir la création d’origine</button></div></div>':''}
     <div class="row wrap" style="margin-top:9px"><span class="chip">${escapeHtml(p.tag||'#MaCreation')}</span></div>
     <div class="post-actions">
@@ -1006,6 +1007,7 @@ function postMarkup(p){
       <button class="iconbtn" aria-label="Afficher ${comments} commentaires" aria-expanded="${window.openCommentPostId===id}" onclick="commentPost('${escapeHtml(id)}')">▢ ${comments}</button>
       <button class="iconbtn ${saved?'on':''}" aria-label="${saved?'Retirer des collections':'Enregistrer dans les collections'}" aria-pressed="${saved}" onclick="toggleSave('${escapeHtml(id)}')">☆ ${saved?'Enregistré':'Enregistrer'}</button>
       <button class="iconbtn ${reposted?'on':''}" aria-label="${reposted?'Annuler le repost':'Reposter'} cette création, ${reposts} reposts" aria-pressed="${reposted}" onclick="toggleRepost('${escapeHtml(id)}')">⟳ ${reposts}</button>
+      <button class="iconbtn" data-translate-post="${escapeHtml(id)}" onclick="translatePost('${escapeHtml(id)}')">文 Traduire</button>
       <button class="iconbtn" aria-label="Partager cette création en message" onclick="prepareSharePost('${escapeHtml(id)}')">↗ Envoyer</button>
     </div>
     <div id="comments-${escapeHtml(id)}" class="social-comments" ${window.openCommentPostId===id?'':'hidden'}></div>
@@ -1335,7 +1337,39 @@ async function toggleRepost(id){
     await refreshSocialViews(id);
   }catch(error){console.error(error);toast('Impossible de modifier le repost. '+(error.message||''));}
 }
-function translatePost(id){let p=defaultPosts.find(x=>x.id===id);let lang=document.getElementById('language')?.value||'Français';toast('Traduction IA simulée vers '+lang+' : la connexion au service de traduction reste à faire.');}
+async function translatePost(id){
+  const post=(communityPosts||[]).find(item=>String(item.id)===String(id));
+  const lang=document.getElementById('language')?.value||'Français';
+  const output=document.getElementById('post-translation-'+String(id));
+  const button=document.querySelector('[data-translate-post="'+CSS.escape(String(id))+'"]');
+  if(!post){toast('Cette publication n’est plus disponible. Actualise le fil puis réessaie.');return;}
+  if(!output){toast('Zone de traduction indisponible.');return;}
+  const source=String(post.desc||post.title||'').trim();
+  if(!source){toast('Cette publication ne contient aucun texte à traduire.');return;}
+  if(button)button.disabled=true;
+  output.hidden=false;
+  output.textContent='Traduction en cours…';
+  try{
+    const {data:sessionData,error:sessionError}=await museaSupabase.auth.getSession();
+    if(sessionError)throw sessionError;
+    if(!sessionData?.session)throw new Error('Connecte-toi pour utiliser la traduction IA.');
+    const {data,error}=await museaSupabase.functions.invoke('musea-ai',{body:{
+      task:'translate',prompt:source,targetLanguage:lang
+    }});
+    if(error){
+      let detail='';
+      try{detail=(await error.context?.json())?.error||'';}catch(_){}
+      throw new Error(detail||error.message||'Service de traduction indisponible.');
+    }
+    if(!data?.result)throw new Error(data?.error||'Aucune traduction reçue.');
+    output.textContent='Traduction · '+lang+'\n'+data.result;
+  }catch(error){
+    console.error('MUSEA translation:',error);
+    output.textContent=error?.message||'Impossible de traduire cette publication pour le moment.';
+  }finally{
+    if(button)button.disabled=false;
+  }
+}
 async function loadDiscoverySettings(){
   const localStyles=(()=>{try{return JSON.parse(localStorage.getItem('museaCreativeStyles')||'null')}catch(e){return null}})();
   const localControls=(()=>{try{return JSON.parse(localStorage.getItem('museaDiscoveryControls')||'null')}catch(e){return null}})();
