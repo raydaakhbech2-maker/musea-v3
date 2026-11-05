@@ -29,7 +29,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -48,7 +47,6 @@ jobs:
           npx cap add android
           npx cap sync android
       - name: Configure optional Play signing
-        if: ${{ secrets.MUSEA_ANDROID_KEYSTORE_BASE64 != '' }}
         env:
           MUSEA_ANDROID_KEYSTORE_BASE64: ${{ secrets.MUSEA_ANDROID_KEYSTORE_BASE64 }}
           MUSEA_KEY_ALIAS: ${{ secrets.MUSEA_ANDROID_KEY_ALIAS }}
@@ -56,8 +54,12 @@ jobs:
           MUSEA_KEY_PASSWORD: ${{ secrets.MUSEA_ANDROID_KEY_PASSWORD }}
           MUSEA_KEYSTORE_PATH: ${{ github.workspace }}/android/app/musea-upload-key.jks
         run: |
-          echo "$MUSEA_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$MUSEA_KEYSTORE_PATH"
-          node scripts/configure-android-signing.mjs
+          if [ -n "$MUSEA_ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$MUSEA_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$MUSEA_KEYSTORE_PATH"
+            node scripts/configure-android-signing.mjs
+          else
+            echo "No upload keystore configured: release AAB will be unsigned."
+          fi
       - name: Build debug APK
         run: cd android && ./gradlew assembleDebug
       - name: Build release AAB
