@@ -1,0 +1,73 @@
+name: MUSEA Android build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'privacy.html'
+      - 'delete-account.html'
+      - 'community-guidelines.html'
+      - 'manifest.webmanifest'
+      - 'icon-*.png'
+      - 'package.json'
+      - 'capacitor.config.ts'
+      - 'scripts/**'
+      - '.github/workflows/android-build.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install Android 16 SDK
+        run: |
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+      - name: Install dependencies
+        run: npm install
+      - name: Generate web bundle and Android project
+        run: |
+          npm run web:prepare
+          npx cap add android
+          npx cap sync android
+      - name: Configure optional Play signing
+        if: ${{ secrets.MUSEA_ANDROID_KEYSTORE_BASE64 != '' }}
+        env:
+          MUSEA_ANDROID_KEYSTORE_BASE64: ${{ secrets.MUSEA_ANDROID_KEYSTORE_BASE64 }}
+          MUSEA_KEY_ALIAS: ${{ secrets.MUSEA_ANDROID_KEY_ALIAS }}
+          MUSEA_KEYSTORE_PASSWORD: ${{ secrets.MUSEA_ANDROID_KEYSTORE_PASSWORD }}
+          MUSEA_KEY_PASSWORD: ${{ secrets.MUSEA_ANDROID_KEY_PASSWORD }}
+          MUSEA_KEYSTORE_PATH: ${{ github.workspace }}/android/app/musea-upload-key.jks
+        run: |
+          echo "$MUSEA_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$MUSEA_KEYSTORE_PATH"
+          node scripts/configure-android-signing.mjs
+      - name: Build debug APK
+        run: cd android && ./gradlew assembleDebug
+      - name: Build release AAB
+        run: cd android && ./gradlew bundleRelease
+      - name: Upload Android outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: musea-android-build
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+          retention-days: 14
