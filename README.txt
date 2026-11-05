@@ -1,6 +1,6 @@
 # MUSEA V3 — application web progressive
 
-MUSEA est une plateforme sociale créative en cours de construction. Le dépôt contient une PWA hébergée sur GitHub Pages et connectée à un projet Supabase.
+MUSEA V3 est une application web progressive sociale et créative en préparation de publication. Le dépôt contient une PWA hébergée sur GitHub Pages et connectée à un projet Supabase.
 
 ## Fichiers principaux
 
@@ -8,6 +8,7 @@ MUSEA est une plateforme sociale créative en cours de construction. Le dépôt 
 - `manifest.webmanifest` : métadonnées d’installation PWA.
 - `sw.js` : cache hors ligne minimal.
 - `icon-192.png` et `icon-512.png` : icônes de l’application.
+- `privacy.html`, `delete-account.html`, `community-guidelines.html` : informations publiques de confidentialité, suppression de compte et règles communautaires.
 - `supabase/migrations/` : migrations SQL des fonctionnalités serveur.
 
 ## Fonctionnalités déjà présentes dans le code
@@ -47,8 +48,8 @@ Ne jamais désactiver RLS pour contourner une erreur. Une erreur de permission d
 ## Limites actuelles à ne pas présenter comme des fonctionnalités terminées
 
 - Le navigateur MUSEA ouvre les pages dans le navigateur de l'appareil ; ce n'est pas un moteur web intégré comparable à Chrome ou Opera GX.
-- L'assistant IA, les idées créatives et les légendes appellent l'Edge Function Supabase musea-ai (OpenAI). La disponibilité effective dépend du secret serveur OPENAI_API_KEY, des crédits fournisseur et d'une session utilisateur valide ; un test authentifié de bout en bout reste nécessaire.
-- Les offres Premium, points, récompenses et achats restent des simulations : aucun paiement réel n'est traité.
+- L'assistant IA, les idées créatives et les légendes appellent l'Edge Function Supabase `bright-api` (OpenAI). La disponibilité effective dépend du secret serveur OPENAI_API_KEY, des crédits fournisseur et d'une session utilisateur valide ; un test authentifié de bout en bout reste nécessaire.
+- Les abonnements et paiements sont désactivés dans l'interface et les fonctions de paiement côté serveur sont verrouillées pour cette version. Aucun achat ne doit être proposé avant une mise à jour distincte.
 - Les notifications sont dans l'application ; les notifications push lorsque l'application est fermée ne sont pas garanties.
 - Les appels audio/vidéo et les pièces jointes personnelles dans les messages ne sont pas implémentés.
 - Les stories textuelles sont synchronisées dans public.stories, limitées à 24 heures et filtrées par les règles de confidentialité et de blocage. Les médias de stories et leur lecture avancée ne sont pas encore intégrés à l'interface.
@@ -95,7 +96,7 @@ Le site HTTPS peut être installé comme PWA :
 - Android/Chrome : menu du navigateur > Installer l'application ou Ajouter à l'écran d'accueil.
 - iPhone/iPad/Safari : Partager > Sur l'écran d'accueil.
 
-Le dépôt ne contient pas d'APK Android ni d'IPA iOS natif. Une publication sur les stores exigera un emballage natif testé, les comptes développeur, les politiques de confidentialité, les contrôles de sécurité et les tests de conformité.
+Le dépôt ne contient pas d'APK Android ni d'IPA iOS natif. Les pages publiques sont disponibles : `privacy.html`, `delete-account.html` et `community-guidelines.html`. La demande de suppression de compte est actuellement reçue par e-mail et doit être traitée manuellement après vérification ; ce n'est pas une suppression instantanée depuis l'application. Une publication sur les stores exige encore un emballage Android signé et testé, les informations juridiques complètes de l'éditeur, les comptes développeur, les déclarations Play Console et les tests de conformité.
 
 ## Principes produit
 
@@ -113,16 +114,16 @@ L'offre est conçue autour d'outils créatifs et de confort, sans vendre la popu
 - aucun avantage payant ne doit acheter des likes, des abonnés, une certification, une portée ou une priorité dans les recommandations ;
 - le prix de travail affiché est de 5,99 €/mois, non validé commercialement.
 
-L'interface présente cette formule comme étant en préparation. Aucun abonnement n'est vendu, aucun paiement n'est collecté et aucun compte ne peut activer Signature depuis le navigateur. Les avantages listés sont une proposition de produit à implémenter et à vérifier avant commercialisation.
+Cette formule est une piste produit future et n'est pas présentée comme disponible dans l'interface de lancement. Aucun abonnement n'est vendu, aucun paiement n'est collecté et les fonctions de paiement sont verrouillées. Les avantages listés sont une proposition de produit à implémenter et à vérifier avant commercialisation.
 
-## MUSEA Encaissement — étape 23 prévue
+## MUSEA Encaissement — reporté après le lancement
 
 Une étape distincte est réservée à l'intégration d'un prestataire de paiement et au véritable cycle de facturation. Elle devra inclure au minimum : création de session de paiement côté serveur, confirmation exclusivement par webhook signé, gestion des abonnements et de leur état, droits Premium contrôlés côté serveur, factures/reçus, annulation et remboursement, journal de transactions, suivi des frais et des virements, protection contre les doubles événements et tests en environnement sandbox. Aucune clé secrète de paiement ne devra être exposée dans le fichier client.
 
 L'activation commerciale dépendra de la structure juridique, des conditions du prestataire, de la vérification du titulaire du compte et des obligations fiscales applicables. Pour un créateur mineur, le représentant légal devra intervenir selon les règles du prestataire ; aucun contrôle d'âge ou d'identité ne doit être contourné.
 
 
-## MUSEA Encaissement — architecture technique (étape 23)
+## MUSEA Encaissement — architecture technique existante, non activée
 
 Le dépôt contient désormais le socle serveur Stripe, mais **aucun paiement n'est activé** et aucun prélèvement réel ne peut être lancé tant que le titulaire légal du compte marchand n'a pas configuré et validé le prestataire et les secrets côté serveur.
 
