@@ -1670,8 +1670,8 @@ async function loadStories(){
 }
 function renderStories(){
   const stories=Array.isArray(museaStoriesCache)?museaStoriesCache:[];
-  const own=stories.filter(x=>x.user_id===state.userId);
-  const others=stories.filter(x=>x.user_id!==state.userId);
+  const own=stories.filter(x=>x.user_id===museaCurrentUserId);
+  const others=stories.filter(x=>x.user_id!==museaCurrentUserId);
   const ownLabel=own.length?escapeHtml(String(own[0].content).slice(0,24)):'Ton instant';
   const ownHtml='<button class="story story-own" onclick="navigate(&quot;stories&quot;)"><span class="story-ring"><span>＋</span></span><span>'+ownLabel+'</span></button>';
   const otherHtml=others.map(x=>'<button class="story" onclick="viewStory(\''+escapeHtml(x.id)+'\')"><span class="story-ring"><span>✳</span></span><span>'+escapeHtml(String(x.content).slice(0,24))+'</span></button>').join('');
@@ -3566,6 +3566,7 @@ async function museaRefreshAccount() {
   }
 
   museaMessage("Connecté : " + user.email);
+  loadStories().catch(error=>console.error('Stories:',error));
   if(document.querySelector('.screen.active')?.id==='screen-home')await renderFeed();
 }
 
