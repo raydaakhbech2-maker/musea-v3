@@ -710,6 +710,10 @@ window.museaSupabase = window.supabase.createClient(
       <div class="stat"><strong id="likesStat">0</strong><span class="muted small">Likes donnés</span></div>
     </div>
   </div>
+  <section class="card" aria-labelledby="followManagementTitle">
+    <div class="row between wrap"><div><div class="eyebrow">MUSEA / COMMUNAUTÉ</div><h2 class="h3" id="followManagementTitle">Mon réseau</h2></div><span class="chip" id="followingStat">0 abonnements</span></div>
+    <div id="followRequests" class="small muted">Chargement des demandes…</div>
+  </section>
 
   <section class="card creator-pulse-card" aria-labelledby="creatorPulseTitle">
     <div class="row between wrap"><div><div class="eyebrow">MUSEA / RETOUR DE CRÉATION</div><h2 class="h2" id="creatorPulseTitle">Mon Pulse créateur</h2></div><span class="chip">Privé · visible par toi</span></div>
@@ -2380,6 +2384,36 @@ async function openNotificationPost(postId){
   if(target) target.scrollIntoView({behavior:'smooth',block:'center'});
   else toast('Cette création n’est plus disponible dans le fil public.');
 }
+async function loadFollowOverview(){
+  const host=document.getElementById('followRequests');
+  if(!museaCurrentUserId){if(host)host.textContent='Connecte-toi pour gérer ton réseau.';return;}
+  const {count:followers,error:followersError}=await museaSupabase.from('user_follows').select('*',{count:'exact',head:true}).eq('followed_id',museaCurrentUserId).eq('status','accepted');
+  const {count:following,error:followingError}=await museaSupabase.from('user_follows').select('*',{count:'exact',head:true}).eq('follower_id',museaCurrentUserId).eq('status','accepted');
+  if(followersError||followingError){if(host)host.innerHTML='<div class="notice">Le réseau sera disponible après activation de la mise à jour sociale côté serveur.</div>';return;}
+  const followerEl=document.getElementById('followersStat');if(followerEl)followerEl.textContent=String(followers||0);
+  const followingEl=document.getElementById('followingStat');if(followingEl)followingEl.textContent=(following||0)+' abonnements';
+  const {data:requests,error}=await museaSupabase.from('user_follows').select('follower_id,created_at').eq('followed_id',museaCurrentUserId).eq('status','pending').order('created_at',{ascending:false}).limit(30);
+  if(error){if(host)host.textContent='Impossible de charger les demandes.';return;}
+  if(!requests?.length){if(host)host.innerHTML='<p class="small muted">Aucune demande en attente. Tes abonnés apparaîtront ici.</p>';return;}
+  const ids=requests.map(x=>x.follower_id);
+  const {data:profiles,error:profileError}=await museaSupabase.from('profiles').select('id,username').in('id',ids);
+  if(profileError){if(host)host.textContent='Impossible de charger les profils des demandeurs.';return;}
+  host.innerHTML=requests.map(req=>{
+    const profile=(profiles||[]).find(p=>p.id===req.follower_id);
+    return '<div class="row between wrap" style="padding:9px 0;border-bottom:1px solid var(--line)"><strong>@'+escapeHtml(profile?.username||'utilisateur')+'</strong><span class="row"><button class="btn primary" onclick="respondFollowRequest(\''+escapeHtml(req.follower_id)+'\',true)">Accepter</button><button class="btn" onclick="respondFollowRequest(\''+escapeHtml(req.follower_id)+'\',false)">Refuser</button></span></div>';
+  }).join('');
+}
+async function respondFollowRequest(followerId,accept){
+  const {error}=await museaSupabase.rpc('musea_respond_follow_request',{p_follower_id:followerId,p_accept:accept});
+  if(error){console.error(error);toast('Impossible de traiter cette demande.');return;}
+  toast(accept?'Demande acceptée.':'Demande refusée.');
+  await loadFollowOverview();
+}
+async function followMuseaUser(userId){
+  const {data,error}=await museaSupabase.rpc('musea_follow_user',{p_followed_id:userId});
+  if(error){console.error(error);toast('Impossible de suivre ce profil.');return;}
+  toast(data==='pending'?'Demande envoyée.':'Tu suis maintenant ce profil.');
+}
 async function renderProfile(){
   const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value??'';};
   const pulse=document.getElementById('creatorPulse');
@@ -2403,6 +2437,7 @@ async function renderProfile(){
   set('milestonesStat','0');
   set('likesStat',state.liked.length);
   set('followersStat','—');
+  loadFollowOverview();
   set('privacyTag',state.prefs.private?'Privé':'Public');
   set('activityPrivacyTag',state.prefs.private?'Masquée':'Selon mes réglages');
   const activity=document.getElementById('profileActivity');
