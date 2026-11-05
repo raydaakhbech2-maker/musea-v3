@@ -1376,7 +1376,7 @@ async function translatePost(id){
     const {data:sessionData,error:sessionError}=await museaSupabase.auth.getSession();
     if(sessionError)throw sessionError;
     if(!sessionData?.session)throw new Error('Connecte-toi pour utiliser la traduction IA.');
-    const {data,error}=await museaSupabase.functions.invoke('musea-ai',{body:{
+    const {data,error}=await museaSupabase.functions.invoke('bright-api',{body:{
       task:'translate',prompt:source,targetLanguage:lang
     }});
     if(error){
@@ -2867,7 +2867,7 @@ async function runMuseaAI(task){
     const {data:sessionData,error:sessionError}=await museaSupabase.auth.getSession();
     if(sessionError)throw sessionError;
     if(!sessionData?.session){if(status)status.textContent='Connecte-toi pour utiliser l’assistant IA.';return;}
-    const {data,error}=await museaSupabase.functions.invoke('musea-ai',{body:{
+    const {data,error}=await museaSupabase.functions.invoke('bright-api',{body:{
       task,
       prompt,
       context:document.getElementById('studioBrief')?.value?.trim()||''
