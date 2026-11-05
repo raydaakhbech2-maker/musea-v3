@@ -72,6 +72,7 @@ Deno.serve(async (req) => {
   if (lockError) return json({ error: "Impossible de réserver cette demande de paiement." }, 500);
   if (claimed !== true) return json({ error: "Une demande de paiement est déjà en cours. Réessaie dans quelques instants." }, 409);
 
+  let keepLock = false;
   try {
     const stripe = new Stripe(stripeKey);
     let customerId: string | null = null;
@@ -102,8 +103,8 @@ Deno.serve(async (req) => {
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       client_reference_id: user.id,
-      metadata: { musea_user_id: user.id },
-      subscription_data: { metadata: { musea_user_id: user.id } },
+      metadata: { musea_user_id: user.id, musea_checkout_lock_token: lockToken },
+      subscription_data: { metadata: { musea_user_id: user.id, musea_checkout_lock_token: lockToken } },
       success_url: APP_URL + "?billing=success",
       cancel_url: APP_URL + "?billing=cancelled",
       allow_promotion_codes: false,
@@ -112,13 +113,16 @@ Deno.serve(async (req) => {
     if (!session.url || !session.url.startsWith("https://checkout.stripe.com/")) {
       throw new Error("Stripe n'a pas retourné une adresse Checkout valide.");
     }
+    keepLock = true;
     return json({ checkout_url: session.url });
   } catch (error) {
     console.error("MUSEA checkout error:", error);
     return json({ error: "Impossible de préparer le paiement. Aucun prélèvement n'a été effectué." }, 503);
   } finally {
-    await admin.rpc("musea_release_billing_checkout", {
-      p_user_id: user.id, p_lock_token: lockToken,
-    });
+    if (!keepLock) {
+      await admin.rpc("musea_release_billing_checkout", {
+        p_user_id: user.id, p_lock_token: lockToken,
+      });
+    }
   }
 });
