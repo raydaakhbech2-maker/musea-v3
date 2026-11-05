@@ -227,3 +227,16 @@ Les migrations SQL du socle social, des notifications, de la découverte, de la 
 - La PWA Android/iOS est installable depuis un navigateur compatible. Aucun APK natif signé ni IPA n'est produit par ce dépôt.
 - Les contrôles Supabase signalent encore des avertissements de performance RLS et plusieurs fonctions SECURITY DEFINER accessibles aux utilisateurs authentifiés. Les fonctions de trigger-only ont été retirées des rôles API ; les autres fonctions privilégiées restent à auditer individuellement avant ouverture publique.
 - Les migrations n'ont pas toutes été exécutées sur une base vierge : le projet contenait déjà un schéma préexistant sans historique de migrations. Les opérations ont été appliquées en mode compatible avec les tables et données déjà présentes.
+
+
+## Paiements — état au 5 novembre 2026
+
+Les fonctions `create-checkout-session`, `create-billing-portal` et `stripe-webhook` sont déployées dans Supabase. Checkout est strictement limité à une clé Stripe de test (`sk_test_`) et à un compte explicitement validé par un titulaire majeur dans la table serveur `billing_checkout_eligibility`. Cette table n'est pas modifiable par les comptes utilisateurs. Sans cette validation, sans les secrets serveur et sans le prix Stripe de test, Checkout refuse la demande.
+
+Secrets serveur attendus, à saisir par le titulaire majeur dans le gestionnaire de secrets Supabase (ne jamais les placer dans le dépôt GitHub ni dans le navigateur) :
+- `STRIPE_SECRET_KEY` : clé secrète Stripe de test, commençant par `sk_test_`.
+- `STRIPE_WEBHOOK_SIGNING_SECRET` : secret de signature du webhook Stripe de test.
+- `STRIPE_PRICE_SIGNATURE_MONTHLY` : identifiant du prix mensuel Stripe de test.
+- `MUSEA_BILLING_ENABLED` : valeur `true` uniquement après validation de la configuration de test.
+
+Le webhook Stripe doit écouter : `checkout.session.completed`, `checkout.session.expired`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid` et `invoice.payment_failed`. L'URL est l'endpoint Supabase de la fonction `stripe-webhook`. Le portail et Checkout exigent un JWT valide. Aucun secret marchand n'a été configuré par cette mise à jour ; aucun paiement réel n'est possible.
