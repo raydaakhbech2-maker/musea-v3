@@ -4,3 +4,6 @@
 # propre signature Stripe sur le corps brut de la requête.
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.musea-ai]
+verify_jwt = true
