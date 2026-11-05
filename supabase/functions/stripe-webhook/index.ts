@@ -94,13 +94,21 @@ Deno.serve(async (req) => {
       // écrase l'état plus récent de l'abonnement dans notre base.
       const currentSubscription = await stripe.subscriptions.retrieve(subscriptionId);
       await saveSubscription(currentSubscription);
-    } else if (event.type === "checkout.session.completed") {
+    } else if (event.type === "checkout.session.completed" || event.type === "checkout.session.expired") {
       const session = event.data.object as Stripe.Checkout.Session;
       const subscriptionId = typeof session.subscription === "string"
         ? session.subscription : session.subscription?.id;
-      if (subscriptionId) {
+      if (event.type === "checkout.session.completed" && subscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         await saveSubscription(subscription);
+      }
+      const lockToken = session.metadata?.musea_checkout_lock_token;
+      const userId = session.client_reference_id || session.metadata?.musea_user_id;
+      if (lockToken && userId) {
+        const { error } = await admin.rpc("musea_release_billing_checkout", {
+          p_user_id: userId, p_lock_token: lockToken,
+        });
+        if (error) throw error;
       }
     } else if (event.type === "invoice.paid" || event.type === "invoice.payment_failed") {
       const invoiceEvent = event.data.object as Stripe.Invoice;
