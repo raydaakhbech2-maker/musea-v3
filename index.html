@@ -1667,7 +1667,7 @@ async function renderDiscover(){
 function setDiscover(k,b){discoverKind=k;document.querySelectorAll('#discoverCategoryFilters .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderDiscover()}
 let museaStoriesCache=[];
 async function loadStories(){
-  const {data,error}=await museaSupabase.from('stories').select('id,user_id,content,created_at,expires_at').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false}).limit(60);
+  const {data,error}=await museaSupabase.from('stories').select('id,user_id,caption,media_path,media_type,created_at,expires_at').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false}).limit(60);
   if(error)throw error;
   museaStoriesCache=data||[];
   renderStories();
@@ -1678,7 +1678,7 @@ function renderStories(){
   const others=stories.filter(x=>x.user_id!==museaCurrentUserId);
   const ownLabel=own.length?escapeHtml(String(own[0].content).slice(0,24)):'Ton instant';
   const ownHtml='<button class="story story-own" onclick="navigate(&quot;stories&quot;)"><span class="story-ring"><span>＋</span></span><span>'+ownLabel+'</span></button>';
-  const otherHtml=others.map(x=>'<button class="story" onclick="viewStory(\''+escapeHtml(x.id)+'\')"><span class="story-ring"><span>✳</span></span><span>'+escapeHtml(String(x.content).slice(0,24))+'</span></button>').join('');
+  const otherHtml=others.map(x=>'<button class="story" onclick="viewStory(\''+escapeHtml(x.id)+'\')"><span class="story-ring"><span>✳</span></span><span>'+escapeHtml(String(x.caption||'Instant').slice(0,24))+'</span></button>').join('');
   const html=ownHtml+otherHtml;
   const row=document.getElementById('storyRow');if(row)row.innerHTML=html;
   const all=document.getElementById('allStories');if(all)all.innerHTML=html||'<p class="small muted">Aucun instant actif pour le moment.</p>';
@@ -1686,7 +1686,10 @@ function renderStories(){
 async function viewStory(id){
   const story=museaStoriesCache.find(x=>x.id===id);
   if(!story)return toast('Cet instant n’est plus disponible.');
-  toast(story.content);
+  const modal=document.getElementById('museaStoryViewer')||document.createElement('div');
+  modal.id='museaStoryViewer';modal.className='modal';
+  modal.innerHTML='<div class="modalbox" role="dialog" aria-modal="true" aria-label="Instant MUSEA"><div class="row between"><div class="eyebrow">INSTANT MUSEA</div><button class="iconbtn" onclick="document.getElementById(\'museaStoryViewer\').remove()" aria-label="Fermer">✕</button></div><p style="white-space:pre-wrap;font-size:18px;margin:22px 0">'+escapeHtml(story.caption||'')+'</p><p class="small muted">Cet instant disparaît automatiquement après 24 heures.</p></div>';
+  if(!modal.isConnected)document.body.appendChild(modal);
 }
 async function addStory(){
   const input=document.getElementById('storyText');
@@ -1695,7 +1698,7 @@ async function addStory(){
   if(value.length>500)return toast('500 caractères maximum.');
   const {data,error:authError}=await museaSupabase.auth.getUser();
   if(authError||!data?.user)return toast('Connecte-toi pour publier un instant.');
-  const {error}=await museaSupabase.from('stories').insert({user_id:data.user.id,content:value});
+  const {error}=await museaSupabase.from('stories').insert({user_id:data.user.id,caption:value});
   if(error){console.error('Publication story:',error);return toast('Publication impossible. Vérifie que la mise à jour sociale est activée.');}
   input.value='';
   await loadStories().catch(error=>{console.error(error);toast('Instant publié, mais actualisation impossible.');});
@@ -2413,6 +2416,9 @@ async function followMuseaUser(userId){
   const {data,error}=await museaSupabase.rpc('musea_follow_user',{p_followed_id:userId});
   if(error){console.error(error);toast('Impossible de suivre ce profil.');return;}
   toast(data==='pending'?'Demande envoyée.':'Tu suis maintenant ce profil.');
+  const active=document.querySelector('#publicCreatorContent button[onclick*="followMuseaUser"]');
+  if(active){active.textContent=data==='pending'?'Demande envoyée':'Abonné';active.disabled=true;}
+  await loadFollowOverview().catch(()=>{});
 }
 async function renderProfile(){
   const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value??'';};
@@ -2754,7 +2760,7 @@ async function openCreatorProfile(userId){
     if(profileError)throw profileError;
     if(!profile){target.innerHTML='<div class="notice">Ce profil n’est pas accessible. Il a peut-être été supprimé ou rendu privé.</div>';return;}
     if(profile.is_private){
-      target.innerHTML='<div class="notice"><strong>Ce profil est privé.</strong><p class="small muted">Ses créations et son portfolio ne sont pas affichés ici.</p></div>';
+      target.innerHTML='<header class="public-creator-hero"><div class="eyebrow">UNIVERS CRÉATIF / MUSEA</div><h1 class="h1">'+escapeHtml(profile.display_name||profile.username||'Créateur MUSEA')+'</h1><p>@'+escapeHtml(profile.username||'createur')+'</p><p class="muted">Ce compte est privé. Envoie une demande pour accéder à ses créations.</p><button class="btn primary" onclick="followMuseaUser(\''+escapeHtml(userId)+'\')">Demander à suivre</button></header>';
       return;
     }
     const {data:portfolio,error:portfolioError}=await museaSupabase.from('creator_portfolio_items')
@@ -2771,7 +2777,7 @@ async function openCreatorProfile(userId){
       .order('created_at',{ascending:false}).limit(12);
     if(postsError)throw postsError;
     const name=profile.display_name||profile.username||'Créateur MUSEA';
-    target.innerHTML='<header class="public-creator-hero"><div class="eyebrow">UNIVERS CRÉATIF / MUSEA</div><h1 class="h1">'+escapeHtml(name)+'</h1><p>@'+escapeHtml(profile.username||'createur')+'</p><h2 class="h3">'+escapeHtml(profile.headline||'Un univers à découvrir.')+'</h2><p>'+escapeHtml(profile.bio||'')+'</p><div class="creator-signature">'+escapeHtml(profile.creative_signature||'')+'</div><div class="creator-specialty-list">'+(profile.specialties||[]).map(x=>'<span class="chip">'+escapeHtml(x)+'</span>').join('')+'</div></header>'+
+    target.innerHTML='<header class="public-creator-hero"><div class="eyebrow">UNIVERS CRÉATIF / MUSEA</div><h1 class="h1">'+escapeHtml(name)+'</h1><p>@'+escapeHtml(profile.username||'createur')+'</p><h2 class="h3">'+escapeHtml(profile.headline||'Un univers à découvrir.')+'</h2><p>'+escapeHtml(profile.bio||'')+'</p><div class="creator-signature">'+escapeHtml(profile.creative_signature||'')+'</div><div class="creator-specialty-list">'+(profile.specialties||[]).map(x=>'<span class="chip">'+escapeHtml(x)+'</span>').join('')+'</div><button class="btn primary" onclick="followMuseaUser(\''+escapeHtml(userId)+'\')">Suivre ce créateur</button></header>'+
       '<section class="public-creator-section"><div class="eyebrow">SÉLECTION SIGNATURE</div><h2 class="h2">Portfolio</h2>'+renderPortfolioCards(items,portfolioPosts,false)+'</section>'+
       '<section class="public-creator-section"><div class="eyebrow">JOURNAL PUBLIC</div><h2 class="h2">Autres créations</h2><div class="creator-public-posts">'+((posts||[]).length?posts.map(p=>postMarkup({
         id:p.id,user_id:p.user_id,user:profile.username||'Créateur',avatar:(profile.username||'M')[0].toUpperCase(),
