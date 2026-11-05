@@ -1023,32 +1023,35 @@ async function loadCommunityPosts(){
     .select('id,user_id,caption,style,visibility,image_url,created_at')
     .eq('visibility','public').order('created_at',{ascending:false}).limit(100);
   if(error) throw error;
-  const postIds=(rows||[]).map(r=>r.id);
-  const userIds=[...new Set((rows||[]).map(r=>r.user_id).filter(Boolean))];
   let profiles=[], likes=[], comments=[], reposts=[], saves=[];
-  const {data:userData}=await museaSupabase.auth.getUser();
+  const {data:userData,error:authError}=await museaSupabase.auth.getUser();
+  if(authError) throw authError;
   const currentUser=userData?.user||null;
+  const userIds=[...new Set((rows||[]).map(r=>r.user_id).filter(Boolean))];
   if(userIds.length){
-    const {data,error:profileError}=await museaSupabase.from('profiles').select('id,username').in('id',userIds);
-    if(profileError) console.warn('Profils indisponibles :',profileError);
+    const {data,error:profileError}=await museaSupabase.from('profiles').select('id,username,is_private').in('id',userIds);
+    if(profileError) throw new Error('Impossible de vérifier la confidentialité des profils : '+profileError.message);
     profiles=data||[];
   }
+  const visibleProfiles=new Set(profiles.filter(profile=>profile.is_private!==true).map(profile=>profile.id));
+  rows=(rows||[]).filter(row=>visibleProfiles.has(row.user_id));
+  const postIds=rows.map(r=>r.id);
   if(postIds.length){
     const results=await Promise.all([
       museaSupabase.from('post_likes').select('post_id,user_id').in('post_id',postIds),
       museaSupabase.from('post_comments').select('id,post_id,user_id,parent_comment_id,content,created_at').in('post_id',postIds).order('created_at',{ascending:true}),
       museaSupabase.from('post_reposts').select('post_id,user_id').in('post_id',postIds)
     ]);
-    if(results[0].error) console.warn('Likes indisponibles :',results[0].error);
-    else likes=results[0].data||[];
-    if(results[1].error) console.warn('Commentaires indisponibles :',results[1].error);
-    else comments=results[1].data||[];
-    if(results[2].error) console.warn('Reposts indisponibles :',results[2].error);
-    else reposts=results[2].data||[];
+    if(results[0].error) throw new Error('Chargement des likes impossible : '+results[0].error.message);
+    likes=results[0].data||[];
+    if(results[1].error) throw new Error('Chargement des commentaires impossible : '+results[1].error.message);
+    comments=results[1].data||[];
+    if(results[2].error) throw new Error('Chargement des reposts impossible : '+results[2].error.message);
+    reposts=results[2].data||[];
     if(currentUser){
       const {data,error:saveError}=await museaSupabase.from('saved_posts').select('post_id').eq('user_id',currentUser.id).in('post_id',postIds);
-      if(saveError) console.warn('Collections indisponibles :',saveError);
-      else saves=data||[];
+      if(saveError) throw new Error('Chargement des collections impossible : '+saveError.message);
+      saves=data||[];
     }
   }
   const commentUserIds=[...new Set(comments.map(c=>c.user_id).filter(Boolean))];
