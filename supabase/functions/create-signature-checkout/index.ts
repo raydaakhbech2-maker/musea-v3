@@ -37,6 +37,11 @@ Deno.serve(async (req) => {
   if (!supabaseUrl || !anonKey || !serviceKey || !stripeKey || !priceId) {
     return json({ error: "Configuration de paiement incomplète. Aucun paiement n'a été lancé." }, 503);
   }
+  // Cette version du produit n'autorise que les clés Stripe de test.
+  // La production nécessitera une revue juridique, sécurité et commerciale distincte.
+  if (!stripeKey.startsWith("sk_test_")) {
+    return json({ error: "Le paiement réel est désactivé dans cette version. Seul l'environnement de test est autorisé." }, 403);
+  }
 
   const userClient = createClient(supabaseUrl, anonKey, {
     auth: { persistSession: false, autoRefreshToken: false },

@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Méthode non autorisée." }, 405);
   const origin = req.headers.get("Origin");
-  if (origin && origin !== APP_ORIGIN) return json({ error: "Origine non autorisée." }, 403);
+  if (origin !== APP_ORIGIN) return json({ error: "Origine non autorisée." }, 403);
   const authorization = req.headers.get("Authorization");
   if (!authorization?.startsWith("Bearer ")) return json({ error: "Connexion requise." }, 401);
 
@@ -26,6 +26,9 @@ Deno.serve(async (req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
   if (!url || !anonKey || !serviceKey || !stripeKey) return json({ error: "Configuration incomplète." }, 503);
+  if (!stripeKey.startsWith("sk_test_")) {
+    return json({ error: "Le portail de facturation réel est désactivé dans cette version. Seul l'environnement de test est autorisé." }, 403);
+  }
 
   const userClient = createClient(url, anonKey, {
     auth: { persistSession: false, autoRefreshToken: false },

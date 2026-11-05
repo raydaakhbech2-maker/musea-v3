@@ -1,4 +1,4 @@
-const CACHE = 'musea-account-billing-v15';
+const CACHE = 'musea-ai-ux-v16';
 const FILES = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', event => {

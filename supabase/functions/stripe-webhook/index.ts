@@ -17,6 +17,9 @@ Deno.serve(async (req) => {
   if (!signature || !stripeKey || !webhookSecret || !supabaseUrl || !serviceKey) {
     return json({ error: "Configuration webhook incomplète." }, 503);
   }
+  if (!stripeKey.startsWith("sk_test_")) {
+    return json({ error: "Le webhook de production est désactivé dans cette version." }, 403);
+  }
 
   const stripe = new Stripe(stripeKey);
   const cryptoProvider = Stripe.createSubtleCryptoProvider();

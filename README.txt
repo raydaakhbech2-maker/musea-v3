@@ -47,11 +47,11 @@ Ne jamais désactiver RLS pour contourner une erreur. Une erreur de permission d
 ## Limites actuelles à ne pas présenter comme des fonctionnalités terminées
 
 - Le navigateur MUSEA ouvre les pages dans le navigateur de l'appareil ; ce n'est pas un moteur web intégré comparable à Chrome ou Opera GX.
-- La génération IA n'est pas reliée à un fournisseur IA opérationnel dans cette version.
+- L'intégration IA est présente sur la branche de remise à niveau, mais elle reste désactivée tant que la migration de quotas, l'Edge Function et les secrets serveur ne sont pas déployés et vérifiés.
 - Les offres Premium, points, récompenses et achats restent des simulations : aucun paiement réel n'est traité.
 - Les notifications sont dans l'application ; les notifications push lorsque l'application est fermée ne sont pas garanties.
 - Les appels audio/vidéo et les pièces jointes personnelles dans les messages ne sont pas implémentés.
-- Les stories disponibles dans certaines vues sont des brouillons locaux, pas un service de stories synchronisées complet.
+- Les Stories synchronisées sont maintenant préparées sur la branche de remise à niveau ; la migration doit être appliquée avant activation. L'expiration masque les Stories après 24 h, mais le nettoyage automatique des anciens fichiers de stockage reste à finaliser.
 - La modération repose sur des signalements et des décisions humaines autorisées ; aucun système automatique ne garantit la détection de tous les abus.
 
 ## Boussole créative — transparence et contrôle
@@ -87,7 +87,7 @@ Le Studio permet de préparer des créations avant publication :
 - états « En création » et « Prêt à publier » ;
 - publication déclenchée explicitement par le créateur.
 
-Aucun moteur de génération IA n'est connecté dans cette version. Les outils de retouche fonctionnent localement dans le navigateur ; aucune image n'est envoyée à un fournisseur IA. La migration `2026-11-04_creator_studio.sql` doit être appliquée dans Supabase pour activer les brouillons synchronisés et leur stockage privé.
+Les outils de retouche fonctionnent localement dans le navigateur. Le moteur IA est préparé séparément et reste désactivé jusqu'au déploiement de `musea-ai`, de la migration `2026-11-06_ai_usage_limits.sql` et des secrets serveur. La migration `2026-11-04_creator_studio.sql` doit être appliquée dans Supabase pour activer les brouillons synchronisés et leur stockage privé.
 
 ## Installation sur téléphone
 
@@ -215,3 +215,67 @@ Limites explicites : le diagnostic ne réalise pas de test de disponibilité du 
 
 ### Limites de déploiement
 Aucune migration n'a été exécutée sur le projet Supabase, aucune Edge Function n'a été déployée et aucun paiement de test ou réel n'a été lancé. Le Checkout reste verrouillé tant que les deux drapeaux serveur ne sont pas explicitement activés par le titulaire légal autorisé. La gestion d'un compte marchand, les contrats, les vérifications d'identité et la réception de fonds doivent être assumés par le représentant légal ou la structure habilitée selon les règles du prestataire.
+
+
+## MUSEA IA — assistant créatif (remise à niveau)
+
+Le Studio comprend désormais les points d'entrée pour développer une idée, proposer une légende, traduire un texte, générer un visuel et transformer un visuel importé à partir d'une consigne. Les appels passent par l'Edge Function authentifiée `musea-ai` ; la clé OpenAI reste côté serveur et n'est jamais intégrée au navigateur.
+
+- Modèle texte par défaut : `gpt-6-luna` via l'API Responses.
+- Modèle image par défaut : `gpt-image-2.5-flare` pour générer et `gpt-image-2.5-sunburst` pour transformer un visuel importé.
+- La migration `2026-11-06_ai_usage_limits.sql` crée des quotas quotidiens côté serveur : 8 requêtes texte et 1 image pour Libre ; 80 requêtes texte et 5 images pour Signature ; plafonds globaux par défaut de 1 000 requêtes texte et 20 images par jour, configurables via `MUSEA_AI_DAILY_TEXT_LIMIT` et `MUSEA_AI_DAILY_IMAGE_LIMIT`.
+- Secrets requis côté Supabase : `OPENAI_API_KEY` et `MUSEA_AI_ENABLED=true`. Modèles configurables via `OPENAI_TEXT_MODEL`, `OPENAI_IMAGE_MODEL` et `OPENAI_EDIT_MODEL`.
+- Les quotas sont consommés avant l'appel fournisseur pour empêcher les appels concurrents de dépasser les limites. Une requête fournisseur échouée peut donc consommer une unité.
+- Les résultats ne sont jamais publiés automatiquement. Le créateur doit les relire, les modifier et décider de les enregistrer ou de les publier.
+- L'API OpenAI est facturée séparément des abonnements ChatGPT ; le coût dépend du modèle, des tokens et des images générées. Les clés doivent être conservées dans les secrets Supabase, jamais dans le code client.
+- Le service reste désactivé tant que la migration n'est pas appliquée et que le titulaire du projet n'a pas configuré les secrets et validé les plafonds de dépenses.
+
+### Paiement Signature — environnement de test uniquement
+
+L'interface appelle maintenant `create-signature-checkout`. L'Edge Function refuse explicitement toute clé Stripe autre que `sk_test_`. Les flags serveur `MUSEA_BILLING_ENABLED` et `MUSEA_MERCHANT_READY` doivent aussi être validés pour les tests. Aucun paiement réel ne peut être lancé depuis cette branche. La mise en production nécessitera une revue distincte du compte marchand, des obligations légales, des conditions commerciales, des remboursements et de la résiliation.
+
+
+## Stories synchronisées — remise à niveau
+
+La branche `final/musea-v3-product-polish` remplace les brouillons locaux par un vrai flux Stories :
+- Stories texte, photo et vidéo, avec légende limitée à 240 caractères.
+- Bucket privé `musea-stories` ; liens signés temporaires, aucun accès public direct.
+- Expiration serveur après 24 heures, vue unique par membre et compteur visible par le propriétaire.
+- Filtrage des comptes bloqués via `user_blocks` et fonction SQL de visibilité sécurisée.
+- Actualisation Realtime de la liste et suppression par le propriétaire.
+- Taille maximale : 20 Mo ; formats JPG, PNG, WebP, GIF, MP4 et WebM.
+- Migration : `2026-11-06_stories_live.sql`, à appliquer après `2026-11-04_messaging_collaboration.sql`.
+- Limites restantes : audience ouverte aux membres connectés non bloqués (pas encore limitée aux abonnés) ; les anciens fichiers des Stories expirées doivent encore être purgés automatiquement par une tâche serveur planifiée.
+
+
+## Modules créatifs et sociaux — remise à niveau
+
+La branche `final/musea-v3-product-polish` réintègre des modules qui existaient dans l'ancienne branche de travail et les adapte au schéma actuel (notamment `public.user_blocks`, et non `direct_message_blocks`) :
+
+- Relations : abonnements persistants, recherche de créateurs filtrée par blocage, centres d'intérêt publics limités à cinq et fil « Mon cercle ».
+- Carnets : trois fragments facultatifs liés à une publication publique, modifiables et supprimables par leur auteur.
+- Atlas : parcours de créations publiques, annotations, ordre éditorial, visibilité publique/privée, 50 Atlas maximum par compte et 100 créations maximum par Atlas.
+- Regards : questions créatives guidées, réponses constructives, une réponse par membre et par demande, fermeture/réouverture par l'auteur, sans note ni classement.
+- Stories : texte, photo et vidéo, espace privé, liens signés et expiration à 24 heures.
+
+### Ordre des nouvelles migrations
+
+Toutes les migrations historiques de `main` doivent d'abord être appliquées, en particulier `2026-11-04_messaging_collaboration.sql` (table `user_blocks`) et les migrations de profils/publications. Ensuite :
+
+1. `2026-11-06_stories_live.sql`
+2. `2026-11-06_relationships.sql`
+3. `2026-11-06_creation_journals.sql`
+4. `2026-11-06_creative_atlases.sql`
+5. `2026-11-06_creative_feedback.sql`
+6. `2026-11-06_ai_usage_limits.sql`
+
+Les nouvelles migrations ne sont pas encore appliquées au projet Supabase et les nouvelles Edge Functions ne sont pas encore déployées. Les contrôles réalisés jusqu'ici sont des contrôles statiques du code, pas des tests d'intégration sur la base réelle.
+
+### Fonctions encore à finaliser avant une vraie mise en production
+
+- Purge planifiée des fichiers médias des Stories expirées.
+- Validation de bout en bout de la confidentialité des profils privés, des publications, des images et des interactions à partir des politiques RLS réellement installées.
+- Parcours complet des appels audio/vidéo : non activé, car il exige une infrastructure de signalisation, TURN, des contrôles de confidentialité et une modération adaptés.
+- Navigateur intégré natif : une PWA ne peut pas remplacer un WebView Android/iOS complet ; la version web ouvre les sites dans le navigateur de l'appareil.
+- Facturation réelle : interdite dans cette branche ; seul Stripe test est autorisé.
+- IA : intégration prête côté code, mais activation bloquée jusqu'au déploiement, à la configuration des secrets et à la validation du budget par le titulaire responsable.
