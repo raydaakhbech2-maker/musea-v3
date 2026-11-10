@@ -394,6 +394,7 @@ body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibi
 @media(max-width:430px){.billing-invoice-row{align-items:flex-start;flex-direction:column;gap:5px}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
 window.museaSupabase = window.supabase.createClient(
   "https://dujargvriuxwczkgsyua.supabase.co",
@@ -3188,7 +3189,16 @@ async function publishDemo() {
 function quickWeb(url){document.getElementById('urlInput').value=url;openWeb()}
 function openWeb(){let raw=document.getElementById('urlInput').value.trim();if(!raw)return toast('Saisis une adresse ou une recherche.');let url;if(/^https?:\/\//i.test(raw))url=raw;else if(raw.includes('.')&&!raw.includes(' '))url='https://'+raw;else url='https://www.google.com/search?q='+encodeURIComponent(raw);try{let u=new URL(url);if(!['http:','https:'].includes(u.protocol))throw 0;window.open(u.href,'_blank','noopener,noreferrer');state.lastUrl=u.href;save();toast('Page ouverte dans un nouvel onglet du navigateur de ton appareil.')}catch(e){toast('Adresse invalide. Utilise une adresse HTTPS ou une recherche.')} }
 function bookmarkCurrent(){let u=state.lastUrl||document.getElementById('urlInput').value.trim();if(!u)return toast('Ouvre d’abord une page.');state.bookmarks=state.bookmarks||[];if(!state.bookmarks.includes(u))state.bookmarks.push(u);save();renderBookmarks();toast('Favori enregistré localement.')}
-function renderBookmarks(){let b=document.getElementById('bookmarks');if(!b)return;b.innerHTML=(state.bookmarks||[]).map(u=>`<button class="chip" onclick="quickWeb('${escapeHtml(u)}')">${escapeHtml(new URL(u).hostname)}</button>`).join('')||'<span class="small muted">Aucun favori pour le moment.</span>'}
+function renderBookmarks(){
+  const host=document.getElementById('bookmarks');if(!host)return;
+  const safe=(state.bookmarks||[]).filter(value=>{
+    try{const url=new URL(String(value));return url.protocol==='https:'||url.protocol==='http:';}catch(_){return false;}
+  });
+  host.innerHTML=safe.map(value=>{
+    const url=new URL(String(value));
+    return '<button class="chip" onclick="quickWeb(\''+escapeHtml(url.href)+'\')">'+escapeHtml(url.hostname)+'</button>';
+  }).join('')||'<span class="small muted">Aucun favori pour le moment.</span>';
+}
 
 let pendingContentReportTarget=null;
 function openContentReport(postId){
@@ -3467,7 +3477,37 @@ async function copyMuseaSignalReport(){
   }catch(error){toast('Copie indisponible : sélectionne le rapport après un nouveau diagnostic.');}
 }
 
-function init(){load();applyTheme();updatePlan();document.getElementById('prompt')?.addEventListener('input',()=>{const el=document.getElementById('studioCaptionCount');if(el)el.textContent=document.getElementById('prompt').value.length+' / 500';});const dailyPrompt=document.getElementById('dailyPromptText');if(dailyPrompt)dailyPrompt.textContent=getDailyCreativePrompt();renderFeed();renderDiscover();renderLeaderboard();renderMessages();renderNotifications();renderProfile();renderBookmarks();if(!state.plan)showPlans();if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});updateMuseaNetworkNotice();window.addEventListener('online',updateMuseaNetworkNotice);window.addEventListener('offline',updateMuseaNetworkNotice);window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(state.theme==='system')applyTheme()})}
+function museaInitTask(label,task){
+  try{
+    const result=task();
+    if(result&&typeof result.catch==='function')result.catch(error=>console.error('MUSEA init '+label+':',error));
+  }catch(error){console.error('MUSEA init '+label+':',error);}
+}
+function init(){
+  museaInitTask('préférences',()=>{load();applyTheme();updatePlan();});
+  museaInitTask('studio',()=>document.getElementById('prompt')?.addEventListener('input',()=>{
+    const el=document.getElementById('studioCaptionCount');if(el)el.textContent=document.getElementById('prompt').value.length+' / 500';
+  }));
+  museaInitTask('suggestion quotidienne',()=>{const el=document.getElementById('dailyPromptText');if(el)el.textContent=getDailyCreativePrompt();});
+  museaInitTask('galerie',renderFeed);
+  museaInitTask('exploration',renderDiscover);
+  museaInitTask('tendances',renderLeaderboard);
+  museaInitTask('messagerie',renderMessages);
+  museaInitTask('notifications',renderNotifications);
+  museaInitTask('profil',renderProfile);
+  museaInitTask('favoris',renderBookmarks);
+  museaInitTask('abonnements',()=>{if(!state.plan)showPlans();});
+  museaInitTask('cache hors ligne',()=>{
+    if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(error=>console.warn('MUSEA service worker:',error));
+  });
+  museaInitTask('état réseau',()=>{
+    updateMuseaNetworkNotice();
+    window.addEventListener('online',updateMuseaNetworkNotice);
+    window.addEventListener('offline',updateMuseaNetworkNotice);
+    const media=window.matchMedia('(prefers-color-scheme: dark)');
+    media.addEventListener?.('change',()=>{if(state.theme==='system')applyTheme();});
+  });
+}
 async function museaMessage(text) {
   document.getElementById('authMessage').textContent = text;
 }
