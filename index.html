@@ -850,6 +850,8 @@ function load(){
     for(const [key,value] of Object.entries(saved)){
       if(key==='prefs'||key==='points'||key==='wallpaper'||key==='badge')continue;
       const base=defaults[key];
+      if(key==='bookmarks'){if(Array.isArray(value))restored[key]=value;continue;}
+      if(key==='lastUrl'){if(typeof value==='string')restored[key]=value;continue;}
       if(Array.isArray(base)){if(Array.isArray(value))restored[key]=value;}
       else if(base&&typeof base==='object'){if(value&&typeof value==='object'&&!Array.isArray(value))restored[key]=value;}
       else if(value===null||typeof value===typeof base)restored[key]=value;
