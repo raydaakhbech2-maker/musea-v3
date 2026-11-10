@@ -1,0 +1,75 @@
+name: Build MUSEA Android packages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'privacy.html'
+      - 'delete-account.html'
+      - 'community-guidelines.html'
+      - 'manifest.webmanifest'
+      - 'sw.js'
+      - 'icon-192.png'
+      - 'icon-512.png'
+      - 'package.json'
+      - 'capacitor.config.ts'
+      - 'scripts/**'
+      - '.github/workflows/android-package.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: package.json
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Validate required MUSEA assets
+        run: |
+          node --input-type=module <<'NODE'
+          import { access } from 'node:fs/promises';
+          const files = ['index.html','privacy.html','delete-account.html','community-guidelines.html','manifest.webmanifest','sw.js','icon-192.png','icon-512.png'];
+          for (const file of files) await access(file);
+          console.log('All required web assets are present.');
+          NODE
+
+      - name: Create Android project
+        run: npx cap add android
+
+      - name: Prepare web assets and sync Capacitor
+        run: npm run android:prepare
+
+      - name: Build Android APK and App Bundle
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleDebug bundleRelease
+
+      - name: Publish build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: musea-android-build
+          if-no-files-found: error
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/bundle/release/*.aab
