@@ -839,11 +839,42 @@ let discoveryControls={balance:'balanced',personalization:true,emerging:true};
 let trendPeriod='7d';
 let trendStyleChoices=[];
 const creativeStyleOptions=['Digital art','Fantasy','Photo','3D','Anime','Photorealistic','Peinture','Minimaliste','Architecture','Mode','Illustration'];
-function load(){try{let s=JSON.parse(localStorage.getItem('museaState')||'null');if(s)state={...state,...s,prefs:{...state.prefs,...s.prefs}};delete state.points;delete state.wallpaper;delete state.badge;}catch(e){}}
-function save(){try{localStorage.setItem('museaState',JSON.stringify(state))}catch(e){}}
-function toast(msg){let el=document.getElementById('toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.add('hidden'),2800)}
-function setTheme(t){state.theme=t;save();applyTheme();toast('Apparence mise à jour.')}
-function applyTheme(){let t=state.theme;if(t==='system')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]').content=t==='dark'?'#171522':'#f8f6f2'}
+function load(){
+  try{
+    const raw=localStorage.getItem('museaState');
+    if(!raw)return;
+    const saved=JSON.parse(raw);
+    if(!saved||typeof saved!=='object'||Array.isArray(saved))return;
+    const defaults=state;
+    const restored={...defaults};
+    for(const [key,value] of Object.entries(saved)){
+      if(key==='prefs'||key==='points'||key==='wallpaper'||key==='badge')continue;
+      const base=defaults[key];
+      if(Array.isArray(base)){if(Array.isArray(value))restored[key]=value;}
+      else if(base&&typeof base==='object'){if(value&&typeof value==='object'&&!Array.isArray(value))restored[key]=value;}
+      else if(value===null||typeof value===typeof base)restored[key]=value;
+    }
+    const savedPrefs=saved.prefs;
+    restored.prefs={...defaults.prefs};
+    if(savedPrefs&&typeof savedPrefs==='object'&&!Array.isArray(savedPrefs)){
+      for(const [key,value] of Object.entries(savedPrefs)){
+        if(typeof defaults.prefs[key]==='boolean'&&typeof value==='boolean')restored.prefs[key]=value;
+        else if(typeof defaults.prefs[key]==='string'&&typeof value==='string')restored.prefs[key]=value;
+      }
+    }
+    if(!['light','dark','system'].includes(restored.theme))restored.theme='system';
+    if(!Array.isArray(restored.bookmarks))restored.bookmarks=[];
+    state=restored;
+    delete state.points;delete state.wallpaper;delete state.badge;
+  }catch(error){
+    console.warn('MUSEA: préférences locales illisibles, démarrage avec les réglages par défaut.',error);
+    try{localStorage.removeItem('museaState')}catch(_){}
+  }
+}
+function save(){try{localStorage.setItem('museaState',JSON.stringify(state))}catch(e){console.warn('MUSEA: stockage local indisponible.',e)}}
+function toast(msg){let el=document.getElementById('toast');if(!el)return;el.textContent=msg;el.classList.remove('hidden');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.add('hidden'),2800)}
+function setTheme(t){if(!['light','dark','system'].includes(t))t='system';state.theme=t;save();applyTheme();toast('Apparence mise à jour.')}
+function applyTheme(){let t=['light','dark','system'].includes(state.theme)?state.theme:'system';if(t==='system')t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=t==='dark'?'#171522':'#f8f6f2'}
 function navigate(name){
   const routeNames={home:'Accueil',discover:'Explorer',create:'Créer',trends:'Tendances',messages:'Messages',notifications:'Notifications',moderation:'Modération',profile:'Profil créateur',settings:'Paramètres',stories:'Stories',rewards:'Récompenses',browser:'Navigateur',creator:'Profil créateur'};
   document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
