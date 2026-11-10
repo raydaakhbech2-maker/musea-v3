@@ -815,9 +815,13 @@ window.museaSupabase = window.supabase.createClient(
     <button id="authLogout" class="btn danger hidden" type="button" onclick="museaLogout()">Se déconnecter</button>
   </section>
   <section class="card" id="museaBillingCard" aria-labelledby="billingDashboardTitle">
-    <div class="eyebrow">MUSEA / VERSION DE LANCEMENT</div>
-    <h3 class="h3" id="billingDashboardTitle">MUSEA Libre</h3>
-    <p class="small muted">Les abonnements, achats intégrés et paiements sont désactivés dans cette version. Toutes les fonctions actuellement proposées sont accessibles sans paiement. Une mise à jour dédiée présentera les formules lorsqu’elles seront prêtes.</p>
+    <div class="eyebrow">MUSEA / ABONNEMENT & FACTURATION</div>
+    <div class="row between wrap"><h3 class="h3" id="billingDashboardTitle">Mon abonnement</h3><span class="chip" id="planPill">GRATUIT</span></div>
+    <p id="museaBillingStatus" class="small muted" aria-live="polite">Connecte-toi pour consulter ton abonnement et tes factures.</p>
+    <p id="museaBillingDetails" class="small muted"></p>
+    <div class="row wrap" style="margin-top:10px"><button class="btn primary" type="button" onclick="showPlans()">Découvrir MUSEA Signature</button><button class="btn" id="museaBillingPortalButton" type="button" onclick="openBillingPortal()" hidden>Gérer mon abonnement</button></div>
+    <div id="museaBillingInvoices" style="margin-top:14px"></div>
+    <p class="small muted" style="margin-top:12px">Les paiements sont traités par Stripe. Ton accès Signature dépend de la confirmation reçue par le serveur, jamais d’un simple retour de page.</p>
   </section>
   <section class="card musea-signal-card" aria-labelledby="museaSignalTitle">
     <div class="eyebrow">MUSEA / FIABILITÉ & TRANSPARENCE</div>
