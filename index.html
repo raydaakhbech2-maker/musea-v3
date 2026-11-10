@@ -864,7 +864,7 @@ window.museaSupabase = window.supabase.createClient(
   <div class="row wrap" style="justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeContentReport()">Annuler</button><button class="btn primary" onclick="submitContentReport()">Envoyer le signalement</button></div>
   </div>
 </div>
-<div id="planModal" class="modal hidden"><div class="modalbox"><div class="row between"><div><div class="eyebrow">MUSEA / VERSION DE LANCEMENT</div><h2 class="h1">MUSEA Libre</h2></div><button class="iconbtn" onclick="closePlans()" aria-label="Fermer">✕</button></div><p class="muted">Les abonnements et paiements ne sont pas disponibles dans cette première version. Tu peux utiliser gratuitement les fonctionnalités actuellement proposées. Les formules seront présentées dans une prochaine mise à jour, lorsqu’elles seront prêtes.</p><button class="btn primary full" onclick="closePlans()">Continuer sur MUSEA</button></div></div>
+<div id="planModal" class="modal hidden"><div class="modalbox"><div class="row between"><div><div class="eyebrow">MUSEA / TON ESPACE CRÉATIF</div><h2 class="h1">Choisis ton expérience</h2></div><button class="iconbtn" onclick="closePlans()" aria-label="Fermer">✕</button></div><div class="card" style="margin-top:14px"><div class="eyebrow">INCLUS</div><h3 class="h2">MUSEA Libre</h3><p class="muted">Accède aux fonctionnalités essentielles et découvre la communauté sans abonnement.</p><button class="btn full" onclick="choosePlan('free')">Continuer gratuitement</button></div><div class="card" style="margin-top:12px;border:1px solid var(--accent)"><div class="eyebrow">POUR ALLER PLUS LOIN</div><h3 class="h2">MUSEA Signature</h3><p class="small muted">Abonnement mensuel · sans engagement</p><div class="h1" style="margin:8px 0">5,99 € <span class="small muted">/ mois</span></div><p class="muted">Paiement sécurisé sur Stripe. Tu peux gérer ou résilier ton abonnement depuis ton espace de facturation.</p><button class="btn primary full" onclick="startSignatureCheckout()">S’abonner avec Stripe</button><button class="btn full" style="margin-top:8px" onclick="openBillingPortal()">Gérer mon abonnement</button></div><p class="small muted" style="margin-top:12px">Le paiement est traité par Stripe. L’accès Signature est activé uniquement après confirmation du paiement par le serveur.</p></div></div>
 <script>
 const defaultPosts = [];
 let state={theme:'system',plan:null,liked:[],saved:[],following:[],comments:{},stories:[],ownStories:[],displayName:'',headline:'',creativeSignature:'',specialties:[],messages:[],groups:[],
@@ -952,14 +952,14 @@ function navigate(name){
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   window.scrollTo({top:0,behavior:reduceMotion?'auto':'smooth'});
 }
-function choosePlan(p){if(p!=='free'){toast('Aucun achat n’est disponible pour le moment.');return;}state.plan='free';save();closePlans();updatePlan();toast('Tu utilises MUSEA Libre.');}
+function choosePlan(p){if(p==='signature'||p==='premium'){startSignatureCheckout();return;}state.plan='free';save();closePlans();updatePlan();toast('Tu utilises MUSEA Libre.');}
 function showPlans(){document.getElementById('planModal').classList.remove('hidden')}
 function closePlans(){document.getElementById('planModal').classList.add('hidden')}
 function updatePlan(){
   if(state.plan==='premium'){state.plan='free';save();}
   const label=museaSignatureAccess?'SIGNATURE':'GRATUIT';
   const pill=document.getElementById('planPill');if(pill)pill.textContent=label;
-  const plan=document.getElementById('profilePlan');if(plan)plan.textContent='MUSEA Libre — les abonnements seront proposés dans une prochaine mise à jour.';
+  const plan=document.getElementById('profilePlan');if(plan)plan.textContent=museaSignatureAccess?'MUSEA Signature — abonnement actif.':'MUSEA Libre — tu peux passer à Signature à tout moment.';
 }
 function billingDate(value){if(!value)return 'date non communiquée';const date=new Date(value);return Number.isNaN(date.getTime())?'date non communiquée':date.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});}
 function billingMoney(amount,currency){const value=Number(amount||0)/100;try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency:(currency||'eur').toUpperCase()}).format(value);}catch(_){return value.toFixed(2)+' '+String(currency||'EUR').toUpperCase();}}
@@ -1031,10 +1031,38 @@ async function loadBillingOverview(){
   }
 }
 async function startSignatureCheckout(){
-  toast('Les abonnements ne sont pas disponibles dans cette version.');
+  try{
+    const {data:sessionData,error:sessionError}=await museaSupabase.auth.getSession();
+    if(sessionError)throw sessionError;
+    if(!sessionData?.session){toast('Connecte-toi pour souscrire à MUSEA Signature.');navigate('settings');return;}
+    const {data,error}=await museaSupabase.functions.invoke('create-checkout-session',{body:{}});
+    if(error){
+      let detail='';try{detail=(await error.context?.json())?.error||'';}catch(_){}
+      throw new Error(detail||error.message||'Impossible de préparer le paiement.');
+    }
+    if(!data?.url)throw new Error(data?.error||'Stripe n’a pas fourni de lien de paiement.');
+    window.location.assign(data.url);
+  }catch(error){
+    console.error('MUSEA checkout:',error);
+    toast(error?.message||'Le paiement est momentanément indisponible.');
+  }
 }
 async function openBillingPortal(){
-  toast('La gestion des abonnements n’est pas disponible dans cette version.');
+  try{
+    const {data:sessionData,error:sessionError}=await museaSupabase.auth.getSession();
+    if(sessionError)throw sessionError;
+    if(!sessionData?.session){toast('Connecte-toi pour gérer ton abonnement.');return;}
+    const {data,error}=await museaSupabase.functions.invoke('create-billing-portal',{body:{}});
+    if(error){
+      let detail='';try{detail=(await error.context?.json())?.error||'';}catch(_){}
+      throw new Error(detail||error.message||'Impossible d’ouvrir la gestion de l’abonnement.');
+    }
+    if(!data?.url)throw new Error(data?.error||'Stripe n’a pas fourni de lien de gestion.');
+    window.location.assign(data.url);
+  }catch(error){
+    console.error('MUSEA billing portal:',error);
+    toast(error?.message||'La gestion de l’abonnement est momentanément indisponible.');
+  }
 }
 function artMarkup(p){
   if (p.image_url) {
