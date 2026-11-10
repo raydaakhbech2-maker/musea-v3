@@ -953,33 +953,11 @@ async function loadBillingOverview(){
     console.warn('MUSEA billing overview:',error);
   }
 }
-async function startSignatureCheckout(){\n  toast('Les abonnements et paiements seront proposés dans une prochaine mise à jour.');return;
-  const button=document.querySelector('#planModal button[onclick="startSignatureCheckout()"]');
-  if(button){button.disabled=true;button.textContent='Vérification…';}
-  try{
-    const {data,error}=await museaSupabase.functions.invoke('create-checkout-session',{body:{}});
-    if(error)throw error;
-    const url=new URL(data?.checkout_url||'');
-    if(url.protocol!=='https:'||url.hostname!=='checkout.stripe.com')throw new Error('Adresse Checkout non reconnue.');
-    window.location.assign(url.href);
-  }catch(error){
-    console.warn('MUSEA checkout:',error);
-    toast('Paiement test indisponible : validation adulte et configuration Stripe requises.');
-  }finally{
-    if(button){button.disabled=false;button.textContent='Vérifier l’accès au paiement test';}
-  }
+async function startSignatureCheckout(){
+  toast('Les abonnements ne sont pas disponibles dans cette version.');
 }
-async function openBillingPortal(){\n  toast('La gestion des abonnements sera disponible dans une prochaine mise à jour.');return;
-  const button=document.getElementById('museaBillingPortalButton');
-  if(button)button.disabled=true;
-  try{
-    const {data,error}=await museaSupabase.functions.invoke('create-billing-portal',{body:{}});
-    if(error)throw error;
-    const url=new URL(data?.portal_url||'');
-    if(url.protocol!=='https:'||(url.hostname!=='stripe.com'&&!url.hostname.endsWith('.stripe.com')))throw new Error('Adresse du portail non reconnue.');
-    window.location.assign(url.href);
-  }catch(error){console.error('Billing portal:',error);toast('Le portail de facturation est momentanément indisponible.');}
-  finally{if(button)button.disabled=false;}
+async function openBillingPortal(){
+  toast('La gestion des abonnements n’est pas disponible dans cette version.');
 }
 function artMarkup(p){
   if (p.image_url) {
