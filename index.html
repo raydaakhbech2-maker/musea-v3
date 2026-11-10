@@ -392,6 +392,43 @@ body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibi
 .post-actions .iconbtn.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 35%,var(--line))}
 .post-actions .iconbtn{min-height:42px}
 @media(max-width:430px){.billing-invoice-row{align-items:flex-start;flex-direction:column;gap:5px}}
+ 
+/* MUSEA interface polish — navigation, clarity and touch ergonomics */
+.top{min-height:64px;padding:10px max(14px,env(safe-area-inset-left));gap:10px;backdrop-filter:saturate(150%) blur(16px);-webkit-backdrop-filter:saturate(150%) blur(16px)}
+.top .brand{gap:10px;letter-spacing:1.7px}
+.top .logo{box-shadow:0 5px 16px rgba(118,96,237,.2)}
+.top-action{width:42px;height:42px;min-width:42px;padding:0;display:inline-flex;align-items:center;justify-content:center;position:relative;border-radius:14px}
+.top-action svg,.nav-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.top-action span#notifCount{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:99px;background:var(--accent);color:#211d32;font-size:10px;font-weight:800;display:grid;place-items:center;border:2px solid var(--nav)}
+.main{padding:clamp(14px,3vw,22px);padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+.card{border-radius:18px;box-shadow:0 7px 24px rgba(24,20,42,.045);transition:border-color .18s ease,transform .18s ease}
+.btn,.iconbtn,.chip,.bottom button{transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease}
+.btn{min-height:42px;border-radius:13px}
+.iconbtn{width:40px;min-height:40px;display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.field{min-height:44px;border-radius:13px}
+.bottom{padding:8px max(8px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom));gap:5px;backdrop-filter:saturate(150%) blur(18px);-webkit-backdrop-filter:saturate(150%) blur(18px);box-shadow:0 -8px 28px rgba(20,16,38,.055)}
+.bottom button{max-width:112px;min-height:54px;border-radius:14px;padding:6px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;letter-spacing:.1px}
+.bottom button b{font-size:21px;line-height:1.2;height:25px;display:grid;place-items:center}
+.bottom button .nav-icon svg{width:23px;height:23px}
+.bottom button.active{background:var(--accent2);color:var(--accent);font-weight:800}
+.bottom button.active .nav-icon svg{stroke-width:2.15}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 75%,white);outline-offset:3px}
+@media(hover:hover){
+ .btn:hover,.iconbtn:hover{border-color:var(--accent);transform:translateY(-1px)}
+ .bottom button:hover{background:var(--accent2);color:var(--ink)}
+ .card:hover{border-color:color-mix(in srgb,var(--accent) 22%,var(--line))}
+}
+@media(max-width:520px){
+ .top{gap:7px;padding-left:12px;padding-right:12px}
+ .top .pill{font-size:10px;padding:6px 8px}
+ .top-action{width:39px;height:39px;min-width:39px}
+ .main{padding-left:13px;padding-right:13px}
+ .bottom{gap:2px}
+ .bottom button{font-size:9px;min-height:52px}
+}
+@media(prefers-reduced-motion:reduce){
+ .card,.btn,.iconbtn,.chip,.bottom button{transition:none}
+}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -409,9 +446,15 @@ window.museaSupabase = window.supabase.createClient(
   <a class="brand" href="#" onclick="navigate('home');return false" aria-label="MUSEA, accueil"><span class="logo" aria-hidden="true">✦</span><span>MUSEA</span></a>
   <span class="pill" id="planPill">GRATUIT</span>
   <div class="spacer"></div>
-  <button class="iconbtn" onclick="navigate('browser')" aria-label="Ouvrir le Web MUSEA" title="Web MUSEA">◎</button>
-  <button class="iconbtn" onclick="navigate('notifications')" aria-label="Notifications">♧ <span id="notifCount">0</span></button>
-  <button class="iconbtn" onclick="navigate('profile')" aria-label="Profil">◉</button>
+  <button class="iconbtn top-action" onclick="navigate('messages')" aria-label="Ouvrir les messages" title="Messages">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l1.7-3.2A7.5 7.5 0 1 1 20 11.5Z"/><path d="M8.5 11.5h.01M12.5 11.5h.01M16.5 11.5h.01"/></svg>
+  </button>
+  <button class="iconbtn top-action" onclick="navigate('notifications')" aria-label="Notifications" title="Notifications">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span id="notifCount">0</span>
+  </button>
+  <button class="iconbtn top-action" onclick="navigate('profile')" aria-label="Profil" title="Profil">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>
+  </button>
 </header>
 <main class="main" id="main" tabindex="-1">
   <p id="routeAnnouncement" class="sr-only" aria-live="polite" aria-atomic="true">Accueil ouvert</p>
@@ -810,7 +853,7 @@ window.museaSupabase = window.supabase.createClient(
 <button data-go="discover" onclick="navigate('discover')"><b aria-hidden="true">⌕</b><span>Explorer</span></button>
 <button class="nav-create" data-go="create" onclick="navigate('create')"><b aria-hidden="true">✦</b><span>Créer</span></button>
 <button data-go="trends" onclick="navigate('trends')"><b aria-hidden="true">↗</b><span>Tendances</span></button>
-<button data-go="messages" onclick="navigate('messages')"><b aria-hidden="true">▤</b><span>Messages</span></button>
+<button data-go="messages" onclick="navigate('messages')" aria-label="Ouvrir les messages"><b class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l1.7-3.2A7.5 7.5 0 1 1 20 11.5Z"/><path d="M8.5 11.5h.01M12.5 11.5h.01M16.5 11.5h.01"/></svg></b><span>Messages</span></button>
 </nav>
 <div id="toast" class="toast hidden" role="status"></div>
 <div id="contentReportModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="contentReportTitle">
