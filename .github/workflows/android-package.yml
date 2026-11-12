@@ -57,11 +57,56 @@ jobs:
       - name: Prepare web assets and sync Capacitor
         run: npm run android:prepare
 
+      - name: Configure release signing when upload-key secrets are available
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' && secrets.ANDROID_KEY_PASSWORD != '' }}
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-key.jks
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path("android/app/build.gradle")
+          if not p.exists():
+              raise SystemExit("Expected Capacitor Android Gradle file android/app/build.gradle was not found.")
+          s = p.read_text()
+          if "signingConfigs" in s and "signingConfig signingConfigs.release" in s:
+              print("Release signing configuration already exists.")
+          else:
+              signing = """
+              signingConfigs {
+                  release {
+                      storeFile file(System.getenv("ANDROID_KEYSTORE_PATH"))
+                      storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                      keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+                  }
+              }
+          """
+              s, count = re.subn(r"(    buildTypes\\s*\\{)", signing + r"\\n\\1", s, count=1)
+              if count != 1:
+                  raise SystemExit("Could not safely locate the Android buildTypes block; refusing to alter the build.")
+              pattern = r"(release\\s*\\{)"
+              s, count = re.subn(pattern, r"\\1\\n            signingConfig signingConfigs.release", s, count=1)
+              if count != 1:
+                  raise SystemExit("Could not safely locate the release build type.")
+              p.write_text(s)
+          PY
+
       - name: Build Android APK and App Bundle
         working-directory: android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/app/upload-key.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon assembleDebug bundleRelease
+
+      - name: Remove temporary upload key
+        if: always()
+        run: rm -f android/app/upload-key.jks
 
       - name: Publish build artifacts
         uses: actions/upload-artifact@v4
