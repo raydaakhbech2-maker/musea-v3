@@ -83,10 +83,10 @@ jobs:
                   }
               }
           """
-              s, count = re.subn(r"(    buildTypes\\s*\\{)", signing + r"\\n\\1", s, count=1)
+              s, count = re.subn(r"(    buildTypes\s*\{)", signing + r"\\n\\1", s, count=1)
               if count != 1:
                   raise SystemExit("Could not safely locate the Android buildTypes block; refusing to alter the build.")
-              pattern = r"(buildTypes\\s*\\{\\s*release\\s*\\{)"
+              pattern = r"(buildTypes\s*\{\s*release\s*\{)"
               s, count = re.subn(pattern, r"\\1\\n            signingConfig signingConfigs.release", s, count=1)
               if count != 1:
                   raise SystemExit("Could not safely locate the release build type.")
