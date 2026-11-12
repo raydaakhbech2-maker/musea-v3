@@ -66,15 +66,11 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import re
-          p = Path("android/app/build.gradle")
-          if not p.exists():
-              raise SystemExit("Expected Capacitor Android Gradle file android/app/build.gradle was not found.")
-          s = p.read_text()
-          if "signingConfigs" in s and "signingConfig signingConfigs.release" in s:
-              print("Release signing configuration already exists.")
-          else:
-              signing = """
-              signingConfigs {
+
+          path = Path("android/app/build.gradle")
+          source = path.read_text()
+          if "signingConfigs" not in source:
+              signing_block = """    signingConfigs {
                   release {
                       storeFile file(System.getenv("ANDROID_KEYSTORE_PATH"))
                       storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
@@ -82,15 +78,19 @@ jobs:
                       keyPassword System.getenv("ANDROID_KEY_PASSWORD")
                   }
               }
+
           """
-              s, count = re.subn(r"(    buildTypes\s*\{)", signing + r"\\n\\1", s, count=1)
+              source, count = re.subn(r"(?m)^    buildTypes\s*\{", lambda m: signing_block + m.group(0), source, count=1)
               if count != 1:
-                  raise SystemExit("Could not safely locate the Android buildTypes block; refusing to alter the build.")
-              pattern = r"(buildTypes\s*\{\s*release\s*\{)"
-              s, count = re.subn(pattern, r"\\1\\n            signingConfig signingConfigs.release", s, count=1)
+                  raise SystemExit("Could not safely locate buildTypes; refusing to modify Gradle.")
+
+          if "signingConfig signingConfigs.release" not in source:
+              source, count = re.subn(r"(release\s*\{)", lambda m: m.group(1) + "\n            signingConfig signingConfigs.release", source, count=1)
               if count != 1:
                   raise SystemExit("Could not safely locate the release build type.")
-              p.write_text(s)
+
+          path.write_text(source)
+          print("Release signing configuration prepared.")
           PY
 
       - name: Build Android APK and App Bundle
