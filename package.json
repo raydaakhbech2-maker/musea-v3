@@ -13,7 +13,8 @@
     "@capacitor/android": "^8.0.0",
     "@capacitor/core": "^8.0.0",
     "@capacitor/splash-screen": "^8.0.0",
-    "@capacitor/status-bar": "^8.0.0"
+    "@capacitor/status-bar": "^8.0.0",
+    "@capgo/native-purchases": "8.9.16"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.0.0",
