@@ -107,7 +107,7 @@ jobs:
           """
           if "signingConfigs {" not in source:
               source, count = re.subn(
-                  r"(?m)^    buildTypes\\s*\\{",
+                  r"(?m)^    buildTypes\s*\{",
                   lambda m: signing_block + m.group(0),
                   source,
                   count=1
@@ -115,16 +115,16 @@ jobs:
               if count != 1:
                   raise SystemExit("Could not safely locate buildTypes.")
 
-          build_types = re.search(r"(?m)^    buildTypes\\s*\\{", source)
+          build_types = re.search(r"(?m)^    buildTypes\s*\{", source)
           if not build_types:
               raise SystemExit("Could not locate buildTypes.")
           tail = source[build_types.end():]
-          release_block = re.search(r"(?m)^        release\\s*\\{", tail)
+          release_block = re.search(r"(?m)^        release\s*\{", tail)
           if not release_block:
               raise SystemExit("Could not locate buildTypes.release.")
           insertion = build_types.end() + release_block.end()
           if "signingConfig signingConfigs.release" not in source[insertion:insertion+300]:
-              source = source[:insertion] + "\\n            signingConfig signingConfigs.release" + source[insertion:]
+              source = source[:insertion] + "\n            signingConfig signingConfigs.release" + source[insertion:]
 
           path.write_text(source)
           print("Release signing configuration prepared.")
