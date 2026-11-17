@@ -743,7 +743,7 @@ window.museaSupabase = window.supabase.createClient(
   </div>
   <div class="creator-profile-top card">
     <div class="row between wrap">
-      <div><h2 class="h2" id="profileName">@monprofil</h2><p class="muted small" id="profileBio">Créateur en devenir ✨</p></div>
+      <div><div class="row wrap" style="align-items:center;gap:8px"><h2 class="h2" id="profileName">@monprofil</h2><span id="signatureProfileBadge" class="chip" hidden aria-label="Abonné MUSEA Signature">✦ Signature</span></div><p class="muted small" id="profileBio">Créateur en devenir ✨</p></div>
       <div class="row wrap"><span class="chip" id="privacyTag">Visible</span><button class="btn" onclick="navigate('settings')">⚙ Paramètres</button></div>
     </div>
     <p class="creator-signature" id="profileSignatureView">Ta signature créative apparaîtra ici.</p>
@@ -868,7 +868,10 @@ window.museaSupabase = window.supabase.createClient(
   <div class="row wrap" style="justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeContentReport()">Annuler</button><button class="btn primary" onclick="submitContentReport()">Envoyer le signalement</button></div>
   </div>
 </div>
-<div id="planModal" class="modal hidden"><div class="modalbox"><div class="row between"><div><div class="eyebrow">MUSEA / TON ESPACE CRÉATIF</div><h2 class="h1">Choisis ton expérience</h2></div><button class="iconbtn" onclick="closePlans()" aria-label="Fermer">✕</button></div><div class="card" style="margin-top:14px"><div class="eyebrow">INCLUS</div><h3 class="h2">MUSEA Libre</h3><p class="muted">Accède aux fonctionnalités essentielles et découvre la communauté sans abonnement.</p><button class="btn full" onclick="choosePlan('free')">Continuer gratuitement</button></div><div class="card" style="margin-top:12px;border:1px solid var(--accent)"><div class="eyebrow">POUR ALLER PLUS LOIN</div><h3 class="h2">MUSEA Signature</h3><p class="small muted">Abonnement mensuel · sans engagement</p><div class="h1" style="margin:8px 0">5,99 € <span class="small muted">/ mois</span></div><p class="muted">Paiement traité par Stripe lorsque le compte est éligible. La souscription reste bloquée tant que la vérification du compte n’est pas validée côté serveur.</p><button class="btn primary full" onclick="startSignatureCheckout()">S’abonner avec Stripe</button><button class="btn full" style="margin-top:8px" onclick="openBillingPortal()">Gérer mon abonnement</button></div><p class="small muted" style="margin-top:12px">Le paiement est traité par Stripe. L’accès Signature est activé uniquement après confirmation du paiement par le serveur.</p></div></div>
+<div id="planModal" class="modal hidden"><div class="modalbox"><div class="row between"><div><div class="eyebrow">MUSEA / TON ESPACE CRÉATIF</div><h2 class="h1">Choisis ton expérience</h2></div><button class="iconbtn" onclick="closePlans()" aria-label="Fermer">✕</button></div>
+<div class="card" style="margin-top:14px"><div class="eyebrow">POUR DÉCOUVRIR & CRÉER</div><h3 class="h2">MUSEA Libre</h3><div class="h1">0 € <span class="small muted">/ mois</span></div><ul class="small"><li>Créer, publier et découvrir des créations</li><li>Profils, abonnements et interactions sociales</li><li>Outils IA : jusqu’à 30 demandes par jour et 5 par minute</li><li>Portfolio créateur et repères de progression</li><li>Thème clair, sombre ou système</li></ul><button class="btn full" onclick="choosePlan('free')">Continuer gratuitement</button></div>
+<div class="card" style="margin-top:12px;border:1px solid var(--accent)"><div class="eyebrow">POUR LES CRÉATEURS RÉGULIERS</div><h3 class="h2">MUSEA Signature</h3><div class="h1" style="margin:8px 0">5,99 € <span class="small muted">/ mois</span></div><p class="small muted">Mensuel · sans engagement annoncé</p><ul class="small"><li><strong>Jusqu’à 100 demandes IA par jour et 10 par minute</strong></li><li>Badge Signature sur ton espace de profil</li><li>Les mêmes fonctions sociales et créatives, sans retirer les fonctions essentielles aux membres gratuits</li></ul><p class="small muted">Les quotas sont appliqués côté serveur selon l’abonnement confirmé. Les options avancées de Studio, les statistiques approfondies et les thèmes exclusifs ne sont pas encore activés et ne sont donc pas vendus comme des avantages disponibles.</p><button class="btn primary full" onclick="startSignatureCheckout()">S’abonner avec Stripe</button><button class="btn full" style="margin-top:8px" onclick="openBillingPortal()">Gérer mon abonnement</button></div>
+<p class="small muted" style="margin-top:12px">Le paiement et l’activation Signature restent soumis à la vérification d’éligibilité et à la confirmation du serveur. La limite IA peut aussi dépendre de la disponibilité du fournisseur.</p></div></div>
 <script>
 const defaultPosts = [];
 let state={theme:'system',plan:null,liked:[],saved:[],following:[],comments:{},stories:[],ownStories:[],displayName:'',headline:'',creativeSignature:'',specialties:[],messages:[],groups:[],
@@ -962,6 +965,7 @@ function closePlans(){document.getElementById('planModal').classList.add('hidden
 function updatePlan(){
   if(state.plan==='premium'){state.plan='free';save();}
   const label=museaSignatureAccess?'SIGNATURE':'GRATUIT';
+  const signatureBadge=document.getElementById('signatureProfileBadge');if(signatureBadge)signatureBadge.hidden=!museaSignatureAccess;
   const pill=document.getElementById('planPill');if(pill)pill.textContent=label;
   const plan=document.getElementById('profilePlan');if(plan)plan.textContent=museaSignatureAccess?'MUSEA Signature — abonnement actif.':'MUSEA Libre — l’accès Signature dépend d’une vérification d’éligibilité et de l’activation du paiement.';
 }
