@@ -140,7 +140,17 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x gradlew
-          ./gradlew --no-daemon assembleDebug bundleRelease
+          ./gradlew --no-daemon assembleDebug assembleRelease bundleRelease
+
+      - name: Verify release APK signature
+        run: |
+          set -euo pipefail
+          APK="android/app/build/outputs/apk/release/app-release.apk"
+          test -s "$APK"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$APKSIGNER"
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          echo "Release APK signature is cryptographically verified."
 
       - name: Verify release App Bundle signature
         run: |
@@ -163,4 +173,5 @@ jobs:
           if-no-files-found: error
           path: |
             android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/apk/release/*.apk
             android/app/build/outputs/bundle/release/*.aab
