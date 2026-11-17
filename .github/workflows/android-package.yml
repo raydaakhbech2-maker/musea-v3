@@ -57,24 +57,45 @@ jobs:
       - name: Prepare web assets and sync Capacitor
         run: npm run android:prepare
 
-      - name: Configure release signing when upload-key secrets are available
+      - name: Validate release signing secrets
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' && env.ANDROID_KEYSTORE_PASSWORD != '' && env.ANDROID_KEY_ALIAS != '' && env.ANDROID_KEY_PASSWORD != '' }}
         run: |
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-key.jks
+          set -euo pipefail
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing required Android signing secret: $name"
+              exit 1
+            fi
+          done
+          mkdir -p android/app
+          # GitHub secrets may contain line breaks or spaces copied from a terminal.
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > android/app/upload-key.jks
+          test -s android/app/upload-key.jks
+          keytool -list -keystore android/app/upload-key.jks -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
+          echo "Upload keystore decoded and validated."
+
+      - name: Configure release signing
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/app/upload-key.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
           import re
 
           path = Path("android/app/build.gradle")
+          if not path.exists():
+              raise SystemExit("Expected android/app/build.gradle was not generated.")
           source = path.read_text()
 
-          if "signingConfigs {" not in source:
-              signing_block = """    signingConfigs {
+          signing_block = """    signingConfigs {
                   release {
                       storeFile file(System.getenv("ANDROID_KEYSTORE_PATH"))
                       storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
@@ -84,25 +105,32 @@ jobs:
               }
 
           """
-              source, count = re.subn(r"(?m)^    buildTypes\s*\{", lambda m: signing_block + m.group(0), source, count=1)
+          if "signingConfigs {" not in source:
+              source, count = re.subn(
+                  r"(?m)^    buildTypes\\s*\\{",
+                  lambda m: signing_block + m.group(0),
+                  source,
+                  count=1
+              )
               if count != 1:
                   raise SystemExit("Could not safely locate buildTypes.")
 
-          build_types = re.search(r"(?m)^    buildTypes\s*\{", source)
+          build_types = re.search(r"(?m)^    buildTypes\\s*\\{", source)
           if not build_types:
               raise SystemExit("Could not locate buildTypes.")
-          release_block = re.search(r"(?m)^        release\s*\{", source[build_types.end():])
+          tail = source[build_types.end():]
+          release_block = re.search(r"(?m)^        release\\s*\\{", tail)
           if not release_block:
               raise SystemExit("Could not locate buildTypes.release.")
           insertion = build_types.end() + release_block.end()
           if "signingConfig signingConfigs.release" not in source[insertion:insertion+300]:
-              source = source[:insertion] + "\n            signingConfig signingConfigs.release" + source[insertion:]
+              source = source[:insertion] + "\\n            signingConfig signingConfigs.release" + source[insertion:]
 
           path.write_text(source)
           print("Release signing configuration prepared.")
           PY
 
-      - name: Build Android APK and App Bundle
+      - name: Build Android APK and signed App Bundle
         working-directory: android
         env:
           ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/app/upload-key.jks
@@ -110,8 +138,19 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
+          set -euo pipefail
           chmod +x gradlew
           ./gradlew --no-daemon assembleDebug bundleRelease
+
+      - name: Verify release App Bundle signature
+        run: |
+          set -euo pipefail
+          AAB="android/app/build/outputs/bundle/release/app-release.aab"
+          test -s "$AAB"
+          jarsigner -verify -verbose -certs "$AAB" > /tmp/musea-aab-signature-check.txt 2>&1
+          grep -q "jar verified" /tmp/musea-aab-signature-check.txt
+          echo "Release AAB signature is cryptographically verified."
+          keytool -printcert -jarfile "$AAB" | sed -n '1,24p'
 
       - name: Remove temporary upload key
         if: always()
