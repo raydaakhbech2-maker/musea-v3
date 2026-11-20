@@ -457,6 +457,13 @@ body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibi
  .discovery-quick-links .btn{flex:1;justify-content:center}
 }
 @media(min-width:720px){.home-welcome{margin-top:2px}.home-stories-section{padding-inline:20px}.story-page-intro{padding:26px}}
+/* MUSEA quick-access hub */
+.musea-spaces-card{margin-top:14px}.musea-space-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:13px}
+.musea-space{min-width:0;min-height:104px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:5px;padding:12px;border:1px solid var(--line);border-radius:15px;background:var(--surface);color:var(--ink);text-align:left}
+.musea-space>span{width:30px;height:30px;display:grid;place-items:center;border-radius:10px;background:var(--accent2);color:var(--accent-strong);font-size:18px}
+.musea-space strong{font-size:12px}.musea-space small{font-size:10px;line-height:1.35;color:var(--muted)}
+@media(hover:hover){.musea-space:hover{border-color:var(--accent);background:var(--accent2)}}
+@media(max-width:560px){.musea-space-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.musea-space{min-height:96px;padding:10px}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -805,6 +812,17 @@ window.museaSupabase = window.supabase.createClient(
       <div class="stat"><strong id="likesStat">0</strong><span class="muted small">Likes donnés</span></div>
     </div>
   </div>
+  <section class="card musea-spaces-card" aria-labelledby="museaSpacesTitle">
+    <div class="row between wrap"><div><div class="eyebrow">NAVIGATION RAPIDE</div><h2 class="h3" id="museaSpacesTitle">Tous tes espaces MUSEA</h2></div><span class="small muted">Accès direct</span></div>
+    <div class="musea-space-grid">
+      <button class="musea-space" onclick="navigate('stories')"><span>◉</span><strong>Instants</strong><small>Photos et vidéos éphémères</small></button>
+      <button class="musea-space" onclick="navigate('trends')"><span>↗</span><strong>Tendances</strong><small>Les créations remarquées</small></button>
+      <button class="musea-space" onclick="navigate('notifications')"><span>♧</span><strong>Notifications</strong><small>Ton activité récente</small></button>
+      <button class="musea-space" onclick="navigate('rewards')"><span>✧</span><strong>Récompenses</strong><small>Tes repères créatifs</small></button>
+      <button class="musea-space" onclick="navigate('settings')"><span>⚙</span><strong>Paramètres</strong><small>Compte et préférences</small></button>
+      <button class="musea-space" onclick="navigate('browser')"><span>⌕</span><strong>Web</strong><small>Ouvrir le navigateur MUSEA</small></button>
+    </div>
+  </section>
   <section class="card" aria-labelledby="followManagementTitle">
     <div class="row between wrap"><div><div class="eyebrow">MUSEA / COMMUNAUTÉ</div><h2 class="h3" id="followManagementTitle">Mon réseau</h2></div><span class="chip" id="followingStat">0 abonnements</span></div>
     <div id="followRequests" class="small muted">Chargement des demandes…</div>
@@ -907,8 +925,8 @@ window.museaSupabase = window.supabase.createClient(
 <button class="active" data-go="home" aria-current="page" onclick="navigate('home')"><b aria-hidden="true">⌂</b><span>Accueil</span></button>
 <button data-go="discover" onclick="navigate('discover')"><b aria-hidden="true">⌕</b><span>Explorer</span></button>
 <button class="nav-create" data-go="create" onclick="navigate('create')"><b aria-hidden="true">✦</b><span>Créer</span></button>
-<button data-go="profile" onclick="navigate('profile')"><b aria-hidden="true">◉</b><span>Profil</span></button>
 <button data-go="messages" onclick="navigate('messages')" aria-label="Ouvrir les messages"><b class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l1.7-3.2A7.5 7.5 0 1 1 20 11.5Z"/><path d="M8.5 11.5h.01M12.5 11.5h.01M16.5 11.5h.01"/></svg></b><span>Messages</span></button>
+<button data-go="profile" onclick="navigate('profile')"><b aria-hidden="true">◉</b><span>Profil</span></button>
 </nav>
 <div id="toast" class="toast hidden" role="status"></div>
 <div id="contentReportModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="contentReportTitle">
