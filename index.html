@@ -487,42 +487,45 @@ window.museaSupabase = window.supabase.createClient(
   <p id="authMessage" class="small muted"></p>
   </section>
 <section class="screen active" id="screen-home">
-  <section class="home-intro">
-    <div class="home-intro-copy">
-      <div class="eyebrow">MUSEA / TON ATELIER OUVERT</div>
-      <h1 class="home-title">Les idées prennent vie quand elles se rencontrent.</h1>
-      <p>Explore des univers, découvre des créateurs et façonne le tien à ton rythme.</p>
-      <div class="row wrap">
-        <button class="btn primary" onclick="navigate('create')">✦ Ouvrir l'atelier</button>
-        <button class="btn home-quiet-btn" onclick="navigate('discover')">Explorer les univers ↗</button>
+  <section class="home-welcome">
+    <div class="eyebrow">MUSEA / ESPACE CRÉATIF</div>
+    <div class="row between wrap home-welcome-main">
+      <div class="home-welcome-copy">
+        <h1 class="home-title">Tout commence par une idée.</h1>
+        <p>Découvre des créations, rencontre des artistes et partage ton univers.</p>
       </div>
+      <button class="btn primary" onclick="navigate('create')">✦ Créer</button>
     </div>
-    <div class="home-orbit" aria-hidden="true"><span class="orbit-core">M</span><i class="orbit-dot orbit-dot-a"></i><i class="orbit-dot orbit-dot-b"></i><i class="orbit-dot orbit-dot-c"></i><span class="orbit-caption">IMAGINATION<br>EN MOUVEMENT</span></div>
-  </section>
-  <section class="daily-prompt card" aria-labelledby="dailyPromptTitle">
-    <div class="daily-prompt-mark" aria-hidden="true">✳</div>
-    <div class="daily-prompt-copy"><div class="eyebrow">L'ÉTINCELLE DU JOUR</div><h2 class="h3" id="dailyPromptTitle">Un point de départ, pas une consigne.</h2><p id="dailyPromptText" class="muted small"></p></div>
-    <button class="btn soft" onclick="useDailyPrompt()">Partir de cette idée</button>
+    <div class="home-shortcuts">
+      <button class="btn" onclick="navigate('discover')">⌕ Explorer les univers</button>
+      <button class="btn" onclick="navigate('trends')">↗ Voir les tendances</button>
+    </div>
   </section>
   <section class="home-stories-section">
-    <div class="row between"><div><div class="eyebrow">INSTANTS</div><h2 class="h2">Dans les coulisses</h2></div><button class="btn" onclick="navigate('stories')">Mes instants ↗</button></div>
+    <div class="row between wrap home-section-heading">
+      <div><div class="eyebrow">PARTAGES ÉPHÉMÈRES</div><h2 class="h2">Instants créatifs</h2></div>
+      <button class="btn" onclick="navigate('stories')">Voir tout ↗</button>
+    </div>
     <div class="storyrow" id="storyRow"></div>
   </section>
   <section class="home-feed-section">
-    <div class="row between wrap home-section-heading"><div><div class="eyebrow">LA GALERIE VIVANTE</div><h2 class="h2">Des idées à rencontrer.</h2></div><button class="btn" onclick="navigate('discover')">Boussole créative ↗</button></div>
-    <div class="home-feed-modes" role="group" aria-label="Choisir le type de fil">
-      <button class="home-mode active" data-home-mode="affinity" onclick="setHomeFeedMode('affinity')"><strong>Pour toi</strong><span>Affinités</span></button>
-      <button class="home-mode" data-home-mode="recent" onclick="setHomeFeedMode('recent')"><strong>Au fil du temps</strong><span>Les plus récents</span></button>
-      <button class="home-mode" data-home-mode="emerging" onclick="setHomeFeedMode('emerging')"><strong>À révéler</strong><span>Talents émergents</span></button>
+    <div class="row between wrap home-section-heading">
+      <div><div class="eyebrow">LA GALERIE MUSEA</div><h2 class="h2">À découvrir</h2></div>
+      <button class="btn" onclick="navigate('discover')">Explorer ↗</button>
     </div>
-    <label class="home-search-wrap" for="homeFeedSearch"><span class="home-search-symbol" aria-hidden="true">⌕</span><input class="field" id="homeFeedSearch" type="search" placeholder="Un style, une idée, un créateur…" oninput="filterHomeFeed()"></label>
+    <div class="home-feed-modes" role="group" aria-label="Choisir le type de fil">
+      <button class="home-mode active" data-home-mode="affinity" onclick="setHomeFeedMode('affinity')"><strong>Pour toi</strong></button>
+      <button class="home-mode" data-home-mode="recent" onclick="setHomeFeedMode('recent')"><strong>Récents</strong></button>
+      <button class="home-mode" data-home-mode="emerging" onclick="setHomeFeedMode('emerging')"><strong>Émergents</strong></button>
+    </div>
+    <label class="home-search-wrap" for="homeFeedSearch"><span class="home-search-symbol" aria-hidden="true">⌕</span><input class="field" id="homeFeedSearch" type="search" placeholder="Rechercher une idée, un style, un créateur…" oninput="filterHomeFeed()"></label>
     <div class="row wrap home-categories" id="homeCategories">
       <button class="chip selected" onclick="setFeed('all',this)">Tout</button>
       <button class="chip" onclick="setFeed('art',this)">Art digital</button>
       <button class="chip" onclick="setFeed('fantasy',this)">Fantasy</button>
       <button class="chip" onclick="setFeed('photo',this)">Photo</button>
     </div>
-    <p class="home-feed-note small muted" id="homeFeedNote">Un fil composé à partir de tes affinités, de la fraîcheur et de la diversité des créateurs.</p>
+    <p class="home-feed-note small muted" id="homeFeedNote">Un fil personnalisé, avec une place pour les nouveautés et les créateurs moins visibles.</p>
     <div id="feed" aria-live="polite" aria-busy="false"></div>
   </section>
 </section>
