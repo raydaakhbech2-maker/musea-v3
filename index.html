@@ -476,6 +476,32 @@ body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibi
 @media(hover:hover){.musea-space:hover{border-color:var(--accent);background:var(--accent2)}}
 @media(max-width:560px){.musea-space-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.musea-space{min-height:96px;padding:10px}}
 
+/* MUSEA immersive story creation */
+.musea-story-editor{position:fixed;inset:0;z-index:100000;background:#08070d;color:#fff;overflow:auto;overscroll-behavior:contain}
+.mse-shell{min-height:100%;display:flex;flex-direction:column;max-width:1180px;margin:auto;background:#100e17;outline:none}
+.mse-header{height:66px;flex:0 0 66px;display:flex;align-items:center;gap:13px;padding:0 18px;border-bottom:1px solid #ffffff18}
+.mse-header>div{display:grid;gap:2px;flex:1}.mse-header small{font-size:9px;letter-spacing:.14em;color:#aaa1bd}
+.mse-icon-btn,.mse-publish,.mse-media-actions button,.mse-select-sound,.mse-footer button{border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+.mse-icon-btn{background:#ffffff12;color:white}.mse-publish,.mse-footer button{background:#bca4ff;color:#211832}
+.mse-workspace{display:grid;grid-template-columns:minmax(260px,1fr) minmax(300px,410px);gap:26px;padding:22px;flex:1}
+.mse-preview-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-width:0}
+.mse-canvas{position:relative;width:min(100%,390px);aspect-ratio:9/16;max-height:calc(100dvh - 170px);border-radius:20px;overflow:hidden;background:linear-gradient(145deg,#2b2240,#15121e);display:grid;place-items:center}
+.mse-canvas>img,.mse-canvas>video{position:absolute;width:100%;height:100%;object-fit:cover;inset:0}
+.mse-empty{display:grid;gap:10px;text-align:center;padding:20px;color:#d6cde7}.mse-empty span{font-size:42px}.mse-empty small{color:#a99fba}
+.mse-overlay-text{position:absolute;left:8%;right:8%;z-index:2;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;font-size:clamp(20px,4vw,32px);font-weight:850;text-shadow:0 2px 10px #000b;color:#fff}.mse-overlay-text.top{top:13%}.mse-overlay-text.center{top:50%;transform:translateY(-50%)}.mse-overlay-text.bottom{bottom:13%}
+.mse-media-actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:center}.mse-media-actions button{background:#ffffff14;color:#fff;border:1px solid #ffffff22}
+.mse-tools{display:grid;align-content:start;gap:13px;min-width:0}.mse-tool-section{padding:15px;border:1px solid #ffffff18;border-radius:16px;background:#ffffff08}
+.mse-section-title{font-size:10px;letter-spacing:.15em;font-weight:800;color:#c9b9f5;margin-bottom:11px}
+.mse-hidden-input{display:none}.mse-file-note,.mse-helper,.mse-catalog-note{font-size:11px;color:#aaa1b9;line-height:1.5;margin-top:8px}
+.mse-select-sound{display:flex;align-items:center;gap:11px;width:100%;background:#ffffff10;color:white;text-align:left;border:1px solid #ffffff1c}.mse-select-sound>span:first-child{font-size:22px}.mse-select-sound>span:nth-child(2){display:grid;gap:3px;flex:1}.mse-select-sound small{font-size:10px;color:#b9b0c6}.mse-select-sound>b{font-size:20px}
+.mse-catalog-note{padding:9px;border-radius:9px;background:#ffffff08}
+.mse-tool-section textarea,.mse-inline-controls select{width:100%;border:1px solid #ffffff24;border-radius:10px;background:#171320;color:#fff;padding:11px;font:inherit}
+.mse-tool-section textarea{min-height:66px;resize:vertical}.mse-inline-controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.mse-inline-controls label,.mse-range-label{display:grid;gap:7px;font-size:11px;color:#d2c9df;margin-top:10px}
+.mse-range-label output{float:right;color:#c8b5ff}.mse-range-label input{width:100%;accent-color:#bca4ff}
+.mse-trim-label{display:flex;justify-content:space-between;margin-top:10px;font-size:11px;color:#cfc5dd}.mse-trim-label b{color:#fff}
+#mseAudioPreview{width:100%;margin-top:10px;height:34px}
+.mse-footer{position:sticky;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:#100e17;border-top:1px solid #ffffff18}.mse-footer span{font-size:11px;color:#aaa1b9}
+@media(max-width:720px){.mse-workspace{grid-template-columns:1fr;gap:16px;padding:12px}.mse-preview-wrap{gap:9px}.mse-canvas{width:min(74vw,330px);max-height:58dvh}.mse-tools{gap:9px}.mse-tool-section{padding:12px}.mse-footer{padding-bottom:max(12px,env(safe-area-inset-bottom))}}
 /* MUSEA immersive stories viewer */
 body.story-viewer-open{overflow:hidden!important;overscroll-behavior:none;touch-action:none}
 #museaStoryViewer.story-viewer-modal{position:fixed!important;inset:0!important;z-index:99999!important;display:block!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-width:none!important;max-height:none!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;transform:none!important;background:#050508!important;overflow:hidden!important}
@@ -1915,7 +1941,7 @@ function storyUpdatePreview(){
   host.innerHTML=html||'<span class="small muted">L’aperçu de ton instant apparaîtra ici.</span>';
 }
 async function loadStories(){
-  const {data,error}=await museaSupabase.from('stories').select('id,user_id,caption,media_path,media_type,audio_path,audio_type,visual_filter,created_at,expires_at').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false}).limit(60);
+  const {data,error}=await museaSupabase.from('stories').select('id,user_id,caption,media_path,media_type,audio_path,audio_type,visual_filter,audio_start_seconds,audio_end_seconds,audio_volume,original_volume,overlay_text,overlay_position,created_at,expires_at').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false}).limit(60);
   if(error)throw error;
   museaStoriesCache=data||[];
   renderStories();
@@ -1925,13 +1951,99 @@ function storyCardMarkup(story,isOwn){
   const id=String(story.id||'');
   return '<button class="story '+(isOwn?'story-own':'')+'" onclick="viewStory(\''+id+'\')"><span class="story-ring"><span>'+(isOwn?'✦':'✳')+'</span></span><span>'+label+'</span></button>';
 }
+let storyEditorAudioUrl=null,storyEditorMediaUrl=null,storyEditorDuration=0;
 function openStoryComposer(){
-  navigate('stories');
-  setTimeout(()=>{
-    const composer=document.querySelector('#screen-stories .story-composer');
-    composer?.scrollIntoView({behavior:'smooth',block:'start'});
-    document.getElementById('storyMedia')?.focus({preventScroll:true});
-  },120);
+  const old=document.getElementById('museaStoryEditor');
+  if(old){old.remove();}
+  const modal=document.createElement('div');
+  modal.id='museaStoryEditor';modal.className='musea-story-editor';
+  modal.innerHTML=`<div class="mse-shell" role="dialog" aria-modal="true" aria-label="Créer une story">
+    <header class="mse-header"><button class="mse-icon-btn" type="button" onclick="closeStoryComposer()" aria-label="Fermer">✕</button><div><strong>Nouvelle story</strong><small>MUSEA · INSTANTS</small></div><button class="mse-publish" id="msePublishTop" type="button" onclick="publishStoryFromEditor()">Partager</button></header>
+    <div class="mse-workspace">
+      <div class="mse-preview-wrap"><div class="mse-canvas" id="mseCanvas"><div class="mse-empty"><span>✧</span><strong>Ton instant commence ici</strong><small>Ajoute une photo ou une vidéo</small></div></div><div class="mse-media-actions"><button type="button" onclick="document.getElementById('mseMedia').click()">▧ Galerie</button><button type="button" onclick="document.getElementById('mseMedia').click()">◎ Appareil photo / vidéo</button></div></div>
+      <div class="mse-tools">
+        <section class="mse-tool-section"><div class="mse-section-title">MÉDIA</div><input id="mseMedia" class="mse-hidden-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" capture="environment" onchange="storyEditorMediaChanged()"><div class="mse-file-note" id="mseMediaName">Aucun média sélectionné</div></section>
+        <section class="mse-tool-section"><div class="mse-section-title">♫ MUSIQUE</div><button class="mse-select-sound" type="button" onclick="document.getElementById('mseAudio').click()"><span>♫</span><span><strong>Choisir un son</strong><small>Importer un fichier audio autorisé</small></span><b>＋</b></button><input id="mseAudio" class="mse-hidden-input" type="file" accept="audio/*,.mp3,.m4a,.aac,.ogg,.wav,.webm" onchange="storyEditorAudioChanged()"><div id="mseAudioName" class="mse-file-note">Aucun son sélectionné</div><div class="mse-catalog-note">Le catalogue de titres commerciaux populaires nécessite un partenariat musical et des licences. Il n'est pas encore activé dans MUSEA.</div>
+          <div id="mseAudioTrim" hidden><audio id="mseAudioPreview" controls preload="metadata"></audio><div class="mse-trim-label"><span>Début <b id="mseStartLabel">0:00</b></span><span>Fin <b id="mseEndLabel">0:00</b></span></div><label class="mse-range-label">Début du passage<input id="mseAudioStart" type="range" min="0" max="0" step="0.1" value="0" oninput="storyEditorTrimChanged('start')"></label><label class="mse-range-label">Fin du passage<input id="mseAudioEnd" type="range" min="0" max="0" step="0.1" value="0" oninput="storyEditorTrimChanged('end')"></label><label class="mse-range-label">Volume musique <output id="mseMusicVolLabel">85 %</output><input id="mseMusicVolume" type="range" min="0" max="100" value="85" oninput="document.getElementById('mseMusicVolLabel').textContent=this.value+'%'"></label></div>
+        </section>
+        <section class="mse-tool-section"><div class="mse-section-title">TEXTE ET AMBIANCE</div><textarea id="mseOverlayText" maxlength="140" placeholder="Écris quelque chose…" oninput="storyEditorRenderPreview()"></textarea><div class="mse-inline-controls"><label>Position du texte<select id="mseOverlayPosition" onchange="storyEditorRenderPreview()"><option value="top">Haut</option><option value="center" selected>Centre</option><option value="bottom">Bas</option></select></label><label>Filtre<select id="mseFilter" onchange="storyEditorRenderPreview()"><option value="original">Original</option><option value="warm">Chaleureux</option><option value="mono">Noir et blanc</option><option value="vivid">Vif</option><option value="cinema">Cinéma</option></select></label></div><label class="mse-range-label" id="mseOriginalVolumeWrap" hidden>Volume vidéo <output id="mseOriginalVolLabel">85 %</output><input id="mseOriginalVolume" type="range" min="0" max="100" value="85" oninput="document.getElementById('mseOriginalVolLabel').textContent=this.value+'%'"></label></section>
+        <section class="mse-tool-section"><div class="mse-section-title">LÉGENDE</div><textarea id="mseCaption" maxlength="240" placeholder="Ajouter une légende…"></textarea><p class="mse-helper">Ta story reste visible pendant 24 heures. Tu peux publier plusieurs instants à la suite.</p></section>
+      </div>
+    </div>
+    <footer class="mse-footer"><span id="mseStatus">Prévisualise ton instant avant de le partager.</span><button type="button" onclick="publishStoryFromEditor()">Partager la story</button></footer>
+  </div></div>`;
+  document.body.appendChild(modal);document.body.classList.add('story-viewer-open');
+  modal.querySelector('.mse-shell')?.focus({preventScroll:true});
+}
+function closeStoryComposer(){
+  const modal=document.getElementById('museaStoryEditor');if(!modal)return;
+  const audio=modal.querySelector('audio');if(audio){audio.pause();audio.src='';}
+  if(storyEditorAudioUrl)URL.revokeObjectURL(storyEditorAudioUrl);if(storyEditorMediaUrl)URL.revokeObjectURL(storyEditorMediaUrl);
+  storyEditorAudioUrl=null;storyEditorMediaUrl=null;modal.remove();document.body.classList.remove('story-viewer-open');
+}
+function storyEditorFormatTime(value){const n=Math.max(0,Math.floor(Number(value)||0));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0');}
+function storyEditorMediaChanged(){
+  const file=document.getElementById('mseMedia')?.files?.[0];if(!file)return;
+  if(storyEditorMediaUrl)URL.revokeObjectURL(storyEditorMediaUrl);storyEditorMediaUrl=URL.createObjectURL(file);
+  document.getElementById('mseMediaName').textContent=file.name;
+  document.getElementById('mseOriginalVolumeWrap').hidden=!file.type.startsWith('video/');
+  storyEditorRenderPreview();
+}
+function storyEditorAudioChanged(){
+  const file=document.getElementById('mseAudio')?.files?.[0];if(!file)return;
+  if(storyEditorAudioUrl)URL.revokeObjectURL(storyEditorAudioUrl);storyEditorAudioUrl=URL.createObjectURL(file);
+  document.getElementById('mseAudioName').textContent=file.name;
+  const player=document.getElementById('mseAudioPreview');player.src=storyEditorAudioUrl;
+  player.onloadedmetadata=()=>{
+    storyEditorDuration=Number.isFinite(player.duration)?player.duration:0;
+    const start=document.getElementById('mseAudioStart'),end=document.getElementById('mseAudioEnd');
+    start.max=end.max=String(storyEditorDuration);start.value='0';end.value=String(storyEditorDuration);
+    document.getElementById('mseStartLabel').textContent='0:00';document.getElementById('mseEndLabel').textContent=storyEditorFormatTime(storyEditorDuration);
+    document.getElementById('mseAudioTrim').hidden=false;
+  };
+  player.ontimeupdate=()=>{
+    const end=Number(document.getElementById('mseAudioEnd')?.value||storyEditorDuration);
+    if(player.currentTime>=end){player.pause();player.currentTime=Number(document.getElementById('mseAudioStart')?.value||0);}
+  };
+}
+function storyEditorTrimChanged(which){
+  const start=document.getElementById('mseAudioStart'),end=document.getElementById('mseAudioEnd');
+  if(which==='start'&&Number(start.value)>=Number(end.value))start.value=String(Math.max(0,Number(end.value)-0.5));
+  if(which==='end'&&Number(end.value)<=Number(start.value))end.value=String(Math.min(storyEditorDuration,Number(start.value)+0.5));
+  document.getElementById('mseStartLabel').textContent=storyEditorFormatTime(start.value);
+  document.getElementById('mseEndLabel').textContent=storyEditorFormatTime(end.value);
+  const player=document.getElementById('mseAudioPreview');if(player){player.pause();player.currentTime=Number(start.value)||0;}
+}
+function storyEditorRenderPreview(){
+  const canvas=document.getElementById('mseCanvas');if(!canvas)return;
+  const file=document.getElementById('mseMedia')?.files?.[0],text=document.getElementById('mseOverlayText')?.value||'';
+  const filter=storyFilterCss(document.getElementById('mseFilter')?.value||'original');
+  let media='';
+  if(file&&storyEditorMediaUrl){media=file.type.startsWith('video/')?'<video src="'+storyEditorMediaUrl+'" muted playsinline loop autoplay></video>':'<img src="'+storyEditorMediaUrl+'" alt="Aperçu de la story">';}
+  const pos=document.getElementById('mseOverlayPosition')?.value||'center';
+  canvas.innerHTML=media+(text?'<div class="mse-overlay-text '+pos+'">'+escapeHtml(text)+'</div>':(!media?'<div class="mse-empty"><span>✧</span><strong>Ton instant commence ici</strong><small>Ajoute une photo ou une vidéo</small></div>':''));
+  const visual=canvas.querySelector('img,video');if(visual)visual.style.filter=filter;
+}
+function publishStoryFromEditor(){
+  const modal=document.getElementById('museaStoryEditor');if(!modal)return;
+  const media=document.getElementById('mseMedia')?.files?.[0],audio=document.getElementById('mseAudio')?.files?.[0];
+  const assign=(target,file)=>{if(!target)return;if(!file){target.value='';return;}const dt=new DataTransfer();dt.items.add(file);target.files=dt.files;};
+  assign(document.getElementById('storyMedia'),media);assign(document.getElementById('storyAudio'),audio);
+  const caption=document.getElementById('storyText');if(caption)caption.value=document.getElementById('mseCaption')?.value||'';
+  const filter=document.getElementById('storyFilter');if(filter)filter.value=document.getElementById('mseFilter')?.value||'original';
+  const publish=document.getElementById('storyPublishButton');if(publish)publishStoryEditorState();
+  addStory();
+}
+function publishStoryEditorState(){
+  const modal=document.getElementById('museaStoryEditor');if(!modal)return;
+  window.museaStoryEditorState={
+    audioStart:Number(document.getElementById('mseAudioStart')?.value||0),
+    audioEnd:Number(document.getElementById('mseAudioEnd')?.value||0),
+    audioVolume:Number(document.getElementById('mseMusicVolume')?.value||85)/100,
+    originalVolume:Number(document.getElementById('mseOriginalVolume')?.value||85)/100,
+    overlayText:document.getElementById('mseOverlayText')?.value||'',
+    overlayPosition:document.getElementById('mseOverlayPosition')?.value||'center'
+  };
 }
 function renderStories(){
   const stories=Array.isArray(museaStoriesCache)?museaStoriesCache:[];
@@ -1992,7 +2104,7 @@ async function openStoryAt(index){
   if(story.audio_path){
     const {data,error}=await museaSupabase.storage.from('musea-stories').createSignedUrl(story.audio_path,3600);
     if(error){console.error('Lecture du son story:',error);toast('Le son de cet instant est momentanément inaccessible.');return;}
-    audio='<div class="story-viewer-audio"><span>♫ Son de la story</span><audio controls preload="metadata" src="'+escapeHtml(data.signedUrl)+'"></audio></div>';
+    audio='<div class="story-viewer-audio"><span>♫ Son de la story</span><audio id="museaStoryPlaybackAudio" controls preload="metadata" src="'+escapeHtml(data.signedUrl)+'"></audio></div>';
   }
   const isOwn=story.user_id===museaCurrentUserId;
   const segments=stories.map((item,i)=>'<span class="story-progress-segment"><i class="'+(i<index?'done':i===index?'current':'')+'"></i></span>').join('');
@@ -2004,12 +2116,19 @@ async function openStoryAt(index){
     (isOwn?'<button class="story-viewer-action story-delete-action" data-story-delete="1" aria-label="Supprimer ma story" title="Supprimer">🗑 <span>Supprimer</span></button>':'')+
     '<button class="story-viewer-action" onclick="closeStoryViewer()" aria-label="Fermer" title="Fermer">✕</button></header>'+
     '<div class="story-viewer-stage">'+media+'<button class="story-viewer-tap story-viewer-prev" onclick="storyViewerStep(-1)" aria-label="Story précédente"></button><button class="story-viewer-tap story-viewer-next" onclick="storyViewerStep(1)" aria-label="Story suivante"></button></div>'+
-    '<div class="story-viewer-bottom">'+(story.caption&&story.media_path?'<p class="story-viewer-caption">'+escapeHtml(story.caption)+'</p>':'')+audio+'<div class="story-viewer-footer">MUSEA · Les instants disparaissent après 24 h</div></div></div>';
+    '<div class="story-viewer-bottom">'+(story.overlay_text?'<p class="story-viewer-caption story-viewer-overlay '+escapeHtml(story.overlay_position||'center')+'">'+escapeHtml(story.overlay_text)+'</p>':'')+(story.caption?'<p class="story-viewer-caption">'+escapeHtml(story.caption)+'</p>':'')+audio+'<div class="story-viewer-footer">MUSEA · Les instants disparaissent après 24 h</div></div></div>';
   if(!modal.isConnected)document.body.appendChild(modal);
   const storyShell=modal.querySelector('.story-viewer-shell');
   if(storyShell)storyShell.focus({preventScroll:true});
   const deleteButton=modal.querySelector('[data-story-delete]');
   if(deleteButton)deleteButton.onclick=()=>deleteStory(story.id);
+  const playbackAudio=modal.querySelector('#museaStoryPlaybackAudio');
+  if(playbackAudio){
+    playbackAudio.volume=Math.max(0,Math.min(1,Number(story.audio_volume??0.85)));
+    playbackAudio.addEventListener('loadedmetadata',()=>{const start=Math.max(0,Number(story.audio_start_seconds)||0);if(start<playbackAudio.duration)playbackAudio.currentTime=start;});
+    playbackAudio.addEventListener('timeupdate',()=>{const end=Number(story.audio_end_seconds);if(Number.isFinite(end)&&end>0&&playbackAudio.currentTime>=end){playbackAudio.pause();playbackAudio.currentTime=Math.max(0,Number(story.audio_start_seconds)||0);}});
+  }
+  const storyVideo=modal.querySelector('video.story-viewer-media');if(storyVideo)storyVideo.volume=Math.max(0,Math.min(1,Number(story.original_volume??0.85)));
   document.body.classList.add('story-viewer-open');
   const video=modal.querySelector('video');
   if(video){
@@ -2143,6 +2262,12 @@ async function addStory(){
     const {error}=await museaSupabase.from('stories').insert({
       user_id:user.id,caption:value||null,media_path:mediaPath,media_type:mediaType,
       audio_path:audioPath,audio_type:audioType||null,visual_filter:filter,
+      audio_start_seconds:window.museaStoryEditorState?.audioStart||0,
+      audio_end_seconds:window.museaStoryEditorState?.audioEnd||null,
+      audio_volume:window.museaStoryEditorState?.audioVolume??0.85,
+      original_volume:window.museaStoryEditorState?.originalVolume??0.85,
+      overlay_text:window.museaStoryEditorState?.overlayText||null,
+      overlay_position:window.museaStoryEditorState?.overlayPosition||'center',
       created_at:new Date().toISOString(),expires_at:new Date(Date.now()+24*60*60*1000).toISOString()
     });
     if(error)throw error;
@@ -2151,6 +2276,8 @@ async function addStory(){
     if(mediaInput)mediaInput.value='';
     if(audioInput)audioInput.value='';
     const filterInput=document.getElementById('storyFilter');if(filterInput)filterInput.value='original';
+    window.museaStoryEditorState=null;
+    closeStoryComposer();
     storyUpdatePreview();
     if(status)status.textContent='Instant publié avec succès.';
     try{await loadStories();}
