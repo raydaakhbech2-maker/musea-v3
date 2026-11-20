@@ -476,6 +476,10 @@ body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibi
 @media(hover:hover){.musea-space:hover{border-color:var(--accent);background:var(--accent2)}}
 @media(max-width:560px){.musea-space-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.musea-space{min-height:96px;padding:10px}}
 
+.story-composer{display:none!important}
+.story-viewer-stage{position:relative}
+.story-viewer-overlay{position:absolute;z-index:4;left:8%;right:8%;color:#fff;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;font-size:clamp(20px,4vw,32px);font-weight:850;text-shadow:0 2px 12px #000d;pointer-events:none}
+.story-viewer-overlay.top{top:15%}.story-viewer-overlay.center{top:50%;transform:translateY(-50%)}.story-viewer-overlay.bottom{bottom:15%}
 /* MUSEA immersive story creation */
 .musea-story-editor{position:fixed;inset:0;z-index:100000;background:#08070d;color:#fff;overflow:auto;overscroll-behavior:contain}
 .mse-shell{min-height:100%;display:flex;flex-direction:column;max-width:1180px;margin:auto;background:#100e17;outline:none}
@@ -2115,8 +2119,8 @@ async function openStoryAt(index){
     '<header class="story-viewer-header"><div class="story-viewer-avatar">'+(isOwn?'✦':'✳')+'</div><div class="story-viewer-author">'+(isOwn?'Ta story':'Instant MUSEA')+'<small> · '+new Date(story.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'</small></div>'+
     (isOwn?'<button class="story-viewer-action story-delete-action" data-story-delete="1" aria-label="Supprimer ma story" title="Supprimer">🗑 <span>Supprimer</span></button>':'')+
     '<button class="story-viewer-action" onclick="closeStoryViewer()" aria-label="Fermer" title="Fermer">✕</button></header>'+
-    '<div class="story-viewer-stage">'+media+'<button class="story-viewer-tap story-viewer-prev" onclick="storyViewerStep(-1)" aria-label="Story précédente"></button><button class="story-viewer-tap story-viewer-next" onclick="storyViewerStep(1)" aria-label="Story suivante"></button></div>'+
-    '<div class="story-viewer-bottom">'+(story.overlay_text?'<p class="story-viewer-caption story-viewer-overlay '+escapeHtml(story.overlay_position||'center')+'">'+escapeHtml(story.overlay_text)+'</p>':'')+(story.caption?'<p class="story-viewer-caption">'+escapeHtml(story.caption)+'</p>':'')+audio+'<div class="story-viewer-footer">MUSEA · Les instants disparaissent après 24 h</div></div></div>';
+    '<div class="story-viewer-stage">'+media+(story.overlay_text?'<div class="story-viewer-overlay '+escapeHtml(story.overlay_position||'center')+'">'+escapeHtml(story.overlay_text)+'</div>':'')+'<button class="story-viewer-tap story-viewer-prev" onclick="storyViewerStep(-1)" aria-label="Story précédente"></button><button class="story-viewer-tap story-viewer-next" onclick="storyViewerStep(1)" aria-label="Story suivante"></button></div>'+
+    '<div class="story-viewer-bottom">'+(story.caption?'<p class="story-viewer-caption">'+escapeHtml(story.caption)+'</p>':'')+audio+'<div class="story-viewer-footer">MUSEA · Les instants disparaissent après 24 h</div></div></div>';
   if(!modal.isConnected)document.body.appendChild(modal);
   const storyShell=modal.querySelector('.story-viewer-shell');
   if(storyShell)storyShell.focus({preventScroll:true});
