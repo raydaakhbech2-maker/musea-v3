@@ -1964,9 +1964,9 @@ function openStoryComposer(){
   modal.innerHTML=`<div class="mse-shell" role="dialog" aria-modal="true" aria-label="Créer une story">
     <header class="mse-header"><button class="mse-icon-btn" type="button" onclick="closeStoryComposer()" aria-label="Fermer">✕</button><div><strong>Nouvelle story</strong><small>MUSEA · INSTANTS</small></div><button class="mse-publish" id="msePublishTop" type="button" onclick="publishStoryFromEditor()">Partager</button></header>
     <div class="mse-workspace">
-      <div class="mse-preview-wrap"><div class="mse-canvas" id="mseCanvas"><div class="mse-empty"><span>✧</span><strong>Ton instant commence ici</strong><small>Ajoute une photo ou une vidéo</small></div></div><div class="mse-media-actions"><button type="button" onclick="document.getElementById('mseMedia').click()">▧ Galerie</button><button type="button" onclick="document.getElementById('mseMedia').click()">◎ Appareil photo / vidéo</button></div></div>
+      <div class="mse-preview-wrap"><div class="mse-canvas" id="mseCanvas"><div class="mse-empty"><span>✧</span><strong>Ton instant commence ici</strong><small>Ajoute une photo ou une vidéo</small></div></div><div class="mse-media-actions"><button type="button" onclick="document.getElementById('mseMedia').click()">▧ Galerie</button><button type="button" onclick="document.getElementById('mseCamera').click()">◎ Appareil photo / vidéo</button></div></div>
       <div class="mse-tools">
-        <section class="mse-tool-section"><div class="mse-section-title">MÉDIA</div><input id="mseMedia" class="mse-hidden-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" capture="environment" onchange="storyEditorMediaChanged()"><div class="mse-file-note" id="mseMediaName">Aucun média sélectionné</div></section>
+        <section class="mse-tool-section"><div class="mse-section-title">MÉDIA</div><input id="mseMedia" class="mse-hidden-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onchange="storyEditorMediaChanged()"><input id="mseCamera" class="mse-hidden-input" type="file" accept="image/*,video/*" capture="environment" onchange="storyEditorCameraChanged()"><div class="mse-file-note" id="mseMediaName">Aucun média sélectionné</div></section>
         <section class="mse-tool-section"><div class="mse-section-title">♫ MUSIQUE</div><button class="mse-select-sound" type="button" onclick="document.getElementById('mseAudio').click()"><span>♫</span><span><strong>Choisir un son</strong><small>Importer un fichier audio autorisé</small></span><b>＋</b></button><input id="mseAudio" class="mse-hidden-input" type="file" accept="audio/*,.mp3,.m4a,.aac,.ogg,.wav,.webm" onchange="storyEditorAudioChanged()"><div id="mseAudioName" class="mse-file-note">Aucun son sélectionné</div><div class="mse-catalog-note">Le catalogue de titres commerciaux populaires nécessite un partenariat musical et des licences. Il n'est pas encore activé dans MUSEA.</div>
           <div id="mseAudioTrim" hidden><audio id="mseAudioPreview" controls preload="metadata"></audio><div class="mse-trim-label"><span>Début <b id="mseStartLabel">0:00</b></span><span>Fin <b id="mseEndLabel">0:00</b></span></div><label class="mse-range-label">Début du passage<input id="mseAudioStart" type="range" min="0" max="0" step="0.1" value="0" oninput="storyEditorTrimChanged('start')"></label><label class="mse-range-label">Fin du passage<input id="mseAudioEnd" type="range" min="0" max="0" step="0.1" value="0" oninput="storyEditorTrimChanged('end')"></label><label class="mse-range-label">Volume musique <output id="mseMusicVolLabel">85 %</output><input id="mseMusicVolume" type="range" min="0" max="100" value="85" oninput="document.getElementById('mseMusicVolLabel').textContent=this.value+'%'"></label></div>
         </section>
@@ -1986,6 +1986,10 @@ function closeStoryComposer(){
   storyEditorAudioUrl=null;storyEditorMediaUrl=null;modal.remove();document.body.classList.remove('story-viewer-open');
 }
 function storyEditorFormatTime(value){const n=Math.max(0,Math.floor(Number(value)||0));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0');}
+function storyEditorCameraChanged(){
+  const cameraFile=document.getElementById('mseCamera')?.files?.[0];if(!cameraFile)return;
+  const input=document.getElementById('mseMedia');const dt=new DataTransfer();dt.items.add(cameraFile);input.files=dt.files;storyEditorMediaChanged();
+}
 function storyEditorMediaChanged(){
   const file=document.getElementById('mseMedia')?.files?.[0];if(!file)return;
   if(storyEditorMediaUrl)URL.revokeObjectURL(storyEditorMediaUrl);storyEditorMediaUrl=URL.createObjectURL(file);
@@ -2004,6 +2008,10 @@ function storyEditorAudioChanged(){
     start.max=end.max=String(storyEditorDuration);start.value='0';end.value=String(storyEditorDuration);
     document.getElementById('mseStartLabel').textContent='0:00';document.getElementById('mseEndLabel').textContent=storyEditorFormatTime(storyEditorDuration);
     document.getElementById('mseAudioTrim').hidden=false;
+  };
+  player.onplay=()=>{
+    const start=Number(document.getElementById('mseAudioStart')?.value||0),end=Number(document.getElementById('mseAudioEnd')?.value||storyEditorDuration);
+    if(player.currentTime<start||player.currentTime>=end)player.currentTime=start;
   };
   player.ontimeupdate=()=>{
     const end=Number(document.getElementById('mseAudioEnd')?.value||storyEditorDuration);
@@ -2130,6 +2138,7 @@ async function openStoryAt(index){
   if(playbackAudio){
     playbackAudio.volume=Math.max(0,Math.min(1,Number(story.audio_volume??0.85)));
     playbackAudio.addEventListener('loadedmetadata',()=>{const start=Math.max(0,Number(story.audio_start_seconds)||0);if(start<playbackAudio.duration)playbackAudio.currentTime=start;});
+    playbackAudio.addEventListener('play',()=>{const start=Math.max(0,Number(story.audio_start_seconds)||0),end=Number(story.audio_end_seconds);if(playbackAudio.currentTime<start||(Number.isFinite(end)&&end>0&&playbackAudio.currentTime>=end))playbackAudio.currentTime=start;});
     playbackAudio.addEventListener('timeupdate',()=>{const end=Number(story.audio_end_seconds);if(Number.isFinite(end)&&end>0&&playbackAudio.currentTime>=end){playbackAudio.pause();playbackAudio.currentTime=Math.max(0,Number(story.audio_start_seconds)||0);}});
   }
   const storyVideo=modal.querySelector('video.story-viewer-media');if(storyVideo)storyVideo.volume=Math.max(0,Math.min(1,Number(story.original_volume??0.85)));
