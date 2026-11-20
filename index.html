@@ -1784,7 +1784,10 @@ function renderStories(){
   const ownHtml='<button class="story story-own" onclick="navigate(&quot;stories&quot;)"><span class="story-ring"><span>＋</span></span><span>'+ownLabel+'</span></button>';
   const otherHtml=others.map(x=>'<button class="story" onclick="viewStory(\''+escapeHtml(x.id)+'\')"><span class="story-ring"><span>✳</span></span><span>'+escapeHtml(String(x.caption||'Instant').slice(0,24))+'</span></button>').join('');
   const html=ownHtml+otherHtml;
-  const row=document.getElementByasync function viewStory(id){
+  const row=document.getElementById('storyRow');if(row)row.innerHTML=html;
+  const all=document.getElementById('allStories');if(all)all.innerHTML=html||'<p class="small muted">Aucun instant actif pour le moment.</p>';
+}
+async function viewStory(id){
   const story=museaStoriesCache.find(x=>x.id===id);
   if(!story)return toast('Cet instant n’est plus disponible.');
   const modal=document.getElementById('museaStoryViewer')||document.createElement('div');
