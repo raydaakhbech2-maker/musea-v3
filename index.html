@@ -1884,13 +1884,13 @@ async function loadStories(){
 function storyCardMarkup(story,isOwn){
   const label=escapeHtml(String(story.caption||(isOwn?'Ton instant':'Instant')).slice(0,24));
   const id=String(story.id||'');
-  return '<button class="story '+(isOwn?'story-own':'')+'" onclick="viewStory(\\''+id+'\\')"><span class="story-ring"><span>'+(isOwn?'✦':'✳')+'</span></span><span>'+label+'</span></button>';
+  return '<button class="story '+(isOwn?'story-own':'')+'" onclick="viewStory(\''+id+'\')"><span class="story-ring"><span>'+(isOwn?'✦':'✳')+'</span></span><span>'+label+'</span></button>';
 }
 function renderStories(){
   const stories=Array.isArray(museaStoriesCache)?museaStoriesCache:[];
   const own=stories.filter(x=>x.user_id===museaCurrentUserId);
   const others=stories.filter(x=>x.user_id!==museaCurrentUserId);
-  const ownHtml=own.length?storyCardMarkup(own[0],true):'<button class="story story-own" onclick="navigate(\\'stories\\')"><span class="story-ring"><span>＋</span></span><span>Ton instant</span></button>';
+  const ownHtml=own.length?storyCardMarkup(own[0],true):'<button class="story story-own" onclick="navigate(\'stories\')"><span class="story-ring"><span>＋</span></span><span>Ton instant</span></button>';
   const row=document.getElementById('storyRow');
   if(row)row.innerHTML=ownHtml+others.map(x=>storyCardMarkup(x,false)).join('');
   const all=document.getElementById('allStories');
@@ -1918,7 +1918,7 @@ async function viewStory(id){
     if(error){console.error('Lecture du son story:',error);return toast('Le son de cet instant est momentanément inaccessible.');}
     audio='<div class="story-audio-player"><div class="small muted">♫ Son ajouté</div><audio controls preload="metadata" src="'+escapeHtml(data.signedUrl)+'"></audio></div>';
   }
-  modal.innerHTML='<div class="modalbox" role="dialog" aria-modal="true" aria-label="Instant MUSEA"><div class="row between"><div class="eyebrow">INSTANT MUSEA</div><button class="iconbtn" onclick="document.getElementById(\\'museaStoryViewer\\').remove()" aria-label="Fermer">✕</button></div>'+media+audio+'<p style="white-space:pre-wrap;font-size:18px;margin:16px 0">'+escapeHtml(story.caption||'')+'</p><p class="small muted">Cet instant disparaît automatiquement après 24 heures.</p></div>';
+  modal.innerHTML='<div class="modalbox" role="dialog" aria-modal="true" aria-label="Instant MUSEA"><div class="row between"><div class="eyebrow">INSTANT MUSEA</div><button class="iconbtn" onclick="document.getElementById(\'museaStoryViewer\').remove()" aria-label="Fermer">✕</button></div>'+media+audio+'<p style="white-space:pre-wrap;font-size:18px;margin:16px 0">'+escapeHtml(story.caption||'')+'</p><p class="small muted">Cet instant disparaît automatiquement après 24 heures.</p></div>';
   if(!modal.isConnected)document.body.appendChild(modal);
 }
 let museaTusModulePromise=null;
