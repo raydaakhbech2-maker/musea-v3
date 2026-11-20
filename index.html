@@ -1854,39 +1854,94 @@ async function viewStory(id){
   modal.innerHTML='<div class="modalbox" role="dialog" aria-modal="true" aria-label="Instant MUSEA"><div class="row between"><div class="eyebrow">INSTANT MUSEA</div><button class="iconbtn" onclick="document.getElementById(\'museaStoryViewer\').remove()" aria-label="Fermer">✕</button></div>'+media+'<p style="white-space:pre-wrap;font-size:18px;margin:16px 0">'+escapeHtml(story.caption||'')+'</p><p class="small muted">Cet instant disparaît automatiquement après 24 heures.</p></div>';
   if(!modal.isConnected)document.body.appendChild(modal);
 }
+let museaTusModulePromise=null;
+async function uploadMuseaStoryMedia(file,path){
+  const bucket=museaSupabase.storage.from('musea-stories');
+  if(file.size<=6*1024*1024){
+    const {error}=await bucket.upload(path,file,{contentType:file.type,cacheControl:'3600',upsert:false});
+    if(error)throw error;
+    return;
+  }
+  const {data:sessionData,error:sessionError}=await museaSupabase.auth.getSession();
+  const session=sessionData?.session;
+  if(sessionError||!session?.access_token)throw new Error('Ta session a expiré. Reconnecte-toi puis réessaie.');
+  if(!museaTusModulePromise)museaTusModulePromise=import('https://esm.sh/tus-js-client@4');
+  const tusModule=await museaTusModulePromise;
+  const TusUpload=tusModule.Upload||tusModule.default?.Upload;
+  if(!TusUpload)throw new Error('Le service de transfert vidéo n’a pas pu être chargé. Réessaie avec une connexion stable.');
+  const progress=document.getElementById('storyUploadProgress');
+  const status=document.getElementById('storyUploadStatus');
+  if(progress){progress.hidden=false;progress.value=0;}
+  return new Promise((resolve,reject)=>{
+    const upload=new TusUpload(file,{
+      endpoint:'https://dujargvriuxwczkgsyua.storage.supabase.co/storage/v1/upload/resumable',
+      headers:{authorization:'Bearer '+session.access_token,apikey:'sb_publishable_ZcM_kwCnPPfPLMs7nZEi4g_uoLCJIhM'},
+      metadata:{bucketName:'musea-stories',objectName:path,contentType:file.type,cacheControl:'3600'},
+      chunkSize:6*1024*1024,
+      retryDelays:[0,3000,5000,10000,20000],
+      uploadDataDuringCreation:true,
+      removeFingerprintOnSuccess:true,
+      onError:error=>reject(error),
+      onProgress:(uploaded,total)=>{
+        const percent=total?Math.min(100,Math.round(uploaded/total*100)):0;
+        if(progress)progress.value=percent;
+        if(status)status.textContent='Envoi du média… '+percent+' %';
+      },
+      onSuccess:()=>resolve()
+    });
+    upload.findPreviousUploads().then(previous=>{
+      if(previous.length)upload.resumeFromPreviousUpload(previous[0]);
+      upload.start();
+    }).catch(reject);
+  });
+}
 async function addStory(){
   const input=document.getElementById('storyText');
-  const value=input?.value.trim()||'';
   const mediaInput=document.getElementById('storyMedia');
+  const button=document.getElementById('storyPublishButton');
+  const status=document.getElementById('storyUploadStatus');
+  const progress=document.getElementById('storyUploadProgress');
+  const value=input?.value.trim()||'';
   const file=mediaInput?.files?.[0]||null;
   if(!value&&!file)return toast('Ajoute un texte ou une photo/vidéo.');
   if(value.length>240)return toast('240 caractères maximum.');
-  if(file&&file.size>20*1024*1024)return toast('Le média dépasse la limite de 20 Mo.');
+  if(file&&file.size>50*1024*1024)return toast('Le fichier dépasse 50 Mo, la limite actuelle de stockage de MUSEA.');
   const allowed=['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm'];
   if(file&&!allowed.includes(file.type))return toast('Format non pris en charge. Utilise JPG, PNG, WebP, GIF, MP4 ou WebM.');
-  const {data,error:authError}=await museaSupabase.auth.getUser();
-  if(authError||!data?.user)return toast('Connecte-toi pour publier un instant.');
-  const user=data.user;
+  const {data:authData,error:authError}=await museaSupabase.auth.getUser();
+  if(authError||!authData?.user)return toast('Connecte-toi pour publier un instant.');
+  const user=authData.user;
   let mediaPath=null,mediaType=null;
-  if(file){
-    const ext=({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/webm':'webm'})[file.type];
-    mediaPath='stories/'+user.id+'/'+Date.now()+'.'+ext;
-    mediaType=file.type.startsWith('video/')?'video':'image';
-    const {error:uploadError}=await museaSupabase.storage.from('musea-stories').upload(mediaPath,file,{contentType:file.type,cacheControl:'3600',upsert:false});
-    if(uploadError){console.error('Envoi du média story:',uploadError);return toast('Envoi du média impossible : '+uploadError.message);}
+  if(button)button.disabled=true;
+  if(status)status.textContent=file?'Préparation du transfert…':'Publication de ton instant…';
+  if(progress){progress.hidden=true;progress.value=0;}
+  try{
+    if(file){
+      const ext=({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/webm':'webm'})[file.type];
+      mediaPath='stories/'+user.id+'/'+Date.now()+'.'+ext;
+      mediaType=file.type.startsWith('video/')?'video':'image';
+      await uploadMuseaStoryMedia(file,mediaPath);
+      if(status)status.textContent='Média envoyé. Publication en cours…';
+    }
+    const {error}=await museaSupabase.from('stories').insert({
+      user_id:user.id,caption:value||null,media_path:mediaPath,media_type:mediaType,
+      created_at:new Date().toISOString(),expires_at:new Date(Date.now()+24*60*60*1000).toISOString()
+    });
+    if(error)throw error;
+    input.value='';if(mediaInput)mediaInput.value='';
+    if(status)status.textContent='Instant publié avec succès.';
+    await loadStories();
+    toast('Ton instant est publié pour 24 heures.');
+  }catch(error){
+    if(mediaPath)await museaSupabase.storage.from('musea-stories').remove([mediaPath]).catch(()=>{});
+    console.error('Publication story:',error);
+    if(status)status.textContent='Publication impossible : '+(error?.message||'erreur inconnue');
+    toast('Publication impossible : '+(error?.message||'vérifie ta connexion et réessaie.'));
+  }finally{
+    if(button)button.disabled=false;
   }
-  const {error}=await museaSupabase.from('stories').insert({
-    user_id:user.id,caption:value||null,media_path:mediaPath,media_type:mediaType,
-    created_at:new Date().toISOString(),expires_at:new Date(Date.now()+24*60*60*1000).toISOString()
-  });
-  if(error){
-    if(mediaPath)await museaSupabase.storage.from('musea-stories').remove([mediaPath]);
-    console.error('Publication story:',error);return toast('Publication impossible : '+error.message);
-  }
-  input.value='';if(mediaInput)mediaInput.value='';
-  await loadStories().catch(error=>{console.error(error);toast('Instant publié, mais actualisation impossible.');});
-  toast('Ton instant est publié pour 24 heures.');
 }
+
 function setTrendPeriod(period){
   if(!['7d','30d','all'].includes(period))return;
   trendPeriod=period;
