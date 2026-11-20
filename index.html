@@ -470,32 +470,33 @@ body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibi
 @media(max-width:560px){.musea-space-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.musea-space{min-height:96px;padding:10px}}
 
 /* MUSEA immersive stories viewer */
-body.story-viewer-open{overflow:hidden}
-#museaStoryViewer.story-viewer-modal{position:fixed;inset:0;z-index:1000;display:block;padding:0;margin:0;background:#050508;overflow:hidden}
-.story-viewer-shell{position:relative;width:100%;height:100dvh;min-height:100%;overflow:hidden;background:#08070c;color:#fff;isolation:isolate;touch-action:pan-y}
+body.story-viewer-open{overflow:hidden!important;overscroll-behavior:none;touch-action:none}
+#museaStoryViewer.story-viewer-modal{position:fixed!important;inset:0!important;z-index:99999!important;display:block!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-width:none!important;max-height:none!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;transform:none!important;background:#050508!important;overflow:hidden!important}
+.story-viewer-shell{position:relative;display:block;width:100%;max-width:none;height:100vh;height:100dvh;min-height:100%;margin:0;padding:0;overflow:hidden;background:#08070c;color:#fff;isolation:isolate;touch-action:pan-y;overscroll-behavior:contain}
 .story-viewer-stage{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden;background:#08070c}
-.story-viewer-media{width:100%;height:100%;object-fit:cover;display:block;background:#08070c}
+.story-viewer-media{width:100%;height:100%;object-fit:cover;object-position:center;display:block;background:#08070c}
 .story-viewer-text-only{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;background:radial-gradient(ellipse at 20% 20%,#8e67c7,#38294f 55%,#100e18);text-align:center}
 .story-viewer-text-only span{font-size:48px}.story-viewer-text-only p{font-size:clamp(25px,6vw,42px);font-weight:800;max-width:18ch;white-space:pre-wrap}
-.story-viewer-progress{position:absolute;z-index:5;top:max(10px,env(safe-area-inset-top));left:12px;right:12px;display:flex;gap:4px}
+.story-viewer-progress{position:absolute;z-index:8;top:max(10px,env(safe-area-inset-top));left:12px;right:12px;display:flex;gap:4px}
 .story-progress-segment{height:3px;flex:1;border-radius:8px;background:#ffffff55;overflow:hidden}
 .story-progress-segment i{display:block;width:0;height:100%;background:#fff}
 .story-progress-segment i.done{width:100%}
 .story-progress-segment i.current{width:100%;transform-origin:left;animation:story-progress-fill 6.5s linear forwards}
 @keyframes story-progress-fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-.story-viewer-header{position:absolute;z-index:6;top:calc(max(20px,env(safe-area-inset-top)) + 10px);left:14px;right:14px;display:flex;align-items:center;gap:9px;text-shadow:0 1px 8px #0009}
+.story-viewer-header{position:absolute;z-index:10;top:calc(max(20px,env(safe-area-inset-top)) + 10px);left:14px;right:14px;display:flex;align-items:center;gap:9px;text-shadow:0 1px 8px #0009}
 .story-viewer-avatar{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:linear-gradient(135deg,#b9aaff,#e78ec5);color:#211d32;font-weight:900}
 .story-viewer-author{font-size:14px;font-weight:800;flex:1}.story-viewer-author small{font-weight:500;color:#ffffffc9}
-.story-viewer-action{width:38px;height:38px;display:grid;place-items:center;border:0;border-radius:50%;background:#17151c88;color:#fff;font-size:20px;backdrop-filter:blur(10px)}
-.story-delete-action{font-size:22px}
-.story-viewer-tap{position:absolute;z-index:3;top:18%;bottom:18%;width:34%;border:0;background:transparent}
-.story-viewer-prev{left:0}.story-viewer-next{right:0;width:66%}
-.story-viewer-bottom{position:absolute;z-index:6;left:0;right:0;bottom:0;padding:28px 16px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#0009 25%,#000c)}
+.story-viewer-action{min-width:42px;height:42px;padding:0 12px;display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid #ffffff40;border-radius:22px;background:#17151cbb;color:#fff;font-size:16px;font-weight:700;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.story-delete-action{width:auto;font-size:13px}
+.story-viewer-tap{position:absolute;z-index:4;top:16%;bottom:18%;width:50%;padding:0;border:0;background:transparent;touch-action:manipulation}
+.story-viewer-prev{left:0}.story-viewer-next{right:0}
+.story-viewer-bottom{position:absolute;z-index:10;left:0;right:0;bottom:0;padding:28px 16px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#0009 25%,#000c);pointer-events:none}
+.story-viewer-bottom>*{pointer-events:auto}
 .story-viewer-caption{margin:0 0 10px;white-space:pre-wrap;font-size:16px;text-shadow:0 1px 5px #000}
 .story-viewer-audio{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:9px;font-size:12px;font-weight:700}
-.story-viewer-audio audio{width:min(280px,100%);height:34px}
+.story-viewer-audio audio{width:min(280px,100%);height:36px}
 .story-viewer-footer{font-size:10px;color:#ffffffa8;letter-spacing:.4px}
-@media(min-width:720px){.story-viewer-shell{max-width:520px;margin:0 auto;height:100dvh}.story-viewer-media{object-fit:contain}.story-viewer-stage{background:#08070c}}
+@media(min-width:720px){.story-viewer-shell{width:min(100vw,520px);height:100dvh;margin:0 auto}.story-viewer-stage{background:#08070c}.story-viewer-media{object-fit:contain}}
 @media(prefers-reduced-motion:reduce){.story-progress-segment i.current{animation:none;width:100%}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1949,6 +1950,11 @@ function storyPointerEnd(event){
   const delta=event.clientX-storyViewerPointerX;storyViewerPointerX=null;
   if(Math.abs(delta)>55)storyViewerStep(delta<0?1:-1);
 }
+function storyViewerKeydown(event){
+  if(event.key==='Escape'){event.preventDefault();closeStoryViewer();}
+  else if(event.key==='ArrowRight'){event.preventDefault();storyViewerStep(1);}
+  else if(event.key==='ArrowLeft'){event.preventDefault();storyViewerStep(-1);}
+}
 async function openStoryAt(index){
   const stories=museaStoriesCache||[];
   if(index<0||index>=stories.length){closeStoryViewer();return;}
@@ -1961,7 +1967,7 @@ async function openStoryAt(index){
     if(error){console.error('Lecture du média story:',error);toast('Ce média est momentanément inaccessible.');return;}
     const url=escapeHtml(data.signedUrl),filter=storyFilterCss(story.visual_filter||'original');
     media=story.media_type==='video'
-      ?'<video class="story-viewer-media" autoplay playsinline controls onended="storyViewerStep(1)" style="filter:'+filter+'" src="'+url+'"></video>'
+      ?'<video class="story-viewer-media" autoplay muted playsinline controls onended="storyViewerStep(1)" style="filter:'+filter+'" src="'+url+'"></video>'
       :'<img class="story-viewer-media" alt="Story MUSEA" style="filter:'+filter+'" src="'+url+'">';
   }else media='<div class="story-viewer-text-only"><span>✳</span><p>'+escapeHtml(story.caption||'Un instant MUSEA')+'</p></div>';
   if(story.audio_path){
@@ -1973,14 +1979,16 @@ async function openStoryAt(index){
   const segments=stories.map((item,i)=>'<span class="story-progress-segment"><i class="'+(i<index?'done':i===index?'current':'')+'"></i></span>').join('');
   const modal=document.getElementById('museaStoryViewer')||document.createElement('div');
   modal.id='museaStoryViewer';modal.className='modal story-viewer-modal';
-  modal.innerHTML='<div class="story-viewer-shell" role="dialog" aria-modal="true" aria-label="Story MUSEA" onpointerdown="storyPointerStart(event)" onpointerup="storyPointerEnd(event)">'+
+  modal.innerHTML='<div class="story-viewer-shell" role="dialog" aria-modal="true" aria-label="Story MUSEA" tabindex="-1" onpointerdown="storyPointerStart(event)" onpointerup="storyPointerEnd(event)" onkeydown="storyViewerKeydown(event)">'+
     '<div class="story-viewer-progress">'+segments+'</div>'+
     '<header class="story-viewer-header"><div class="story-viewer-avatar">'+(isOwn?'✦':'✳')+'</div><div class="story-viewer-author">'+(isOwn?'Ta story':'Instant MUSEA')+'<small> · '+new Date(story.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'</small></div>'+
-    (isOwn?'<button class="story-viewer-action story-delete-action" data-story-delete="1" aria-label="Supprimer ma story" title="Supprimer">🗑</button>':'')+
+    (isOwn?'<button class="story-viewer-action story-delete-action" data-story-delete="1" aria-label="Supprimer ma story" title="Supprimer">🗑 <span>Supprimer</span></button>':'')+
     '<button class="story-viewer-action" onclick="closeStoryViewer()" aria-label="Fermer" title="Fermer">✕</button></header>'+
     '<div class="story-viewer-stage">'+media+'<button class="story-viewer-tap story-viewer-prev" onclick="storyViewerStep(-1)" aria-label="Story précédente"></button><button class="story-viewer-tap story-viewer-next" onclick="storyViewerStep(1)" aria-label="Story suivante"></button></div>'+
     '<div class="story-viewer-bottom">'+(story.caption&&story.media_path?'<p class="story-viewer-caption">'+escapeHtml(story.caption)+'</p>':'')+audio+'<div class="story-viewer-footer">MUSEA · Les instants disparaissent après 24 h</div></div></div>';
   if(!modal.isConnected)document.body.appendChild(modal);
+  const storyShell=modal.querySelector('.story-viewer-shell');
+  if(storyShell)storyShell.focus({preventScroll:true});
   const deleteButton=modal.querySelector('[data-story-delete]');
   if(deleteButton)deleteButton.onclick=()=>deleteStory(story.id);
   document.body.classList.add('story-viewer-open');
