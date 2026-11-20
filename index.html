@@ -445,7 +445,14 @@ body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibi
 .discovery-quick-links{margin-top:14px}.discovery-quick-links .btn{font-size:12px;min-height:38px}
 .story-page-intro{padding:20px 20px 18px;margin-bottom:13px;border-radius:22px;background:linear-gradient(125deg,#211b32,#49396f 65%,#765bd0);color:#fff}
 .story-page-intro .eyebrow{color:#d9d0ff}.story-page-intro .h1{font-size:clamp(26px,5vw,36px);margin:7px 0}.story-page-intro p{margin:0;color:#e9e3f7;max-width:55ch}
+.story-intro-cta{margin-top:15px;background:#fff!important;color:#33264f!important;border:0;font-weight:800}
+.story-own-wrap{position:relative;flex:0 0 67px;width:67px;min-width:67px;display:flex;justify-content:center}
+.story-own-wrap>.story{width:67px}
+.story-add-quick{position:absolute;right:0;top:39px;width:25px;height:25px;border:2px solid var(--card);border-radius:50%;background:var(--accent);color:#fff;font-size:19px;line-height:1;display:grid;place-items:center;z-index:2;box-shadow:0 2px 8px #0003;padding:0}
+.story-add-quick:focus-visible,.story-intro-cta:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .story-composer .h2,.story-gallery-card .h2{margin:5px 0 12px;font-size:19px}.story-file-input{padding:9px;background:var(--surface)}
+.story-customize-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:17px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
+.story-customize-heading .eyebrow{font-size:10px;letter-spacing:.1em}
 .story-upload-hint{margin:8px 0 4px;line-height:1.5}.story-upload-progress{display:block;width:100%;height:9px;margin:12px 0 6px;accent-color:var(--accent);border:0;border-radius:99px;overflow:hidden}.story-upload-progress[hidden]{display:none}
 #storyUploadStatus{min-height:16px;margin:7px 0 0}.story-gallery-card .storyrow{padding:10px 0 2px}
 .story-editor-preview{display:grid;gap:10px;min-height:68px;margin:12px 0;padding:12px;border:1px dashed var(--line);border-radius:16px;background:var(--surface);place-items:center;overflow:hidden}
@@ -749,6 +756,7 @@ window.museaSupabase = window.supabase.createClient(
     <div class="eyebrow">MUSEA / INSTANTS</div>
     <h1 class="h1">Les coulisses de la création.</h1>
     <p>Partage une étape, une inspiration ou une courte vidéo. Chaque instant disparaît après 24 heures.</p>
+    <button type="button" class="btn story-intro-cta" onclick="document.querySelector('#screen-stories .story-composer')?.scrollIntoView({behavior:'smooth',block:'start'})">＋ Créer une story</button>
   </div>
   <div class="card story-composer">
     <div class="eyebrow">NOUVEL INSTANT</div>
@@ -757,10 +765,11 @@ window.museaSupabase = window.supabase.createClient(
     <input class="field" id="storyText" maxlength="240" placeholder="Raconte ce qui se passe dans ton atelier…">
     <label class="label" for="storyMedia">1. Photo ou vidéo</label>
     <input class="field story-file-input" id="storyMedia" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onchange="storyUpdatePreview()">
-    <label class="label" for="storyAudio">2. Ajouter un son (facultatif)</label>
+    <div class="story-customize-heading"><span class="eyebrow">PERSONNALISATION</span><span class="small muted">Avant de publier</span></div>
+    <label class="label" for="storyAudio">♫ Ajouter un son (facultatif)</label>
     <input class="field story-file-input" id="storyAudio" type="file" accept="audio/mpeg,audio/mp3,audio/mp4,audio/m4a,audio/aac,audio/ogg,audio/wav,audio/x-wav,audio/webm,.mp3,.m4a,.aac,.ogg,.wav" onchange="storyUpdatePreview()">
     <p class="small muted story-upload-hint">Ajoute un fichier audio que tu as créé ou que tu as le droit d’utiliser. Taille maximale du son : 15 Mo.</p>
-    <label class="label" for="storyFilter">3. Ambiance visuelle</label>
+    <label class="label" for="storyFilter">✧ Filtre et ambiance visuelle</label>
     <select class="field" id="storyFilter" onchange="storyUpdatePreview()">
       <option value="original">Original</option><option value="warm">Chaleureux</option><option value="mono">Noir et blanc</option><option value="vivid">Vif</option><option value="cinema">Cinéma</option>
     </select>
@@ -1916,11 +1925,21 @@ function storyCardMarkup(story,isOwn){
   const id=String(story.id||'');
   return '<button class="story '+(isOwn?'story-own':'')+'" onclick="viewStory(\''+id+'\')"><span class="story-ring"><span>'+(isOwn?'✦':'✳')+'</span></span><span>'+label+'</span></button>';
 }
+function openStoryComposer(){
+  navigate('stories');
+  setTimeout(()=>{
+    const composer=document.querySelector('#screen-stories .story-composer');
+    composer?.scrollIntoView({behavior:'smooth',block:'start'});
+    document.getElementById('storyMedia')?.focus({preventScroll:true});
+  },120);
+}
 function renderStories(){
   const stories=Array.isArray(museaStoriesCache)?museaStoriesCache:[];
   const own=stories.filter(x=>x.user_id===museaCurrentUserId);
   const others=stories.filter(x=>x.user_id!==museaCurrentUserId);
-  const ownHtml=own.length?storyCardMarkup(own[0],true):'<button class="story story-own" onclick="navigate(\'stories\')"><span class="story-ring"><span>＋</span></span><span>Ton instant</span></button>';
+  const ownHtml=own.length
+    ?'<div class="story-own-wrap">'+storyCardMarkup(own[0],true)+'<button type="button" class="story-add-quick" aria-label="Ajouter une story" title="Ajouter une story" onclick="openStoryComposer()">＋</button></div>'
+    :'<div class="story-own-wrap"><button class="story story-own" onclick="openStoryComposer()"><span class="story-ring"><span>＋</span></span><span>Ajouter</span></button></div>';
   const row=document.getElementById('storyRow');
   if(row)row.innerHTML=ownHtml+others.map(x=>storyCardMarkup(x,false)).join('');
   const all=document.getElementById('allStories');
