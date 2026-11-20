@@ -539,6 +539,10 @@ window.museaSupabase = window.supabase.createClient(
       <button class="chip selected" data-mode="affinity" onclick="setDiscoveryMode('affinity',this)">✦ Mes affinités</button>
       <button class="chip" data-mode="detour" onclick="setDiscoveryMode('detour',this)">↗ Détours créatifs</button>
       <button class="chip" data-mode="emerging" onclick="setDiscoveryMode('emerging',this)">◈ Talents émergents</button>
+      <div class="row wrap discovery-quick-links">
+        <button class="btn soft" onclick="navigate('trends')">↗ Consulter les tendances</button>
+        <button class="btn" onclick="navigate('create')">✦ Créer une œuvre</button>
+      </div>
     </div>
   </div>
   <div class="card">
@@ -672,12 +676,27 @@ window.museaSupabase = window.supabase.createClient(
   <p class="trends-footnote">Transparence : les tendances sont calculées à partir des 100 dernières publications publiques accessibles à MUSEA. Elles ne représentent pas nécessairement toute la communauté. Les interactions indiquent une activité, pas la qualité d'une œuvre.</p>
 </section>
 <section class="screen" id="screen-stories">
-  <div class="card stories-page-hero"><div class="eyebrow">MUSEA / INSTANTS</div><h2 class="h1">Les instants créatifs.</h2><p class="muted">Partage un aperçu, une étape de création ou une inspiration. Chaque instant reste visible pendant 24 heures.</p>
-  <div class="storyrow" id="allStories"></div>
-  <label class="label" for="storyText">Une légende (facultatif si tu ajoutes un média)</label><input class="field" id="storyText" maxlength="240" placeholder="Une idée, un making-of, une inspiration…">
-  <label class="label" for="storyMedia">Photo ou vidéo</label><input class="field" id="storyMedia" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm">
-  <p class="small muted">Ajoute du texte, une photo ou une vidéo (20 Mo maximum). Ton instant expire après 24 heures.</p>
-  <button class="btn primary full" style="margin-top:10px" onclick="addStory()">＋ Publier mon instant</button></div>
+  <div class="story-page-intro">
+    <div class="eyebrow">MUSEA / INSTANTS</div>
+    <h1 class="h1">Les coulisses de la création.</h1>
+    <p>Partage une étape, une inspiration ou une courte vidéo. Chaque instant disparaît après 24 heures.</p>
+  </div>
+  <div class="card story-composer">
+    <div class="eyebrow">NOUVEL INSTANT</div>
+    <h2 class="h2">Que souhaites-tu partager ?</h2>
+    <label class="label" for="storyText">Une légende <span class="muted">(facultatif)</span></label>
+    <input class="field" id="storyText" maxlength="240" placeholder="Raconte ce qui se passe dans ton atelier…">
+    <label class="label" for="storyMedia">Ajouter une photo ou une vidéo</label>
+    <input class="field story-file-input" id="storyMedia" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm">
+    <p class="small muted story-upload-hint">Jusqu’à 50 Mo par fichier sur l’offre actuelle. Pour les vidéos plus lourdes, l’hébergement devra être augmenté.</p>
+    <progress id="storyUploadProgress" class="story-upload-progress" max="100" value="0" hidden></progress>
+    <p id="storyUploadStatus" class="small muted" role="status" aria-live="polite"></p>
+    <button class="btn primary full" id="storyPublishButton" style="margin-top:10px" onclick="addStory()">＋ Publier mon instant</button>
+  </div>
+  <div class="card story-gallery-card">
+    <div class="row between wrap"><div><div class="eyebrow">COMMUNAUTÉ</div><h2 class="h2">Instants récents</h2></div><span class="small muted">Visibles 24 h</span></div>
+    <div class="storyrow" id="allStories"></div>
+  </div>
 </section>
 <section class="screen" id="screen-messages">
   <div class="message-hero"><div class="eyebrow">MUSEA / LIENS CRÉATIFS</div><h1 class="h1">Les idées circulent mieux ensemble.</h1><p>Échange en privé, partage une création ou transforme une discussion en atelier collectif.</p><div class="message-hero-mark" aria-hidden="true">✳</div></div>
@@ -860,7 +879,7 @@ window.museaSupabase = window.supabase.createClient(
 <button class="active" data-go="home" aria-current="page" onclick="navigate('home')"><b aria-hidden="true">⌂</b><span>Accueil</span></button>
 <button data-go="discover" onclick="navigate('discover')"><b aria-hidden="true">⌕</b><span>Explorer</span></button>
 <button class="nav-create" data-go="create" onclick="navigate('create')"><b aria-hidden="true">✦</b><span>Créer</span></button>
-<button data-go="trends" onclick="navigate('trends')"><b aria-hidden="true">↗</b><span>Tendances</span></button>
+<button data-go="profile" onclick="navigate('profile')"><b aria-hidden="true">◉</b><span>Profil</span></button>
 <button data-go="messages" onclick="navigate('messages')" aria-label="Ouvrir les messages"><b class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l1.7-3.2A7.5 7.5 0 1 1 20 11.5Z"/><path d="M8.5 11.5h.01M12.5 11.5h.01M16.5 11.5h.01"/></svg></b><span>Messages</span></button>
 </nav>
 <div id="toast" class="toast hidden" role="status"></div>
@@ -938,7 +957,7 @@ function navigate(name){
   if(!el){name='home';el=document.getElementById('screen-home');}
   el.classList.add('active');
   document.querySelectorAll('.bottom button').forEach(b=>{
-    const active=b.dataset.go===name;
+    const active=b.dataset.go===name||(name==='trends'&&b.dataset.go==='discover');
     b.classList.toggle('active',active);
     if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
   });
