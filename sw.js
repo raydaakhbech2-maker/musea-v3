@@ -1,4 +1,4 @@
-const CACHE = 'musea-final-v22';
+const CACHE = 'musea-final-v23';
 const CACHE_PREFIX = 'musea-final-';
 const APP_SHELL = './index.html';
 
