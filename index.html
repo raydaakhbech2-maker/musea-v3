@@ -468,6 +468,35 @@ body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibi
 .musea-space strong{font-size:12px}.musea-space small{font-size:10px;line-height:1.35;color:var(--muted)}
 @media(hover:hover){.musea-space:hover{border-color:var(--accent);background:var(--accent2)}}
 @media(max-width:560px){.musea-space-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.musea-space{min-height:96px;padding:10px}}
+
+/* MUSEA immersive stories viewer */
+body.story-viewer-open{overflow:hidden}
+#museaStoryViewer.story-viewer-modal{position:fixed;inset:0;z-index:1000;display:block;padding:0;margin:0;background:#050508;overflow:hidden}
+.story-viewer-shell{position:relative;width:100%;height:100dvh;min-height:100%;overflow:hidden;background:#08070c;color:#fff;isolation:isolate;touch-action:pan-y}
+.story-viewer-stage{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden;background:#08070c}
+.story-viewer-media{width:100%;height:100%;object-fit:cover;display:block;background:#08070c}
+.story-viewer-text-only{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;background:radial-gradient(ellipse at 20% 20%,#8e67c7,#38294f 55%,#100e18);text-align:center}
+.story-viewer-text-only span{font-size:48px}.story-viewer-text-only p{font-size:clamp(25px,6vw,42px);font-weight:800;max-width:18ch;white-space:pre-wrap}
+.story-viewer-progress{position:absolute;z-index:5;top:max(10px,env(safe-area-inset-top));left:12px;right:12px;display:flex;gap:4px}
+.story-progress-segment{height:3px;flex:1;border-radius:8px;background:#ffffff55;overflow:hidden}
+.story-progress-segment i{display:block;width:0;height:100%;background:#fff}
+.story-progress-segment i.done{width:100%}
+.story-progress-segment i.current{width:100%;transform-origin:left;animation:story-progress-fill 6.5s linear forwards}
+@keyframes story-progress-fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.story-viewer-header{position:absolute;z-index:6;top:calc(max(20px,env(safe-area-inset-top)) + 10px);left:14px;right:14px;display:flex;align-items:center;gap:9px;text-shadow:0 1px 8px #0009}
+.story-viewer-avatar{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:linear-gradient(135deg,#b9aaff,#e78ec5);color:#211d32;font-weight:900}
+.story-viewer-author{font-size:14px;font-weight:800;flex:1}.story-viewer-author small{font-weight:500;color:#ffffffc9}
+.story-viewer-action{width:38px;height:38px;display:grid;place-items:center;border:0;border-radius:50%;background:#17151c88;color:#fff;font-size:20px;backdrop-filter:blur(10px)}
+.story-delete-action{font-size:22px}
+.story-viewer-tap{position:absolute;z-index:3;top:18%;bottom:18%;width:34%;border:0;background:transparent}
+.story-viewer-prev{left:0}.story-viewer-next{right:0;width:66%}
+.story-viewer-bottom{position:absolute;z-index:6;left:0;right:0;bottom:0;padding:28px 16px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#0009 25%,#000c)}
+.story-viewer-caption{margin:0 0 10px;white-space:pre-wrap;font-size:16px;text-shadow:0 1px 5px #000}
+.story-viewer-audio{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:9px;font-size:12px;font-weight:700}
+.story-viewer-audio audio{width:min(280px,100%);height:34px}
+.story-viewer-footer{font-size:10px;color:#ffffffa8;letter-spacing:.4px}
+@media(min-width:720px){.story-viewer-shell{max-width:520px;margin:0 auto;height:100dvh}.story-viewer-media{object-fit:contain}.story-viewer-stage{background:#08070c}}
+@media(prefers-reduced-motion:reduce){.story-progress-segment i.current{animation:none;width:100%}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -1899,28 +1928,95 @@ function renderStories(){
     all.innerHTML=cards||'<div class="notice small">Aucun instant actif pour le moment. Publie ta première story pour la voir apparaître ici.</div>';
   }
 }
-async function viewStory(id){
-  const story=museaStoriesCache.find(x=>x.id===id);
-  if(!story)return toast('Cet instant n’est plus disponible.');
-  const modal=document.getElementById('museaStoryViewer')||document.createElement('div');
-  modal.id='museaStoryViewer';modal.className='modal';
+let storyViewerIndex=0,storyViewerTimer=null,storyViewerPointerX=null;
+function closeStoryViewer(){
+  if(storyViewerTimer){clearTimeout(storyViewerTimer);storyViewerTimer=null;}
+  const modal=document.getElementById('museaStoryViewer');
+  const audio=modal?.querySelector('audio');if(audio){audio.pause();audio.src='';}
+  const video=modal?.querySelector('video');if(video){video.pause();video.src='';}
+  modal?.remove();
+  document.body.classList.remove('story-viewer-open');
+}
+function storyViewerStep(direction){
+  if(storyViewerTimer){clearTimeout(storyViewerTimer);storyViewerTimer=null;}
+  const next=storyViewerIndex+direction;
+  if(next<0||next>=museaStoriesCache.length){closeStoryViewer();return;}
+  openStoryAt(next);
+}
+function storyPointerStart(event){storyViewerPointerX=event.clientX;}
+function storyPointerEnd(event){
+  if(storyViewerPointerX===null)return;
+  const delta=event.clientX-storyViewerPointerX;storyViewerPointerX=null;
+  if(Math.abs(delta)>55)storyViewerStep(delta<0?1:-1);
+}
+async function openStoryAt(index){
+  const stories=museaStoriesCache||[];
+  if(index<0||index>=stories.length){closeStoryViewer();return;}
+  storyViewerIndex=index;
+  const story=stories[index];
+  if(storyViewerTimer){clearTimeout(storyViewerTimer);storyViewerTimer=null;}
   let media='',audio='';
   if(story.media_path){
     const {data,error}=await museaSupabase.storage.from('musea-stories').createSignedUrl(story.media_path,3600);
-    if(error){console.error('Lecture du média story:',error);return toast('Ce média est momentanément inaccessible.');}
-    const url=data.signedUrl,filter=storyFilterCss(story.visual_filter||'original');
+    if(error){console.error('Lecture du média story:',error);toast('Ce média est momentanément inaccessible.');return;}
+    const url=escapeHtml(data.signedUrl),filter=storyFilterCss(story.visual_filter||'original');
     media=story.media_type==='video'
-      ?'<video controls playsinline style="width:100%;max-height:58vh;border-radius:16px;background:#000;filter:'+filter+'" src="'+escapeHtml(url)+'"></video>'
-      :'<img alt="Média de l’instant" src="'+escapeHtml(url)+'" style="width:100%;max-height:58vh;object-fit:contain;border-radius:16px;background:#000;filter:'+filter+'">';
-  }
+      ?'<video class="story-viewer-media" autoplay playsinline controls onended="storyViewerStep(1)" style="filter:'+filter+'" src="'+url+'"></video>'
+      :'<img class="story-viewer-media" alt="Story MUSEA" style="filter:'+filter+'" src="'+url+'">';
+  }else media='<div class="story-viewer-text-only"><span>✳</span><p>'+escapeHtml(story.caption||'Un instant MUSEA')+'</p></div>';
   if(story.audio_path){
     const {data,error}=await museaSupabase.storage.from('musea-stories').createSignedUrl(story.audio_path,3600);
-    if(error){console.error('Lecture du son story:',error);return toast('Le son de cet instant est momentanément inaccessible.');}
-    audio='<div class="story-audio-player"><div class="small muted">♫ Son ajouté</div><audio controls preload="metadata" src="'+escapeHtml(data.signedUrl)+'"></audio></div>';
+    if(error){console.error('Lecture du son story:',error);toast('Le son de cet instant est momentanément inaccessible.');return;}
+    audio='<div class="story-viewer-audio"><span>♫ Son de la story</span><audio controls preload="metadata" src="'+escapeHtml(data.signedUrl)+'"></audio></div>';
   }
-  modal.innerHTML='<div class="modalbox" role="dialog" aria-modal="true" aria-label="Instant MUSEA"><div class="row between"><div class="eyebrow">INSTANT MUSEA</div><button class="iconbtn" onclick="document.getElementById(\'museaStoryViewer\').remove()" aria-label="Fermer">✕</button></div>'+media+audio+'<p style="white-space:pre-wrap;font-size:18px;margin:16px 0">'+escapeHtml(story.caption||'')+'</p><p class="small muted">Cet instant disparaît automatiquement après 24 heures.</p></div>';
+  const isOwn=story.user_id===museaCurrentUserId;
+  const segments=stories.map((item,i)=>'<span class="story-progress-segment"><i class="'+(i<index?'done':i===index?'current':'')+'"></i></span>').join('');
+  const modal=document.getElementById('museaStoryViewer')||document.createElement('div');
+  modal.id='museaStoryViewer';modal.className='modal story-viewer-modal';
+  modal.innerHTML='<div class="story-viewer-shell" role="dialog" aria-modal="true" aria-label="Story MUSEA" onpointerdown="storyPointerStart(event)" onpointerup="storyPointerEnd(event)">'+
+    '<div class="story-viewer-progress">'+segments+'</div>'+
+    '<header class="story-viewer-header"><div class="story-viewer-avatar">'+(isOwn?'✦':'✳')+'</div><div class="story-viewer-author">'+(isOwn?'Ta story':'Instant MUSEA')+'<small> · '+new Date(story.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'</small></div>'+
+    (isOwn?'<button class="story-viewer-action story-delete-action" onclick="deleteStory(\\''+String(story.id)+'\\')" aria-label="Supprimer ma story" title="Supprimer">⌫</button>':'')+
+    '<button class="story-viewer-action" onclick="closeStoryViewer()" aria-label="Fermer" title="Fermer">✕</button></header>'+
+    '<div class="story-viewer-stage">'+media+'<button class="story-viewer-tap story-viewer-prev" onclick="storyViewerStep(-1)" aria-label="Story précédente"></button><button class="story-viewer-tap story-viewer-next" onclick="storyViewerStep(1)" aria-label="Story suivante"></button></div>'+
+    '<div class="story-viewer-bottom">'+(story.caption&&story.media_path?'<p class="story-viewer-caption">'+escapeHtml(story.caption)+'</p>':'')+audio+'<div class="story-viewer-footer">MUSEA · Les instants disparaissent après 24 h</div></div></div>';
   if(!modal.isConnected)document.body.appendChild(modal);
+  document.body.classList.add('story-viewer-open');
+  const video=modal.querySelector('video');
+  if(video)video.play().catch(()=>{});
+  else storyViewerTimer=setTimeout(()=>storyViewerStep(1),6500);
 }
+function viewStory(id){
+  const index=museaStoriesCache.findIndex(x=>String(x.id)===String(id));
+  if(index<0)return toast('Cet instant n’est plus disponible.');
+  openStoryAt(index);
+}
+async function deleteStory(id){
+  const story=museaStoriesCache.find(x=>String(x.id)===String(id));
+  if(!story||story.user_id!==museaCurrentUserId)return toast('Tu ne peux supprimer que tes propres stories.');
+  if(!confirm('Supprimer définitivement cette story ?'))return;
+  try{
+    const {data:authData,error:authError}=await museaSupabase.auth.getUser();
+    if(authError||authData?.user?.id!==story.user_id)throw new Error('Reconnecte-toi pour supprimer cette story.');
+    const {error}=await museaSupabase.from('stories').delete().eq('id',story.id).eq('user_id',story.user_id);
+    if(error)throw error;
+    const paths=[story.media_path,story.audio_path].filter(Boolean);
+    if(paths.length){
+      const {error:storageError}=await museaSupabase.storage.from('musea-stories').remove(paths);
+      if(storageError)console.warn('Nettoyage des médias story :',storageError);
+    }
+    museaStoriesCache=museaStoriesCache.filter(x=>String(x.id)!==String(id));
+    renderStories();
+    if(storyViewerTimer){clearTimeout(storyViewerTimer);storyViewerTimer=null;}
+    if(museaStoriesCache.length)openStoryAt(Math.min(storyViewerIndex,museaStoriesCache.length-1));
+    else closeStoryViewer();
+    toast('Story supprimée.');
+  }catch(error){
+    console.error('Suppression story:',error);
+    toast('Impossible de supprimer la story : '+(error?.message||'réessaie.'));
+  }
+}
+
 let museaTusModulePromise=null;
 async function uploadMuseaStoryMedia(file,path){
   const bucket=museaSupabase.storage.from('musea-stories');
