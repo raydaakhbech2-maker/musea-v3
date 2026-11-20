@@ -1976,7 +1976,7 @@ async function openStoryAt(index){
   modal.innerHTML='<div class="story-viewer-shell" role="dialog" aria-modal="true" aria-label="Story MUSEA" onpointerdown="storyPointerStart(event)" onpointerup="storyPointerEnd(event)">'+
     '<div class="story-viewer-progress">'+segments+'</div>'+
     '<header class="story-viewer-header"><div class="story-viewer-avatar">'+(isOwn?'✦':'✳')+'</div><div class="story-viewer-author">'+(isOwn?'Ta story':'Instant MUSEA')+'<small> · '+new Date(story.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'</small></div>'+
-    (isOwn?'<button class="story-viewer-action story-delete-action" data-story-delete="1" aria-label="Supprimer ma story" title="Supprimer">⌫</button>':'')+
+    (isOwn?'<button class="story-viewer-action story-delete-action" data-story-delete="1" aria-label="Supprimer ma story" title="Supprimer">🗑</button>':'')+
     '<button class="story-viewer-action" onclick="closeStoryViewer()" aria-label="Fermer" title="Fermer">✕</button></header>'+
     '<div class="story-viewer-stage">'+media+'<button class="story-viewer-tap story-viewer-prev" onclick="storyViewerStep(-1)" aria-label="Story précédente"></button><button class="story-viewer-tap story-viewer-next" onclick="storyViewerStep(1)" aria-label="Story suivante"></button></div>'+
     '<div class="story-viewer-bottom">'+(story.caption&&story.media_path?'<p class="story-viewer-caption">'+escapeHtml(story.caption)+'</p>':'')+audio+'<div class="story-viewer-footer">MUSEA · Les instants disparaissent après 24 h</div></div></div>';
@@ -1985,8 +1985,13 @@ async function openStoryAt(index){
   if(deleteButton)deleteButton.onclick=()=>deleteStory(story.id);
   document.body.classList.add('story-viewer-open');
   const video=modal.querySelector('video');
-  if(video)video.play().catch(()=>{});
-  else storyViewerTimer=setTimeout(()=>storyViewerStep(1),6500);
+  if(video){
+    video.addEventListener('loadedmetadata',()=>{
+      const active=modal.querySelector('.story-progress-segment i.current');
+      if(active&&Number.isFinite(video.duration))active.style.animationDuration=video.duration+'s';
+    },{once:true});
+    video.play().catch(()=>{});
+  }else storyViewerTimer=setTimeout(()=>storyViewerStep(1),6500);
 }
 function viewStory(id){
   const index=museaStoriesCache.findIndex(x=>String(x.id)===String(id));
