@@ -429,6 +429,34 @@ body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibi
 @media(prefers-reduced-motion:reduce){
  .card,.btn,.iconbtn,.chip,.bottom button{transition:none}
 }
+/* MUSEA EXPERIENCE UPDATE — hierarchy, navigation and story composer */
+.home-welcome{position:relative;overflow:hidden;margin:0 0 16px;padding:clamp(20px,4vw,30px);border-radius:24px;background:radial-gradient(circle at 90% 10%,rgba(240,183,157,.24),transparent 28%),linear-gradient(125deg,#211b32 0%,#403365 62%,#765bd0 100%);color:#fff;box-shadow:var(--shadow-raised)}
+.home-welcome:after{content:"M";position:absolute;right:18px;bottom:-55px;font-size:190px;line-height:1;font-weight:900;color:rgba(255,255,255,.045);pointer-events:none}
+.home-welcome .eyebrow{color:#d9d0ff}.home-welcome-main{position:relative;z-index:1;align-items:center;gap:14px}
+.home-welcome-copy{min-width:0;max-width:560px}.home-welcome .home-title{font-size:clamp(27px,5vw,39px);max-width:15ch;margin:8px 0 9px;line-height:1.05;letter-spacing:-.045em}
+.home-welcome p{margin:0;color:#e9e3f7;max-width:46ch;font-size:14px}.home-welcome .btn.primary{background:#fff;color:#43336d;border-color:#fff;white-space:nowrap}
+.home-shortcuts{position:relative;z-index:1;display:flex;gap:8px;flex-wrap:wrap;margin-top:17px}.home-shortcuts .btn{min-height:37px;background:#ffffff14;border-color:#ffffff45;color:#fff;font-size:12px;padding:8px 12px}
+.home-stories-section{margin:0 0 17px;padding:15px 16px 5px;border:1px solid var(--line);border-radius:20px;background:var(--card)}
+.home-section-heading{margin-bottom:8px}.home-section-heading .h2,.home-stories-section .h2{font-size:19px;margin:2px 0 0}
+.home-stories-section .storyrow{padding:9px 2px 10px;border:0}.home-feed-section{padding-top:2px}
+.home-feed-section>.home-section-heading{margin:4px 2px 10px}.home-feed-modes{gap:6px;margin:10px 0}
+.home-mode{padding:9px 7px;align-items:center;text-align:center;border-radius:13px}.home-mode strong{font-size:12px}.home-mode.active{background:var(--accent2);border-color:var(--accent);color:var(--accent-strong)}
+.home-search-wrap{margin:10px 0}.home-search-wrap .field{background:var(--card)}
+.discovery-quick-links{margin-top:14px}.discovery-quick-links .btn{font-size:12px;min-height:38px}
+.story-page-intro{padding:20px 20px 18px;margin-bottom:13px;border-radius:22px;background:linear-gradient(125deg,#211b32,#49396f 65%,#765bd0);color:#fff}
+.story-page-intro .eyebrow{color:#d9d0ff}.story-page-intro .h1{font-size:clamp(26px,5vw,36px);margin:7px 0}.story-page-intro p{margin:0;color:#e9e3f7;max-width:55ch}
+.story-composer .h2,.story-gallery-card .h2{margin:5px 0 12px;font-size:19px}.story-file-input{padding:9px;background:var(--surface)}
+.story-upload-hint{margin:8px 0 4px;line-height:1.5}.story-upload-progress{display:block;width:100%;height:9px;margin:12px 0 6px;accent-color:var(--accent);border:0;border-radius:99px;overflow:hidden}.story-upload-progress[hidden]{display:none}
+#storyUploadStatus{min-height:16px;margin:7px 0 0}.story-gallery-card .storyrow{padding:10px 0 2px}
+@media(max-width:560px){
+ .home-welcome{padding:20px 17px;border-radius:20px}.home-welcome-main{align-items:flex-start;flex-direction:column}.home-welcome .home-title{max-width:14ch;font-size:30px}.home-welcome .btn.primary{align-self:flex-start}
+ .home-shortcuts{margin-top:13px}.home-shortcuts .btn{flex:1;justify-content:center;font-size:11px;padding-inline:8px}
+ .home-stories-section{padding:13px 12px 4px}.home-section-heading .btn{min-height:36px;padding:7px 10px;font-size:11px}
+ .home-feed-modes{grid-template-columns:repeat(3,minmax(0,1fr))}.home-mode{padding:10px 3px}.home-mode strong{font-size:11px}
+ .story-page-intro{padding:18px 16px}.story-composer,.story-gallery-card{padding:15px 13px}
+ .discovery-quick-links .btn{flex:1;justify-content:center}
+}
+@media(min-width:720px){.home-welcome{margin-top:2px}.home-stories-section{padding-inline:20px}.story-page-intro{padding:26px}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
