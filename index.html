@@ -671,8 +671,9 @@ window.museaSupabase = window.supabase.createClient(
 <section class="screen" id="screen-stories">
   <div class="card stories-page-hero"><div class="eyebrow">MUSEA / INSTANTS</div><h2 class="h1">Les instants créatifs.</h2><p class="muted">Partage un aperçu, une étape de création ou une inspiration. Chaque instant reste visible pendant 24 heures.</p>
   <div class="storyrow" id="allStories"></div>
-  <label class="label" for="storyText">Préparer un instant</label><input class="field" id="storyText" maxlength="240" placeholder="Une idée, un making-of, une inspiration…">
-  <p class="small muted">Ton instant sera partagé avec les personnes autorisées à voir ton profil et expirera automatiquement après 24 heures.</p>
+  <label class="label" for="storyText">Une légende (facultatif si tu ajoutes un média)</label><input class="field" id="storyText" maxlength="240" placeholder="Une idée, un making-of, une inspiration…">
+  <label class="label" for="storyMedia">Photo ou vidéo</label><input class="field" id="storyMedia" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm">
+  <p class="small muted">Ajoute du texte, une photo ou une vidéo (20 Mo maximum). Ton instant expire après 24 heures.</p>
   <button class="btn primary full" style="margin-top:10px" onclick="addStory()">＋ Publier mon instant</button></div>
 </section>
 <section class="screen" id="screen-messages">
@@ -1783,27 +1784,53 @@ function renderStories(){
   const ownHtml='<button class="story story-own" onclick="navigate(&quot;stories&quot;)"><span class="story-ring"><span>＋</span></span><span>'+ownLabel+'</span></button>';
   const otherHtml=others.map(x=>'<button class="story" onclick="viewStory(\''+escapeHtml(x.id)+'\')"><span class="story-ring"><span>✳</span></span><span>'+escapeHtml(String(x.caption||'Instant').slice(0,24))+'</span></button>').join('');
   const html=ownHtml+otherHtml;
-  const row=document.getElementById('storyRow');if(row)row.innerHTML=html;
-  const all=document.getElementById('allStories');if(all)all.innerHTML=html||'<p class="small muted">Aucun instant actif pour le moment.</p>';
-}
-async function viewStory(id){
+  const row=document.getElementByasync function viewStory(id){
   const story=museaStoriesCache.find(x=>x.id===id);
   if(!story)return toast('Cet instant n’est plus disponible.');
   const modal=document.getElementById('museaStoryViewer')||document.createElement('div');
   modal.id='museaStoryViewer';modal.className='modal';
-  modal.innerHTML='<div class="modalbox" role="dialog" aria-modal="true" aria-label="Instant MUSEA"><div class="row between"><div class="eyebrow">INSTANT MUSEA</div><button class="iconbtn" onclick="document.getElementById(\'museaStoryViewer\').remove()" aria-label="Fermer">✕</button></div><p style="white-space:pre-wrap;font-size:18px;margin:22px 0">'+escapeHtml(story.caption||'')+'</p><p class="small muted">Cet instant disparaît automatiquement après 24 heures.</p></div>';
+  let media='';
+  if(story.media_path){
+    const {data,error}=await museaSupabase.storage.from('musea-stories').createSignedUrl(story.media_path,3600);
+    if(error){console.error('Lecture du média story:',error);return toast('Ce média est momentanément inaccessible.');}
+    const url=data.signedUrl;
+    media=story.media_type==='video'
+      ?'<video controls playsinline style="width:100%;max-height:58vh;border-radius:16px;background:#000" src="'+escapeHtml(url)+'"></video>'
+      :'<img alt="Média de l’instant" src="'+escapeHtml(url)+'" style="width:100%;max-height:58vh;object-fit:contain;border-radius:16px;background:#000">';
+  }
+  modal.innerHTML='<div class="modalbox" role="dialog" aria-modal="true" aria-label="Instant MUSEA"><div class="row between"><div class="eyebrow">INSTANT MUSEA</div><button class="iconbtn" onclick="document.getElementById(\'museaStoryViewer\').remove()" aria-label="Fermer">✕</button></div>'+media+'<p style="white-space:pre-wrap;font-size:18px;margin:16px 0">'+escapeHtml(story.caption||'')+'</p><p class="small muted">Cet instant disparaît automatiquement après 24 heures.</p></div>';
   if(!modal.isConnected)document.body.appendChild(modal);
 }
 async function addStory(){
   const input=document.getElementById('storyText');
-  const value=input?.value.trim();
-  if(!value)return toast('Ajoute un texte avant de le publier.');
-  if(value.length>500)return toast('500 caractères maximum.');
+  const value=input?.value.trim()||'';
+  const mediaInput=document.getElementById('storyMedia');
+  const file=mediaInput?.files?.[0]||null;
+  if(!value&&!file)return toast('Ajoute un texte ou une photo/vidéo.');
+  if(value.length>240)return toast('240 caractères maximum.');
+  if(file&&file.size>20*1024*1024)return toast('Le média dépasse la limite de 20 Mo.');
+  const allowed=['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm'];
+  if(file&&!allowed.includes(file.type))return toast('Format non pris en charge. Utilise JPG, PNG, WebP, GIF, MP4 ou WebM.');
   const {data,error:authError}=await museaSupabase.auth.getUser();
   if(authError||!data?.user)return toast('Connecte-toi pour publier un instant.');
-  const {error}=await museaSupabase.from('stories').insert({user_id:data.user.id,caption:value});
-  if(error){console.error('Publication story:',error);return toast('Publication impossible. Vérifie que la mise à jour sociale est activée.');}
-  input.value='';
+  const user=data.user;
+  let mediaPath=null,mediaType=null;
+  if(file){
+    const ext=({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/webm':'webm'})[file.type];
+    mediaPath='stories/'+user.id+'/'+Date.now()+'.'+ext;
+    mediaType=file.type.startsWith('video/')?'video':'image';
+    const {error:uploadError}=await museaSupabase.storage.from('musea-stories').upload(mediaPath,file,{contentType:file.type,cacheControl:'3600',upsert:false});
+    if(uploadError){console.error('Envoi du média story:',uploadError);return toast('Envoi du média impossible : '+uploadError.message);}
+  }
+  const {error}=await museaSupabase.from('stories').insert({
+    user_id:user.id,caption:value||null,media_path:mediaPath,media_type:mediaType,
+    created_at:new Date().toISOString(),expires_at:new Date(Date.now()+24*60*60*1000).toISOString()
+  });
+  if(error){
+    if(mediaPath)await museaSupabase.storage.from('musea-stories').remove([mediaPath]);
+    console.error('Publication story:',error);return toast('Publication impossible : '+error.message);
+  }
+  input.value='';if(mediaInput)mediaInput.value='';
   await loadStories().catch(error=>{console.error(error);toast('Instant publié, mais actualisation impossible.');});
   toast('Ton instant est publié pour 24 heures.');
 }
