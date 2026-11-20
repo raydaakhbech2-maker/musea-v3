@@ -448,6 +448,10 @@ body{min-width:320px;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibi
 .story-composer .h2,.story-gallery-card .h2{margin:5px 0 12px;font-size:19px}.story-file-input{padding:9px;background:var(--surface)}
 .story-upload-hint{margin:8px 0 4px;line-height:1.5}.story-upload-progress{display:block;width:100%;height:9px;margin:12px 0 6px;accent-color:var(--accent);border:0;border-radius:99px;overflow:hidden}.story-upload-progress[hidden]{display:none}
 #storyUploadStatus{min-height:16px;margin:7px 0 0}.story-gallery-card .storyrow{padding:10px 0 2px}
+.story-editor-preview{display:grid;gap:10px;min-height:68px;margin:12px 0;padding:12px;border:1px dashed var(--line);border-radius:16px;background:var(--surface);place-items:center;overflow:hidden}
+.story-editor-preview img,.story-editor-preview video{display:block;width:100%}
+.story-audio-preview,.story-audio-player{display:grid;gap:8px;padding:11px;margin-top:10px;border:1px solid var(--line);border-radius:13px;background:var(--surface)}
+.story-audio-preview audio,.story-audio-player audio{width:100%;max-width:100%}
 @media(max-width:560px){
  .home-welcome{padding:20px 17px;border-radius:20px}.home-welcome-main{align-items:flex-start;flex-direction:column}.home-welcome .home-title{max-width:14ch;font-size:30px}.home-welcome .btn.primary{align-self:flex-start}
  .home-shortcuts{margin-top:13px}.home-shortcuts .btn{flex:1;justify-content:center;font-size:11px;padding-inline:8px}
@@ -721,9 +725,17 @@ window.museaSupabase = window.supabase.createClient(
     <h2 class="h2">Que souhaites-tu partager ?</h2>
     <label class="label" for="storyText">Une légende <span class="muted">(facultatif)</span></label>
     <input class="field" id="storyText" maxlength="240" placeholder="Raconte ce qui se passe dans ton atelier…">
-    <label class="label" for="storyMedia">Ajouter une photo ou une vidéo</label>
-    <input class="field story-file-input" id="storyMedia" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm">
-    <p class="small muted story-upload-hint">Jusqu’à 50 Mo par fichier sur l’offre actuelle. Pour les vidéos plus lourdes, l’hébergement devra être augmenté.</p>
+    <label class="label" for="storyMedia">1. Photo ou vidéo</label>
+    <input class="field story-file-input" id="storyMedia" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onchange="storyUpdatePreview()">
+    <label class="label" for="storyAudio">2. Ajouter un son (facultatif)</label>
+    <input class="field story-file-input" id="storyAudio" type="file" accept="audio/mpeg,audio/mp3,audio/mp4,audio/m4a,audio/aac,audio/ogg,audio/wav,audio/x-wav,audio/webm,.mp3,.m4a,.aac,.ogg,.wav" onchange="storyUpdatePreview()">
+    <p class="small muted story-upload-hint">Ajoute un fichier audio que tu as créé ou que tu as le droit d’utiliser. Taille maximale du son : 15 Mo.</p>
+    <label class="label" for="storyFilter">3. Ambiance visuelle</label>
+    <select class="field" id="storyFilter" onchange="storyUpdatePreview()">
+      <option value="original">Original</option><option value="warm">Chaleureux</option><option value="mono">Noir et blanc</option><option value="vivid">Vif</option><option value="cinema">Cinéma</option>
+    </select>
+    <div id="storyMediaPreview" class="story-editor-preview" aria-live="polite"><span class="small muted">L’aperçu de ton instant apparaîtra ici.</span></div>
+    <p class="small muted story-upload-hint">Jusqu’à 50 Mo pour la photo ou la vidéo. Les stories disparaissent après 24 h.</p>
     <progress id="storyUploadProgress" class="story-upload-progress" max="100" value="0" hidden></progress>
     <p id="storyUploadStatus" class="small muted" role="status" aria-live="polite"></p>
     <button class="btn primary full" id="storyPublishButton" style="margin-top:10px" onclick="addStory()">＋ Publier mon instant</button>
@@ -1838,38 +1850,75 @@ async function renderDiscover(){
 }
 function setDiscover(k,b){discoverKind=k;document.querySelectorAll('#discoverCategoryFilters .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');renderDiscover()}
 let museaStoriesCache=[];
+let storyMediaPreviewUrl=null,storyAudioPreviewUrl=null;
+function storyFilterCss(value){
+  return ({warm:'sepia(.2) saturate(1.2)',mono:'grayscale(1)',vivid:'saturate(1.45) contrast(1.08)',cinema:'contrast(1.15) saturate(.82)',original:'none'})[value]||'none';
+}
+function storyUpdatePreview(){
+  const host=document.getElementById('storyMediaPreview');
+  if(!host)return;
+  if(storyMediaPreviewUrl){URL.revokeObjectURL(storyMediaPreviewUrl);storyMediaPreviewUrl=null;}
+  if(storyAudioPreviewUrl){URL.revokeObjectURL(storyAudioPreviewUrl);storyAudioPreviewUrl=null;}
+  const media=document.getElementById('storyMedia')?.files?.[0]||null;
+  const audio=document.getElementById('storyAudio')?.files?.[0]||null;
+  const filter=storyFilterCss(document.getElementById('storyFilter')?.value||'original');
+  let html='';
+  if(media){
+    storyMediaPreviewUrl=URL.createObjectURL(media);
+    html+=media.type.startsWith('video/')
+      ?'<video controls playsinline src="'+storyMediaPreviewUrl+'" style="width:100%;max-height:260px;object-fit:contain;border-radius:14px;filter:'+filter+'"></video>'
+      :'<img alt="Aperçu de ta story" src="'+storyMediaPreviewUrl+'" style="width:100%;max-height:260px;object-fit:contain;border-radius:14px;filter:'+filter+'">';
+  }
+  if(audio){
+    storyAudioPreviewUrl=URL.createObjectURL(audio);
+    html+='<div class="story-audio-preview"><strong>♫ '+escapeHtml(audio.name)+'</strong><audio controls preload="metadata" src="'+storyAudioPreviewUrl+'"></audio></div>';
+  }
+  host.innerHTML=html||'<span class="small muted">L’aperçu de ton instant apparaîtra ici.</span>';
+}
 async function loadStories(){
-  const {data,error}=await museaSupabase.from('stories').select('id,user_id,caption,media_path,media_type,created_at,expires_at').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false}).limit(60);
+  const {data,error}=await museaSupabase.from('stories').select('id,user_id,caption,media_path,media_type,audio_path,audio_type,visual_filter,created_at,expires_at').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false}).limit(60);
   if(error)throw error;
   museaStoriesCache=data||[];
   renderStories();
+}
+function storyCardMarkup(story,isOwn){
+  const label=escapeHtml(String(story.caption||(isOwn?'Ton instant':'Instant')).slice(0,24));
+  const id=String(story.id||'');
+  return '<button class="story '+(isOwn?'story-own':'')+'" onclick="viewStory(\\''+id+'\\')"><span class="story-ring"><span>'+(isOwn?'✦':'✳')+'</span></span><span>'+label+'</span></button>';
 }
 function renderStories(){
   const stories=Array.isArray(museaStoriesCache)?museaStoriesCache:[];
   const own=stories.filter(x=>x.user_id===museaCurrentUserId);
   const others=stories.filter(x=>x.user_id!==museaCurrentUserId);
-  const ownLabel=own.length?escapeHtml(String(own[0].caption||'Ton instant').slice(0,24)):'Ton instant';
-  const ownHtml='<button class="story story-own" onclick="navigate(&quot;stories&quot;)"><span class="story-ring"><span>＋</span></span><span>'+ownLabel+'</span></button>';
-  const otherHtml=others.map(x=>'<button class="story" onclick="viewStory(\''+escapeHtml(x.id)+'\')"><span class="story-ring"><span>✳</span></span><span>'+escapeHtml(String(x.caption||'Instant').slice(0,24))+'</span></button>').join('');
-  const html=ownHtml+otherHtml;
-  const row=document.getElementById('storyRow');if(row)row.innerHTML=html;
-  const all=document.getElementById('allStories');if(all)all.innerHTML=html||'<p class="small muted">Aucun instant actif pour le moment.</p>';
+  const ownHtml=own.length?storyCardMarkup(own[0],true):'<button class="story story-own" onclick="navigate(\\'stories\\')"><span class="story-ring"><span>＋</span></span><span>Ton instant</span></button>';
+  const row=document.getElementById('storyRow');
+  if(row)row.innerHTML=ownHtml+others.map(x=>storyCardMarkup(x,false)).join('');
+  const all=document.getElementById('allStories');
+  if(all){
+    const cards=stories.map(x=>storyCardMarkup(x,x.user_id===museaCurrentUserId)).join('');
+    all.innerHTML=cards||'<div class="notice small">Aucun instant actif pour le moment. Publie ta première story pour la voir apparaître ici.</div>';
+  }
 }
 async function viewStory(id){
   const story=museaStoriesCache.find(x=>x.id===id);
   if(!story)return toast('Cet instant n’est plus disponible.');
   const modal=document.getElementById('museaStoryViewer')||document.createElement('div');
   modal.id='museaStoryViewer';modal.className='modal';
-  let media='';
+  let media='',audio='';
   if(story.media_path){
     const {data,error}=await museaSupabase.storage.from('musea-stories').createSignedUrl(story.media_path,3600);
     if(error){console.error('Lecture du média story:',error);return toast('Ce média est momentanément inaccessible.');}
-    const url=data.signedUrl;
+    const url=data.signedUrl,filter=storyFilterCss(story.visual_filter||'original');
     media=story.media_type==='video'
-      ?'<video controls playsinline style="width:100%;max-height:58vh;border-radius:16px;background:#000" src="'+escapeHtml(url)+'"></video>'
-      :'<img alt="Média de l’instant" src="'+escapeHtml(url)+'" style="width:100%;max-height:58vh;object-fit:contain;border-radius:16px;background:#000">';
+      ?'<video controls playsinline style="width:100%;max-height:58vh;border-radius:16px;background:#000;filter:'+filter+'" src="'+escapeHtml(url)+'"></video>'
+      :'<img alt="Média de l’instant" src="'+escapeHtml(url)+'" style="width:100%;max-height:58vh;object-fit:contain;border-radius:16px;background:#000;filter:'+filter+'">';
   }
-  modal.innerHTML='<div class="modalbox" role="dialog" aria-modal="true" aria-label="Instant MUSEA"><div class="row between"><div class="eyebrow">INSTANT MUSEA</div><button class="iconbtn" onclick="document.getElementById(\'museaStoryViewer\').remove()" aria-label="Fermer">✕</button></div>'+media+'<p style="white-space:pre-wrap;font-size:18px;margin:16px 0">'+escapeHtml(story.caption||'')+'</p><p class="small muted">Cet instant disparaît automatiquement après 24 heures.</p></div>';
+  if(story.audio_path){
+    const {data,error}=await museaSupabase.storage.from('musea-stories').createSignedUrl(story.audio_path,3600);
+    if(error){console.error('Lecture du son story:',error);return toast('Le son de cet instant est momentanément inaccessible.');}
+    audio='<div class="story-audio-player"><div class="small muted">♫ Son ajouté</div><audio controls preload="metadata" src="'+escapeHtml(data.signedUrl)+'"></audio></div>';
+  }
+  modal.innerHTML='<div class="modalbox" role="dialog" aria-modal="true" aria-label="Instant MUSEA"><div class="row between"><div class="eyebrow">INSTANT MUSEA</div><button class="iconbtn" onclick="document.getElementById(\\'museaStoryViewer\\').remove()" aria-label="Fermer">✕</button></div>'+media+audio+'<p style="white-space:pre-wrap;font-size:18px;margin:16px 0">'+escapeHtml(story.caption||'')+'</p><p class="small muted">Cet instant disparaît automatiquement après 24 heures.</p></div>';
   if(!modal.isConnected)document.body.appendChild(modal);
 }
 let museaTusModulePromise=null;
@@ -1916,42 +1965,71 @@ async function uploadMuseaStoryMedia(file,path){
 async function addStory(){
   const input=document.getElementById('storyText');
   const mediaInput=document.getElementById('storyMedia');
+  const audioInput=document.getElementById('storyAudio');
   const button=document.getElementById('storyPublishButton');
   const status=document.getElementById('storyUploadStatus');
   const progress=document.getElementById('storyUploadProgress');
   const value=input?.value.trim()||'';
   const file=mediaInput?.files?.[0]||null;
-  if(!value&&!file)return toast('Ajoute un texte ou une photo/vidéo.');
+  const audioFile=audioInput?.files?.[0]||null;
+  const filter=document.getElementById('storyFilter')?.value||'original';
+  if(!value&&!file&&!audioFile)return toast('Ajoute un texte, une photo/vidéo ou un son.');
   if(value.length>240)return toast('240 caractères maximum.');
   if(file&&file.size>50*1024*1024)return toast('Le fichier dépasse 50 Mo, la limite actuelle de stockage de MUSEA.');
+  if(audioFile&&audioFile.size>15*1024*1024)return toast('Le fichier audio dépasse 15 Mo.');
   const allowed=['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm'];
   if(file&&!allowed.includes(file.type))return toast('Format non pris en charge. Utilise JPG, PNG, WebP, GIF, MP4 ou WebM.');
+  const audioExtByType={'audio/mpeg':'mp3','audio/mp3':'mp3','audio/mp4':'m4a','audio/m4a':'m4a','audio/x-m4a':'m4a','audio/aac':'aac','audio/ogg':'ogg','audio/wav':'wav','audio/x-wav':'wav','audio/webm':'webm'};
+  let audioType=audioFile?.type||'';
+  if(audioFile&&!audioExtByType[audioType]){
+    const ext=(audioFile.name.split('.').pop()||'').toLowerCase();
+    const byExt={mp3:'audio/mpeg',m4a:'audio/mp4',aac:'audio/aac',ogg:'audio/ogg',wav:'audio/wav',webm:'audio/webm'};
+    audioType=byExt[ext]||'';
+  }
+  if(audioFile&&!audioType)return toast('Format audio non pris en charge. Utilise MP3, M4A, AAC, OGG, WAV ou WebM.');
   const {data:authData,error:authError}=await museaSupabase.auth.getUser();
   if(authError||!authData?.user)return toast('Connecte-toi pour publier un instant.');
   const user=authData.user;
-  let mediaPath=null,mediaType=null;
+  let mediaPath=null,mediaType=null,audioPath=null,storySaved=false;
   if(button)button.disabled=true;
-  if(status)status.textContent=file?'Préparation du transfert…':'Publication de ton instant…';
+  if(status)status.textContent=(file||audioFile)?'Préparation du transfert…':'Publication de ton instant…';
   if(progress){progress.hidden=true;progress.value=0;}
   try{
+    const stamp=Date.now();
     if(file){
       const ext=({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/webm':'webm'})[file.type];
-      mediaPath='stories/'+user.id+'/'+Date.now()+'.'+ext;
+      mediaPath='stories/'+user.id+'/'+stamp+'.'+ext;
       mediaType=file.type.startsWith('video/')?'video':'image';
       await uploadMuseaStoryMedia(file,mediaPath);
-      if(status)status.textContent='Média envoyé. Publication en cours…';
+      if(status)status.textContent='Média envoyé. '+(audioFile?'Envoi du son…':'Publication en cours…');
+    }
+    if(audioFile){
+      const ext=audioExtByType[audioFile.type]||(audioFile.name.split('.').pop()||'mp3').toLowerCase();
+      audioPath='stories/'+user.id+'/'+stamp+'-sound.'+ext;
+      await uploadMuseaStoryMedia(audioFile,audioPath);
+      if(status)status.textContent='Son envoyé. Publication en cours…';
     }
     const {error}=await museaSupabase.from('stories').insert({
       user_id:user.id,caption:value||null,media_path:mediaPath,media_type:mediaType,
+      audio_path:audioPath,audio_type:audioType||null,visual_filter:filter,
       created_at:new Date().toISOString(),expires_at:new Date(Date.now()+24*60*60*1000).toISOString()
     });
     if(error)throw error;
-    input.value='';if(mediaInput)mediaInput.value='';
+    storySaved=true;
+    if(input)input.value='';
+    if(mediaInput)mediaInput.value='';
+    if(audioInput)audioInput.value='';
+    const filterInput=document.getElementById('storyFilter');if(filterInput)filterInput.value='original';
+    storyUpdatePreview();
     if(status)status.textContent='Instant publié avec succès.';
-    await loadStories();
+    try{await loadStories();}
+    catch(refreshError){console.warn('Actualisation des stories après publication:',refreshError);if(status)status.textContent='Instant publié. La liste sera actualisée à la prochaine ouverture.';}
     toast('Ton instant est publié pour 24 heures.');
   }catch(error){
-    if(mediaPath)await museaSupabase.storage.from('musea-stories').remove([mediaPath]).catch(()=>{});
+    if(!storySaved){
+      const paths=[mediaPath,audioPath].filter(Boolean);
+      if(paths.length)await museaSupabase.storage.from('musea-stories').remove(paths).catch(()=>{});
+    }
     console.error('Publication story:',error);
     if(status)status.textContent='Publication impossible : '+(error?.message||'erreur inconnue');
     toast('Publication impossible : '+(error?.message||'vérifie ta connexion et réessaie.'));
