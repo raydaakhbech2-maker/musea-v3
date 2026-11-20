@@ -1952,7 +1952,7 @@ async function uploadMuseaStoryMedia(file,path){
       onProgress:(uploaded,total)=>{
         const percent=total?Math.min(100,Math.round(uploaded/total*100)):0;
         if(progress)progress.value=percent;
-        if(status)status.textContent='Envoi du média… '+percent+' %';
+        if(status)status.textContent='Envoi du fichier… '+percent+' %';
       },
       onSuccess:()=>resolve()
     });
@@ -2004,9 +2004,10 @@ async function addStory(){
       if(status)status.textContent='Média envoyé. '+(audioFile?'Envoi du son…':'Publication en cours…');
     }
     if(audioFile){
-      const ext=audioExtByType[audioFile.type]||(audioFile.name.split('.').pop()||'mp3').toLowerCase();
+      const ext=audioExtByType[audioType]||(audioFile.name.split('.').pop()||'mp3').toLowerCase();
+      const normalizedAudioFile=audioType===audioFile.type?audioFile:new File([audioFile],audioFile.name,{type:audioType,lastModified:audioFile.lastModified});
       audioPath='stories/'+user.id+'/'+stamp+'-sound.'+ext;
-      await uploadMuseaStoryMedia(audioFile,audioPath);
+      await uploadMuseaStoryMedia(normalizedAudioFile,audioPath);
       if(status)status.textContent='Son envoyé. Publication en cours…';
     }
     const {error}=await museaSupabase.from('stories').insert({
